@@ -17,9 +17,21 @@
     </app-alert>
   } @else {
     @if (items().length > 0) {
+      @let readIds = readArticleIds();
       <ul class="teaser-grid" role="list">
         @for (article of items(); track article.id) {
-          <li><app-article-list-item [article]="article" /></li>
+          <li>
+            <app-article-card [article]="article" [read]="readIds.has(article.id)">
+              @if (loggedIn()) {
+                <app-reading-list-toggle
+                  cardAction
+                  appearance="icon"
+                  size="sm"
+                  [articleId]="article.id"
+                />
+              }
+            </app-article-card>
+          </li>
         }
       </ul>
     } @else {

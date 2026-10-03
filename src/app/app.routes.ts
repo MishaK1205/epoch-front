@@ -34,6 +34,11 @@ export const routes: Routes = [
         loadChildren: () => import('./features/manage/manage.routes').then((m) => m.MANAGE_ROUTES),
       },
       {
+        path: '',
+        loadChildren: () =>
+          import('./features/library/library.routes').then((m) => m.LIBRARY_ROUTES),
+      },
+      {
         path: '**',
         title: 'გვერდი ვერ მოიძებნა — Epoch',
         loadComponent: () =>

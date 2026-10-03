@@ -20,6 +20,15 @@
             <app-icon name="user" [size]="18" />
             {{ user.username }}
           </span>
+          <a
+            class="header__icon-link"
+            routerLink="/me/saved"
+            routerLinkActive="header__icon-link--active"
+            aria-label="ჩემი ბიბლიოთეკა"
+            title="ჩემი ბიბლიოთეკა"
+          >
+            <app-icon name="bookmark" [size]="20" />
+          </a>
           @if (canWriteArticles()) {
             <a appButton variant="outline" size="sm" routerLink="/manage">
               <app-icon btnIconStart name="settings" [size]="16" />
@@ -66,6 +75,24 @@
       <app-icon name="close" [size]="28" />
     </button>
   </div>
+
+  @if (user()) {
+    <p class="drawer__title">ჩემი ბიბლიოთეკა</p>
+    <ul class="drawer__list drawer__list--spaced" role="list">
+      <li>
+        <a class="drawer__link drawer__link--icon" routerLink="/me/saved">
+          <app-icon name="bookmark" [size]="18" />
+          შენახული სტატიები
+        </a>
+      </li>
+      <li>
+        <a class="drawer__link drawer__link--icon" routerLink="/me/read">
+          <app-icon name="book-open" [size]="18" />
+          წაკითხული სტატიები
+        </a>
+      </li>
+    </ul>
+  }
 
   <p class="drawer__title">კატეგორიები</p>
   <ul class="drawer__list" role="list">

@@ -35,6 +35,10 @@
         }
         <time [attr.datetime]="item.publishedAt">{{ item.publishedAt | timeAgo }}</time>
       </p>
+      <div class="article__actions">
+        <app-reading-list-toggle kind="saved" [articleId]="item.id" />
+        <app-reading-list-toggle kind="read" [articleId]="item.id" />
+      </div>
     </header>
 
     @if (item.coverImage; as cover) {
@@ -44,6 +48,33 @@
     }
 
     <div class="ql-editor article__content" [innerHTML]="content()"></div>
+
+    <aside class="article__finish" aria-label="კითხვის დასრულება">
+      <div class="article__finish-text">
+        <p class="article__finish-title">
+          @if (isRead()) {
+            სტატია წაკითხულია
+          } @else {
+            დაასრულეთ კითხვა?
+          }
+        </p>
+        <p class="article__finish-hint">
+          @if (isRead()) {
+            სტატია თქვენს წაკითხულების სიაშია. ნებისმიერ დროს შეგიძლიათ ამოშალოთ.
+          } @else if (loggedIn()) {
+            მონიშნეთ წაკითხულად, რომ თქვენს სიაში შეინახოთ და ადვილად იპოვოთ რა გაქვთ წაკითხული.
+          } @else {
+            შედით ანგარიშში, რომ სტატიები შეინახოთ და წაკითხულად მონიშნოთ.
+          }
+        </p>
+      </div>
+      <div class="article__finish-actions">
+        <app-reading-list-toggle kind="read" [articleId]="item.id" />
+        @if (isRead()) {
+          <a appButton variant="ghost" routerLink="/me/read">წაკითხულების სია</a>
+        }
+      </div>
+    </aside>
 
     @if (item.tags.length > 0) {
       <footer class="article__footer">

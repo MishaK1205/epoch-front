@@ -20,7 +20,9 @@ export type IconName =
   | 'chevron-down'
   | 'external-link'
   | 'settings'
-  | 'search';
+  | 'search'
+  | 'bookmark'
+  | 'book-open';
 
 /** Inline SVG icon. Inherits `color` from its parent. Decorative (aria-hidden). */
 @Component({

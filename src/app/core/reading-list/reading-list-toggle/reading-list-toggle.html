@@ -1,0 +1,25 @@
+@let isIcon = appearance() === 'icon';
+<button
+  type="button"
+  class="toggle"
+  [class.toggle--icon]="isIcon"
+  [class.toggle--button]="!isIcon"
+  [class.toggle--sm]="size() === 'sm'"
+  [class.toggle--active]="active()"
+  [class.toggle--read]="kind() === 'read'"
+  [attr.aria-pressed]="active()"
+  [attr.aria-label]="isIcon ? actionLabel() : null"
+  [attr.title]="isIcon ? actionLabel() : null"
+  [attr.aria-busy]="pending() || null"
+  (click)="toggle()"
+>
+  <span class="toggle__icon">
+    <app-icon [name]="copy().icon" [size]="isIcon ? 18 : 16" />
+  </span>
+  @if (!isIcon) {
+    <span class="toggle__label">{{ label() }}</span>
+  }
+</button>
+@if (error(); as message) {
+  <p class="toggle__error" role="alert">{{ message }}</p>
+}

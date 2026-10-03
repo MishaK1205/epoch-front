@@ -8,8 +8,7 @@
 
 // Card: image on top, white panel with a tinted category chip and a serif title
 .item {
-  display: flex;
-  flex-direction: column;
+  position: relative;
   height: 100%;
   overflow: hidden;
   background: var(--color-surface);
@@ -26,13 +25,9 @@
     box-shadow: var(--shadow-card-hover);
   }
 
-  &:focus-visible {
-    @include focus-ring;
-  }
-
   // #071824 is too close to black to read as a hover, so titles use the lighter navy text step
   &:hover .item__title,
-  &:focus-visible .item__title {
+  &:focus-within .item__title {
     color: var(--color-accent-text);
   }
 
@@ -44,6 +39,17 @@
     &:hover .item__thumb img {
       transform: scale(1.04);
     }
+  }
+}
+
+.item__link {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-radius: inherit;
+
+  &:focus-visible {
+    @include focus-ring;
   }
 }
 
@@ -60,6 +66,19 @@
   }
 }
 
+// Projected action (save toggle) in the image corner, outside the link
+.item__action {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  z-index: 1;
+  display: flex;
+
+  &:empty {
+    display: none;
+  }
+}
+
 .item__body {
   display: flex;
   flex: 1;
@@ -69,8 +88,18 @@
   padding: var(--space-5);
 }
 
+.item__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  max-width: 100%;
+}
+
 // Soft navy pill with letter-spaced small caps — quieter than a solid block
 .item__chip {
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: center;
   max-width: 100%;
   padding: var(--space-1) var(--space-3);
   overflow: hidden;
@@ -86,6 +115,11 @@
   border-radius: var(--radius-full);
 }
 
+.item__chip--read {
+  color: var(--color-success);
+  background: var(--color-success-soft);
+}
+
 .item__title {
   @include line-clamp(3);
 
@@ -96,6 +130,11 @@
   color: var(--color-ink);
   letter-spacing: var(--letter-spacing-tight);
   transition: color var(--duration-fast) var(--easing-standard);
+}
+
+// Read articles step back a little so unread ones stand out in a feed
+.item--read .item__thumb img {
+  filter: saturate(0.85);
 }
 
 // Lead: the large card — wider image, bigger title, excerpt and meta
@@ -116,6 +155,11 @@
     @include up(md) {
       font-size: var(--text-3xl);
     }
+  }
+
+  .item__action {
+    top: var(--space-4);
+    right: var(--space-4);
   }
 }
 

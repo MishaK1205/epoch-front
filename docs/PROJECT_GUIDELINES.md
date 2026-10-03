@@ -142,7 +142,13 @@ something only one component needs — use a `computed()` signal in that compone
 ### Epoch API client (already implemented — reuse it)
 
 - Import from the barrel `core/api` (`import { ArticlesApi, Article } from '../core/api'`).
-- API classes: `AuthApi`, `UsersApi`, `CategoriesApi`, `ImagesApi`, `ArticlesApi`, `TagsApi`.
+- API classes: `AuthApi`, `UsersApi`, `CategoriesApi`, `ImagesApi`, `ArticlesApi`, `TagsApi`,
+  `ReadingListApi` (the user's saved / read lists under `/me/...`).
+- Saved / read toggles: use `ReadingListStore` (`core/services/reading-list-store.ts`), not
+  `ReadingListApi` directly. It holds `savedIds` / `readIds` signals (filled on login, cleared on
+  logout, instantiated eagerly in `app.config.ts`) and `toggleSaved(id)` / `toggleRead(id)`, which
+  update optimistically, roll back on error, and resolve with error messages to show (`[]` on
+  success). Only show the toggles when `AuthService.isLoggedIn()`.
 - Auth state: `AuthService` (`core/auth/auth-service.ts`) — use it (not `AuthApi`) for login,
   register, logout, `currentUser` and role signals. Guards: `authGuard`, `guestGuard`, `roleGuard(...)`.
 - Redirect URLs for guards / 401 handling: override the `AUTH_CONFIG` token (`core/tokens`).
@@ -356,16 +362,31 @@ pattern for new form controls. Validation messages come from
   (`core/services/categories-store.ts`). The drawer and the footer show **only categories** (no
   auth links). The accent strip under the header bar is decorative (no links).
 - Category links always point to `/category/:slug` (`features/home/pages/category-articles`),
-  never to `/?category=`. Public feed pages (home, category) share `features/home/feed-page.scss`
-  (`.page-heading*`, `.feed-state`, `.teaser-grid`) via `styleUrls`. Parse `?page=` with
-  `toPage()` from `shared/utils/page-param.ts`.
-- Article teasers are `ArticleListItem` cards: a white (`--color-surface`) tile with
-  `--radius-card`, a hairline border and `--shadow-card` (lifts to `--shadow-card-hover` with a
-  small `translateY` under `motion-ok`), the image on top, and a body holding a soft navy pill
-  chip (`--color-accent-soft` / `--color-accent-text`, uppercase, single line) and a bold serif
-  title. `variant="card"` (default) is the small card — its size comes from the grid it sits in
-  (`.teaser-grid`, 1/2/3 columns; the home `.latest__side` 2×2 block). `variant="lead"` is the
-  large card (16:10 image, bigger title, excerpt, meta) shown next to that block on the home page.
+  never to `/?category=`. Feed-style pages (home, category, library) share the
+  `src/styles/_feed-page.scss` partial (`.page-heading*`, `.feed-state`, `.teaser-grid`) via
+  `@use 'feed-page';` in their component SCSS. Parse `?page=` with `toPage()` from
+  `shared/utils/page-param.ts`.
+- Article teasers are `ArticleCard` (`shared/ui/article-card`, `<app-article-card>`): a white
+  (`--color-surface`) tile with `--radius-card`, a hairline border and `--shadow-card` (lifts to
+  `--shadow-card-hover` with a small `translateY` under `motion-ok`), the image on top, and a body
+  holding a soft navy pill chip (`--color-accent-soft` / `--color-accent-text`, uppercase, single
+  line) and a bold serif title. `variant="card"` (default) is the small card — its size comes from
+  the grid it sits in (`.teaser-grid`, 1/2/3 columns; the home `.latest__side` 2×2 block).
+  `variant="lead"` is the large card (16:10 image, bigger title, excerpt, meta) shown next to that
+  block on the home page. `[read]="true"` adds a green "წაკითხული" chip. The card is
+  presentational: it only imports the `ArticleSummary` DTO type from `core/api` (allowed for
+  shared domain cards). Project a control into the image corner with `<… cardAction />` — it
+  renders outside the link, so clicking it doesn't navigate.
+- Saved / read UI: `ReadingListToggle` (`core/reading-list/reading-list-toggle`,
+  `<app-reading-list-toggle [articleId] kind="saved|read" appearance="icon|button" size="sm|md">`)
+  is the only control for saving / marking read. `appearance="icon"` is the round bookmark in card
+  corners (only render it when `isLoggedIn()`); the default pill with label is used on the article
+  page (header actions + the end-of-article "დაასრულეთ კითხვა?" card) and on the library pages.
+  Guests who click it are sent to `/login?returnUrl=…`. Smart, app-wide widgets like this that bind
+  to `core/services` stores live under `core/<topic>/` (like `core/layout`), not in `shared/`.
+- The user's lists live at `/me/saved` and `/me/read` (`features/library`, `authGuard`), one
+  `ReadingList` page whose `kind` input comes from route `data`. Header: logged-in users get a
+  bookmark icon link to `/me/saved` and a "ჩემი ბიბლიოთეკა" section at the top of the drawer.
 - Route params and query params are bound to component `input()`s (`withComponentInputBinding()`).
 
 ### Testing

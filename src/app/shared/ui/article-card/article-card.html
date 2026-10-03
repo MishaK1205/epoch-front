@@ -1,0 +1,37 @@
+@let item = article();
+<article class="item" [class.item--lead]="isLead()" [class.item--read]="read()">
+  <a class="item__link" [routerLink]="['/articles', item.slug]">
+    <div class="item__thumb">
+      @if (item.coverImage; as cover) {
+        <img [ngSrc]="cover.url" [alt]="cover.alt ?? ''" fill />
+      }
+    </div>
+    <div class="item__body">
+      <div class="item__chips">
+        @if (item.category; as category) {
+          <span class="item__chip">{{ category.name }}</span>
+        }
+        @if (read()) {
+          <span class="item__chip item__chip--read">
+            <app-icon name="check" [size]="12" />
+            წაკითხული
+          </span>
+        }
+      </div>
+      <h3 class="item__title">{{ item.title }}</h3>
+      @if (isLead()) {
+        <p class="item__excerpt">{{ item.excerpt }}</p>
+        <p class="item__meta">
+          @if (item.author; as author) {
+            <span>{{ author.username }}</span>
+            <span aria-hidden="true">·</span>
+          }
+          <time [attr.datetime]="item.publishedAt">{{ item.publishedAt | timeAgo }}</time>
+        </p>
+      }
+    </div>
+  </a>
+  <div class="item__action">
+    <ng-content select="[cardAction]" />
+  </div>
+</article>

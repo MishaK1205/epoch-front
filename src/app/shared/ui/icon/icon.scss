@@ -3,7 +3,9 @@
   flex-shrink: 0;
 }
 
+// Outline icons by default; set `--icon-fill: currentcolor` on the icon for a filled state
 svg {
   width: 100%;
   height: 100%;
+  fill: var(--icon-fill, none);
 }

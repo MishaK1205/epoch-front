@@ -3,27 +3,33 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { getApiErrorMessages } from '../../../../core/api/api-error-messages';
 import { ArticlesApi } from '../../../../core/api/articles/articles-api';
+import { AuthService } from '../../../../core/auth/auth-service';
+import { ReadingListToggle } from '../../../../core/reading-list/reading-list-toggle/reading-list-toggle';
 import { CategoriesStore } from '../../../../core/services/categories-store';
+import { ReadingListStore } from '../../../../core/services/reading-list-store';
 import { Alert } from '../../../../shared/ui/alert/alert';
+import { ArticleCard } from '../../../../shared/ui/article-card/article-card';
 import { Pagination } from '../../../../shared/ui/pagination/pagination';
 import { Spinner } from '../../../../shared/ui/spinner/spinner';
 import { toPage } from '../../../../shared/utils/page-param';
-import { ArticleListItem } from '../../components/article-list-item/article-list-item';
 
 const PAGE_SIZE = 12;
 
 /** Articles of one category: `/category/:slug?page=<n>`. */
 @Component({
   selector: 'app-category-articles',
-  imports: [Alert, Pagination, Spinner, ArticleListItem],
+  imports: [Alert, Pagination, Spinner, ArticleCard, ReadingListToggle],
   templateUrl: './category-articles.html',
-  styleUrls: ['../../feed-page.scss', './category-articles.scss'],
+  styleUrl: './category-articles.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CategoryArticles {
   private readonly articlesApi = inject(ArticlesApi);
   private readonly categoriesStore = inject(CategoriesStore);
   private readonly router = inject(Router);
+
+  protected readonly loggedIn = inject(AuthService).isLoggedIn;
+  protected readonly readArticleIds = inject(ReadingListStore).readIds;
 
   readonly slug = input.required<string>();
   readonly page = input(1, { transform: toPage });

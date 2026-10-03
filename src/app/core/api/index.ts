@@ -15,6 +15,8 @@ export * from './categories/categories.models';
 export * from './images/image-file';
 export * from './images/images-api';
 export * from './images/images.models';
+export * from './reading-list/reading-list-api';
+export * from './reading-list/reading-list.models';
 export * from './tags/tags-api';
 export * from './tags/tags.models';
 export * from './users/users-api';

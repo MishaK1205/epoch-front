@@ -22,6 +22,104 @@ After finishing every task, **add a new entry at the top** using the template be
 
 ---
 
+## 2026-10-04 — Reading lists UI: save / mark-read toggles, library pages, header links
+
+**Task:** Give users a way to save articles and mark them as read, with a polished UI: toggles
+on cards and the article page, and pages listing the saved and read articles.
+
+**Changes:**
+
+- Added `core/reading-list/reading-list-toggle/reading-list-toggle.ts` / `.html` / `.scss` /
+  `.spec.ts` — `ReadingListToggle`: one component for both actions (`kind="saved|read"`), two
+  looks (`appearance="icon"` round corner button, default pill with label, `size="sm|md"`).
+  Active saved = solid ink with a filled bookmark; active read = soft green check. Shows the
+  store's error message under itself; guests are redirected to `/login?returnUrl=…`. Emits
+  `changed` after the server confirms. Spec: guest redirect, optimistic save, 404 rollback+message.
+- Added `shared/ui/article-card/article-card.ts` / `.html` / `.scss` — `ArticleCard`, the former
+  `ArticleListItem` moved out of `features/home` so the library feature can reuse it. Now an
+  `<article>` wrapping the link plus an `.item__action` slot (`<… cardAction />`) in the image
+  corner, outside the link. New `read` input: green "წაკითხული" chip and a slightly desaturated
+  image. Hover/focus styles moved to `:hover` / `:focus-within` on the wrapper.
+- Removed `features/home/components/article-list-item/*` — replaced by `ArticleCard`.
+- Moved `features/home/feed-page.scss` → `src/styles/_feed-page.scss`, consumed with
+  `@use 'feed-page';` (home, category, library) instead of cross-feature `styleUrls`.
+- Added `features/library/library.routes.ts` — `/me` (authGuard) → `/me/saved`, `/me/read`
+  (`data.kind`).
+- Added `features/library/pages/reading-list/reading-list.ts` / `.html` / `.scss` — `ReadingList`
+  page: kicker "ჩემი ბიბლიოთეკა", segmented tabs (bookmark / book-open icons) with the item count,
+  teaser grid of `ArticleCard`s, each with a meta row ("შენახულია / წაკითხულია <timeAgo>" and a
+  small toggle to remove). Items vanish immediately on removal (filtered by the store's id set),
+  the count decrements, an emptied page > 1 goes back a page, page 1 reloads if more exist.
+  Empty state with a link to the home feed. On the read list the card corner also shows the
+  save bookmark.
+- Modified `features/home/pages/home/home.ts` / `.html` / `.scss`,
+  `features/home/pages/category-articles/category-articles.ts` / `.html` / `.scss` — use
+  `ArticleCard`, pass `[read]` from `ReadingListStore.readIds`, project the icon toggle when
+  logged in; `@use 'feed-page'`.
+- Modified `features/articles/pages/article-detail/article-detail.ts` / `.html` / `.scss` — save
+  and mark-read pills under the meta line; an end-of-article card ("დაასრულეთ კითხვა?" → "სტატია
+  წაკითხულია" with a link to `/me/read`; guests see a sign-in hint) with the read toggle.
+- Modified `core/layout/site-header/site-header.html` / `.ts` / `.scss` — logged-in users get a
+  bookmark icon link to `/me/saved` (filled when active) and a "ჩემი ბიბლიოთეკა" drawer section
+  (saved / read links) above the categories.
+- Modified `shared/ui/icon/icon.ts` / `.html` / `.scss` — new `bookmark` and `book-open` icons;
+  `svg { fill: var(--icon-fill, none) }` so parents can fill an icon via a CSS variable.
+- Modified `app.routes.ts` — lazy-loads `LIBRARY_ROUTES`.
+- Modified `docs/PROJECT_GUIDELINES.md` — card renamed/moved, feed-page partial, toggle usage,
+  library routes, `core/<topic>/` for smart app-wide widgets.
+
+**Notes:** The card was moved to `shared/ui` rather than imported across features; it stays
+presentational (type-only import of `ArticleSummary`) and receives the toggle by projection,
+because `shared/` may not inject core stores. The toggle itself is a smart component in
+`core/reading-list/`, next to the store it binds to. Cards only expose "save" (reading is marked
+on the article page, where the backend expects an explicit action). Lists stay independent.
+Verified in the browser against the local API as a test user: login loads both lists, the card
+bookmark saves (PUT) and fills, article pills and the end card reflect state, `/me/saved` removal
+empties the page and shows the empty state, `/me/read` lists the read article, logout hides the
+card toggles, and a guest click on the article page redirects to `/login?returnUrl=…`.
+`ng build` (no warnings) and `ng test` (61) pass.
+
+---
+
+## 2026-10-04 — Reading lists: typed client for saved / read articles
+
+**Task:** Add the typed client layer for the new `/me/saved-articles` and `/me/read-articles`
+endpoints (models, API service, client-side id store). No UI yet.
+
+**Changes:**
+
+- Added `core/api/reading-list/reading-list.models.ts` — `ReadingListItem` (`article:
+  ArticleSummary`, `addedAt`) and `ReadingListQuery` (`page`, `limit`).
+- Added `core/api/reading-list/reading-list-api.ts` — `ReadingListApi` with `listSaved`, `save`,
+  `unsave`, `listRead`, `markRead`, `markUnread`. PUTs send a `null` body; ids are
+  `encodeURIComponent`-ed; list queries go through `toHttpParams`.
+- Added `core/api/reading-list/reading-list-api.spec.ts` — one test per method (method, URL,
+  body, params).
+- Added `core/services/reading-list-store.ts` — `ReadingListStore`: `savedIds` / `readIds`
+  (`ReadonlySet<string>` signals), `loaded`, `isSaved` / `isRead`, `toggleSaved` / `toggleRead`
+  (optimistic, rolled back on error, ignored while the same id is in flight, resolve with error
+  messages; a 404 on add maps to `ARTICLE_UNAVAILABLE_MESSAGE`) and `reload`. An `effect` on
+  `AuthService.currentUser` loads both lists (paging with `limit: 100` until `total`) when a user
+  appears and clears everything on logout.
+- Added `core/services/reading-list-store.spec.ts` — logged-out no-op, load on login / clear on
+  logout, paging, optimistic add, rollback on 500, 404 message, in-flight de-duplication.
+- Modified `core/api/index.ts` — exports the new API and models.
+- Modified `app.config.ts` — `provideEnvironmentInitializer(() => inject(ReadingListStore))` so
+  the store syncs with auth from app start instead of from its first injection.
+- Modified `docs/PROJECT_GUIDELINES.md` — `ReadingListApi` in the API list; how to use
+  `ReadingListStore`.
+
+**Notes:** Project conventions were used instead of the prompt's defaults: the service is
+`ReadingListApi` in `core/api/reading-list/` (not `core/services/reading-list.service.ts`), models
+sit next to it as `reading-list.models.ts`, and everything is exported from the `core/api` barrel.
+The existing `Paginated<T>`, `ArticleSummary`, `toHttpParams` and `getApiErrorMessages` are
+reused. There is no toast service, so toggles return `Promise<string[]>` for the calling component
+to display. Login and logout detection uses an `effect` (a network side effect, not signal-to-
+signal), which is why the store needs the eager initializer. Lists are kept independent (marking
+read does not unsave). `ng build` (no warnings) and `ng test` (58) pass.
+
+---
+
 ## 2026-10-04 — Home hero: crop toward the top of the image
 
 **Task:** A portrait cover image in the home hero showed only the middle of the face.

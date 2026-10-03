@@ -1,0 +1,70 @@
+@let text = copy();
+<header class="page-heading">
+  <p class="page-heading__kicker">ჩემი ბიბლიოთეკა</p>
+  <h1 class="page-heading__title">{{ text.title }}</h1>
+</header>
+
+<section class="library" [attr.aria-label]="text.title">
+  <nav class="tabs" aria-label="სიები">
+    <a class="tabs__link" routerLink="/me/saved" routerLinkActive="tabs__link--active">
+      <app-icon name="bookmark" [size]="16" />
+      შენახული
+    </a>
+    <a class="tabs__link" routerLink="/me/read" routerLinkActive="tabs__link--active">
+      <app-icon name="book-open" [size]="16" />
+      წაკითხული
+    </a>
+    @if (list.hasValue()) {
+      <span class="tabs__count">{{ total() }} სტატია</span>
+    }
+  </nav>
+
+  @if (list.isLoading()) {
+    <div class="feed-state"><app-spinner size="lg" /></div>
+  } @else if (errorMessages().length > 0) {
+    <app-alert variant="error">
+      @for (message of errorMessages(); track message) {
+        <p>{{ message }}</p>
+      }
+    </app-alert>
+  } @else if (items().length > 0) {
+    @let read = readIds();
+    <ul class="teaser-grid" role="list">
+      @for (item of items(); track item.article.id) {
+        <li class="entry">
+          <app-article-card [article]="item.article" [read]="read.has(item.article.id)">
+            @if (!isSavedList()) {
+              <app-reading-list-toggle
+                cardAction
+                appearance="icon"
+                size="sm"
+                [articleId]="item.article.id"
+              />
+            }
+          </app-article-card>
+          <div class="entry__meta">
+            <p class="entry__date">
+              {{ text.addedLabel }}
+              <time [attr.datetime]="item.addedAt">{{ item.addedAt | timeAgo }}</time>
+            </p>
+            <app-reading-list-toggle
+              size="sm"
+              [kind]="kind()"
+              [articleId]="item.article.id"
+              (changed)="onMembershipChanged($event)"
+            />
+          </div>
+        </li>
+      }
+    </ul>
+    <app-pagination [page]="page()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
+  } @else {
+    <app-empty-state
+      [icon]="isSavedList() ? 'bookmark' : 'book-open'"
+      [title]="text.emptyTitle"
+      [description]="text.emptyDescription"
+    >
+      <a appButton routerLink="/">სტატიების დათვალიერება</a>
+    </app-empty-state>
+  }
+</section>

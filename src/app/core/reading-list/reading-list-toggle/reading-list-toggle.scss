@@ -1,0 +1,123 @@
+@use 'mixins' as *;
+
+:host {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.toggle {
+  @include reset-button;
+
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: center;
+  color: var(--color-ink);
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border-strong);
+  box-shadow: var(--shadow-xs);
+  transition:
+    color var(--duration-fast) var(--easing-standard),
+    background-color var(--duration-fast) var(--easing-standard),
+    border-color var(--duration-fast) var(--easing-standard),
+    box-shadow var(--duration-normal) var(--easing-standard),
+    transform var(--duration-normal) var(--easing-standard);
+
+  &:hover {
+    border-color: var(--color-ink);
+    box-shadow: var(--shadow-sm);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  @include motion-ok {
+    &:hover {
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: scale(0.96);
+    }
+  }
+}
+
+.toggle__icon {
+  display: inline-grid;
+  place-items: center;
+  transition: transform var(--duration-normal) var(--easing-spring);
+}
+
+// Pill with label
+.toggle--button {
+  min-height: var(--control-height-md);
+  padding: 0 var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-tight);
+  white-space: nowrap;
+  border-radius: var(--radius-full);
+
+  &.toggle--sm {
+    min-height: var(--control-height-sm);
+    padding: 0 var(--space-3);
+    font-size: var(--text-xs);
+  }
+}
+
+// Round icon button for card corners
+.toggle--icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+
+  &.toggle--sm {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+// Active (saved): solid ink with a filled bookmark
+.toggle--active {
+  color: var(--color-text-inverse);
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+
+  .toggle__icon {
+    @include motion-ok {
+      transform: scale(1.1);
+    }
+  }
+
+  .toggle__icon {
+    --icon-fill: currentcolor;
+  }
+
+  &:hover {
+    background: var(--color-surface-raised-hover);
+    border-color: var(--color-surface-raised-hover);
+  }
+}
+
+// Active (read): soft green confirmation (check stays an outline)
+.toggle--read.toggle--active {
+  color: var(--color-success);
+  background: var(--color-success-soft);
+  border-color: var(--color-success-border);
+
+  .toggle__icon {
+    --icon-fill: none;
+  }
+
+  &:hover {
+    background: var(--color-success-soft);
+    border-color: var(--color-success);
+  }
+}
+
+.toggle__error {
+  font-size: var(--text-xs);
+  color: var(--color-danger);
+}
