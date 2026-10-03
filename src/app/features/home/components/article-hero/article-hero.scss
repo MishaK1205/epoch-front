@@ -31,6 +31,8 @@
 
 .hero__image {
   object-fit: cover;
+  // Portraits are cropped to a thin band; bias it toward the upper third where faces usually are.
+  object-position: center 30%;
   transition: transform var(--duration-slow) var(--easing-standard);
 }
 

@@ -22,6 +22,23 @@ After finishing every task, **add a new entry at the top** using the template be
 
 ---
 
+## 2026-10-04 — Home hero: crop toward the top of the image
+
+**Task:** A portrait cover image in the home hero showed only the middle of the face.
+
+**Changes:**
+
+- Modified `features/home/components/article-hero/article-hero.scss` — `.hero__image` uses
+  `object-position: center 30%` instead of the default center, so the very wide hero crop keeps
+  the upper part of the image where faces usually are.
+
+**Notes:** The uploaded cover was a 4096×5295 portrait; the hero is roughly 3:1, so only about a
+quarter of a portrait's height is visible. At 1665×560 the visible band is now 22–48% of the
+image height (eyes to mouth) instead of 37–63% (nose to chin). Landscape 16:9 images barely move.
+Verified against the live API with `ng serve --configuration production`.
+
+---
+
 ## 2026-10-04 — Point the production build at https://api.epoch.ge; Vercel config
 
 **Task:** The deployed app at `https://epoch.ge` failed every API call with
