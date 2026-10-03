@@ -1,0 +1,178 @@
+@use 'mixins' as *;
+
+:host {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  display: block;
+}
+
+.header {
+  box-shadow: var(--shadow-header);
+}
+
+// White bar sits above the accent band and casts its shadow onto it
+.header__top {
+  position: relative;
+  z-index: 1;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-header-bar);
+}
+
+.header__bar {
+  @include container;
+
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  height: var(--header-height);
+}
+
+.header__menu-btn {
+  @include reset-button;
+
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  color: var(--color-ink);
+  border-radius: var(--radius-lg);
+  transition: background-color var(--duration-fast) var(--easing-standard);
+
+  &:hover {
+    background: var(--color-surface-alt);
+  }
+}
+
+.header__actions {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  margin-left: auto;
+}
+
+.header__user {
+  display: none;
+  gap: var(--space-2);
+  align-items: center;
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+
+  @include up(sm) {
+    display: inline-flex;
+  }
+}
+
+// Guest sign-in: small navy text links separated by a pipe
+.header__auth {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.header__auth-link {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-accent);
+  border-radius: var(--radius-sm);
+
+  &:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.header__auth-sep {
+  color: var(--color-accent);
+  font-weight: var(--font-weight-regular);
+  line-height: 1;
+}
+
+.header__auth-sep,
+.header__auth-link--register {
+  @include down(sm) {
+    display: none;
+  }
+}
+
+// Decorative accent strip under the bar (categories live in the drawer / footer)
+.header__band {
+  position: relative;
+  height: var(--accent-band-height);
+  background: var(--color-accent);
+}
+
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-drawer);
+  background: var(--color-overlay);
+}
+
+.drawer {
+  position: fixed;
+  inset-block: 0;
+  left: 0;
+  z-index: var(--z-drawer);
+  width: min(320px, 85vw);
+  padding: var(--space-6);
+  overflow-y: auto;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+  transform: translateX(-100%);
+  visibility: hidden;
+  transition:
+    transform var(--duration-slow) var(--easing-standard),
+    visibility var(--duration-slow);
+}
+
+.drawer--open {
+  transform: none;
+  visibility: visible;
+}
+
+.drawer__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+}
+
+.drawer__title {
+  @include display-text;
+
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.drawer__empty {
+  padding: var(--space-2) 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-subtle);
+}
+
+.drawer__link {
+  display: block;
+  padding: var(--space-2) var(--space-3);
+  margin-inline: calc(-1 * var(--space-3));
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-ink);
+  border-radius: var(--radius-lg);
+  transition:
+    color var(--duration-fast) var(--easing-standard),
+    background-color var(--duration-fast) var(--easing-standard);
+
+  &:hover,
+  &:focus-visible {
+    color: var(--color-accent-text);
+    background: var(--color-surface-muted);
+  }
+}

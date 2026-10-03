@@ -1,0 +1,35 @@
+// Shared by the login and register page forms.
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.form__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.form__submit {
+  margin-top: var(--space-2);
+}
+
+.link {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-accent-text);
+  text-decoration: underline;
+  text-decoration-color: var(--color-accent-text);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+  border-radius: var(--radius-sm);
+  transition:
+    color var(--duration-fast) var(--easing-standard),
+    text-decoration-color var(--duration-fast) var(--easing-standard);
+
+  &:hover {
+    color: var(--color-ink);
+    text-decoration-color: var(--color-ink);
+  }
+}

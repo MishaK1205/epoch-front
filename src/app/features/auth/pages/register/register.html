@@ -1,0 +1,72 @@
+<app-auth-card title="რეგისტრაცია" subtitle="შექმენით ანგარიში და შემოუერთდით Epoch-ს.">
+  <form class="form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    @if (serverErrors().length > 0) {
+      <app-alert variant="error">
+        @for (message of serverErrors(); track message) {
+          <p>{{ message }}</p>
+        }
+      </app-alert>
+    }
+
+    <app-input-field
+      formControlName="username"
+      label="მომხმარებლის სახელი"
+      autocomplete="username"
+      hint="3–30 სიმბოლო: ლათინური ასოები, ციფრები, „_“ და „.“"
+      [maxlength]="limits.username.max"
+      [errorMessages]="usernameMessages"
+    />
+
+    <app-input-field
+      formControlName="email"
+      type="email"
+      label="ელ-ფოსტა"
+      autocomplete="email"
+      placeholder="name@example.com"
+      [maxlength]="limits.email.max"
+    />
+
+    <div class="form__group">
+      <app-input-field
+        formControlName="password"
+        type="password"
+        label="პაროლი"
+        autocomplete="new-password"
+        hint="მინიმუმ 8 სიმბოლო, ერთი ასო და ერთი ციფრი"
+        [maxlength]="limits.password.max"
+        [errorMessages]="passwordMessages"
+      />
+      <app-password-strength [password]="password()" />
+    </div>
+
+    <app-input-field
+      formControlName="confirmPassword"
+      type="password"
+      label="გაიმეორეთ პაროლი"
+      autocomplete="new-password"
+      [maxlength]="limits.password.max"
+      [errorMessages]="confirmPasswordMessages"
+    />
+
+    <app-checkbox formControlName="acceptTerms" [errorMessages]="termsMessages">
+      ვეთანხმები Epoch-ის წესებსა და კონფიდენციალურობის პოლიტიკას
+    </app-checkbox>
+
+    <button
+      appButton
+      type="submit"
+      size="lg"
+      fullWidth
+      class="form__submit"
+      [loading]="submitting()"
+      [disabled]="submitting()"
+    >
+      რეგისტრაცია
+    </button>
+  </form>
+
+  <p authCardFooter>
+    უკვე გაქვთ ანგარიში?
+    <a class="link" routerLink="/login" [queryParams]="{ returnUrl: returnUrl() }">შესვლა</a>
+  </p>
+</app-auth-card>

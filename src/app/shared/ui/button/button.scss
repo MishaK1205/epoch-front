@@ -1,0 +1,176 @@
+@use 'mixins' as *;
+
+:host {
+  --btn-height: var(--control-height-md);
+  --btn-padding: var(--space-5);
+  --btn-font-size: var(--text-md);
+  --btn-color: var(--color-text-inverse);
+  --btn-bg: var(--color-ink);
+  --btn-border: var(--color-ink);
+  --btn-color-hover: var(--color-text-inverse);
+  --btn-bg-hover: var(--color-surface-raised-hover);
+  --btn-border-hover: var(--color-surface-raised-hover);
+  --btn-shadow: var(--shadow-btn);
+  --btn-shadow-hover: var(--shadow-btn-hover);
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--btn-height);
+  padding: 0 var(--btn-padding);
+  font-family: var(--font-sans);
+  font-size: var(--btn-font-size);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+  color: var(--btn-color);
+  letter-spacing: var(--letter-spacing-tight);
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  background: var(--btn-bg);
+  border: var(--border-width) solid var(--btn-border);
+  border-radius: var(--radius-control);
+  box-shadow: var(--btn-shadow);
+  transition:
+    background-color var(--duration-fast) var(--easing-standard),
+    border-color var(--duration-fast) var(--easing-standard),
+    color var(--duration-fast) var(--easing-standard),
+    box-shadow var(--duration-normal) var(--easing-standard),
+    transform var(--duration-normal) var(--easing-standard);
+
+  &:hover {
+    color: var(--btn-color-hover);
+    background: var(--btn-bg-hover);
+    border-color: var(--btn-border-hover);
+    box-shadow: var(--btn-shadow-hover);
+
+    @include motion-ok {
+      transform: translateY(-1px);
+    }
+  }
+
+  &:active {
+    box-shadow: var(--shadow-xs);
+    transition-duration: var(--duration-fast);
+
+    @include motion-ok {
+      transform: translateY(0) scale(0.98);
+    }
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:disabled,
+  &[aria-disabled='true'] {
+    color: var(--btn-color);
+    cursor: not-allowed;
+    background: var(--btn-bg);
+    border-color: var(--btn-border);
+    box-shadow: none;
+    opacity: 0.45;
+    transform: none;
+  }
+}
+
+.btn__content {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+  transition: opacity var(--duration-fast) var(--easing-standard);
+}
+
+.btn__spinner {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+}
+
+:host(.btn--accent) {
+  --btn-bg: var(--color-accent);
+  --btn-border: var(--color-accent);
+  --btn-bg-hover: var(--color-accent-hover);
+  --btn-border-hover: var(--color-accent-hover);
+  --btn-shadow: var(--shadow-btn-accent);
+  --btn-shadow-hover: var(--shadow-btn-accent-hover);
+}
+
+:host(.btn--outline) {
+  --btn-color: var(--color-ink);
+  --btn-bg: var(--color-surface);
+  --btn-border: var(--color-border-strong);
+  --btn-color-hover: var(--color-ink);
+  --btn-bg-hover: var(--color-surface-muted);
+  --btn-border-hover: var(--color-ink);
+  --btn-shadow: var(--shadow-xs);
+  --btn-shadow-hover: var(--shadow-sm);
+}
+
+:host(.btn--ghost),
+:host(.btn--danger-ghost) {
+  --btn-color: var(--color-text);
+  --btn-bg: transparent;
+  --btn-border: transparent;
+  --btn-color-hover: var(--color-ink);
+  --btn-bg-hover: var(--color-surface-alt);
+  --btn-border-hover: transparent;
+  --btn-shadow: none;
+  --btn-shadow-hover: none;
+
+  &:hover {
+    transform: none;
+  }
+}
+
+:host(.btn--inverse) {
+  --btn-color: var(--color-ink);
+  --btn-bg: var(--color-surface);
+  --btn-border: var(--color-surface);
+  --btn-color-hover: var(--color-ink);
+  --btn-bg-hover: var(--palette-gray-100);
+  --btn-border-hover: var(--palette-gray-100);
+}
+
+:host(.btn--danger) {
+  --btn-bg: var(--color-danger);
+  --btn-border: var(--color-danger);
+  --btn-bg-hover: var(--color-danger-hover);
+  --btn-border-hover: var(--color-danger-hover);
+}
+
+:host(.btn--danger-ghost) {
+  --btn-color: var(--color-danger);
+  --btn-color-hover: var(--color-danger);
+  --btn-bg-hover: var(--color-danger-soft);
+}
+
+:host(.btn--sm) {
+  --btn-height: var(--control-height-sm);
+  --btn-padding: var(--space-4);
+  --btn-font-size: var(--text-sm);
+}
+
+:host(.btn--lg) {
+  --btn-height: var(--control-height-lg);
+  --btn-padding: var(--space-8);
+  --btn-font-size: var(--text-base);
+}
+
+:host(.btn--full) {
+  width: 100%;
+}
+
+:host(.btn--pill) {
+  border-radius: var(--radius-full);
+}
+
+:host(.btn--loading) {
+  pointer-events: none;
+
+  .btn__content {
+    opacity: 0.3;
+  }
+}

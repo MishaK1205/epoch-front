@@ -1,0 +1,34 @@
+<header class="manage__head">
+  <p class="manage__kicker">მართვა</p>
+  <h1 class="manage__title">{{ heading() }}</h1>
+
+  <nav class="tabs" aria-label="მართვის განყოფილებები">
+    <a
+      class="tabs__link"
+      routerLink="/manage/articles"
+      routerLinkActive="is-active"
+      ariaCurrentWhenActive="page"
+      >სტატიები</a
+    >
+    @if (isAdmin()) {
+      <a
+        class="tabs__link"
+        routerLink="/manage/categories"
+        routerLinkActive="is-active"
+        ariaCurrentWhenActive="page"
+        >კატეგორიები</a
+      >
+      <a
+        class="tabs__link"
+        routerLink="/manage/users"
+        routerLinkActive="is-active"
+        ariaCurrentWhenActive="page"
+        >მომხმარებლები</a
+      >
+    }
+  </nav>
+</header>
+
+<div class="manage__body">
+  <router-outlet />
+</div>

@@ -1,0 +1,73 @@
+@use 'sass:map';
+@use 'design-system' as ds;
+
+/// Min-width media query: `@include up(md) { ... }`
+@mixin up($breakpoint) {
+  @media (min-width: map.get(ds.$breakpoints, $breakpoint)) {
+    @content;
+  }
+}
+
+/// Max-width media query (exclusive): `@include down(md) { ... }`
+@mixin down($breakpoint) {
+  @media (max-width: calc(#{map.get(ds.$breakpoints, $breakpoint)} - 0.02px)) {
+    @content;
+  }
+}
+
+@mixin container($max: var(--container-max)) {
+  width: 100%;
+  max-width: $max;
+  margin-inline: auto;
+  padding-inline: var(--container-padding);
+}
+
+@mixin focus-ring {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/// Wraps rules that should only apply when the user allows motion.
+@mixin motion-ok {
+  @media (prefers-reduced-motion: no-preference) {
+    @content;
+  }
+}
+
+@mixin visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@mixin line-clamp($lines) {
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/// Uppercase display text (logo, hero titles, section headings).
+/// Georgian text renders as Mtavruli capitals.
+@mixin display-text {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-black);
+  letter-spacing: var(--letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+@mixin reset-button {
+  margin: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}

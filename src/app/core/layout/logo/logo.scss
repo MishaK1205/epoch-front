@@ -1,0 +1,24 @@
+@use 'mixins' as *;
+
+:host {
+  display: inline-flex;
+}
+
+.logo {
+  @include display-text;
+
+  font-size: var(--text-2xl);
+  line-height: 1;
+  color: var(--color-ink);
+  letter-spacing: 0.08em;
+  border-radius: var(--radius-sm);
+}
+
+:host(.logo--inverse) .logo {
+  color: var(--color-text-inverse);
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring-inverse);
+  }
+}

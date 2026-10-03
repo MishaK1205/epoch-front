@@ -1,0 +1,37 @@
+<div class="field">
+  <span class="field__label" [id]="labelId" (click)="focus()">
+    {{ label() }}
+    @if (required()) {
+      <span class="field__required" aria-hidden="true">*</span>
+    }
+  </span>
+
+  <div
+    class="ql-frame"
+    [class.ql-frame--invalid]="errorMessage()"
+    [class.ql-frame--disabled]="disabled()"
+  >
+    <div #editor></div>
+    @if (!ready()) {
+      <div class="rte__loading"><app-spinner label="რედაქტორი იტვირთება…" /></div>
+    }
+  </div>
+
+  @if (uploadErrors().length > 0) {
+    <app-alert variant="error">
+      @for (message of uploadErrors(); track message) {
+        <p>{{ message }}</p>
+      }
+      <button type="button" class="rte__dismiss" (click)="dismissErrors()">დახურვა</button>
+    </app-alert>
+  }
+
+  @if (errorMessage(); as message) {
+    <p class="field__message field__message--error" [id]="errorId">
+      <app-icon name="alert-circle" [size]="16" />
+      <span>{{ message }}</span>
+    </p>
+  } @else if (hint()) {
+    <p class="field__message" [id]="hintId">{{ hint() }}</p>
+  }
+</div>

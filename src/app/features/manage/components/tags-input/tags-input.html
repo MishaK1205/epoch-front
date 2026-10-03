@@ -1,0 +1,53 @@
+<div class="field" [class.field--invalid]="errorMessage()" [class.field--disabled]="disabled()">
+  <label class="field__label" [for]="id">{{ label() }}</label>
+
+  <div class="tags" (click)="inputEl.focus()">
+    <ul class="tags__list" role="list" aria-label="დამატებული თეგები">
+      @for (tag of tags(); track tag) {
+        <li class="tags__chip">
+          <span>#{{ tag }}</span>
+          <button
+            type="button"
+            class="tags__remove"
+            [disabled]="disabled()"
+            [attr.aria-label]="'თეგის წაშლა: ' + tag"
+            (click)="remove(tag); $event.stopPropagation()"
+          >
+            <app-icon name="close" [size]="14" />
+          </button>
+        </li>
+      }
+    </ul>
+    <input
+      #inputEl
+      class="tags__input"
+      type="text"
+      autocomplete="off"
+      enterkeyhint="enter"
+      [id]="id"
+      [placeholder]="full() ? '' : placeholder()"
+      [disabled]="disabled()"
+      [attr.maxlength]="limits.maxLength"
+      [attr.aria-invalid]="errorMessage() ? true : null"
+      [attr.aria-describedby]="describedBy()"
+      (input)="onInput(inputEl)"
+      (keydown)="onKeydown($event, inputEl)"
+      (blur)="onBlur(inputEl)"
+    />
+  </div>
+
+  <div class="field__footer">
+    @if (errorMessage(); as message) {
+      <p class="field__message field__message--error" [id]="errorId">
+        <app-icon name="alert-circle" [size]="16" />
+        <span>{{ message }}</span>
+      </p>
+    } @else if (hint()) {
+      <p class="field__message" [id]="hintId">{{ hint() }}</p>
+    }
+    <p class="field__count" [id]="countId">
+      <span class="visually-hidden">თეგები:</span>
+      {{ tags().length }} / {{ limits.maxCount }}
+    </p>
+  </div>
+</div>

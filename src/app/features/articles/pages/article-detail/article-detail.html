@@ -1,0 +1,61 @@
+@if (article.isLoading()) {
+  <div class="state"><app-spinner size="lg" /></div>
+} @else if (notFound()) {
+  <div class="state">
+    <app-empty-state
+      icon="search"
+      title="სტატია ვერ მოიძებნა"
+      description="ასეთი სტატია არ არსებობს, წაშლილია ან ჯერ არ გამოქვეყნებულა."
+    >
+      <a appButton routerLink="/">მთავარზე დაბრუნება</a>
+    </app-empty-state>
+  </div>
+} @else if (errorMessages().length > 0) {
+  <div class="state">
+    <app-alert variant="error">
+      @for (message of errorMessages(); track message) {
+        <p>{{ message }}</p>
+      }
+    </app-alert>
+  </div>
+} @else if (article.hasValue()) {
+  @let item = article.value();
+  <article class="article">
+    <header class="article__head">
+      @if (item.category; as category) {
+        <a class="article__kicker" [routerLink]="['/category', category.slug]">{{
+          category.name
+        }}</a>
+      }
+      <h1 class="article__title">{{ item.title }}</h1>
+      <p class="article__meta">
+        @if (item.author; as author) {
+          <span>{{ author.username }}</span>
+          <span aria-hidden="true">|</span>
+        }
+        <time [attr.datetime]="item.publishedAt">{{ item.publishedAt | timeAgo }}</time>
+      </p>
+    </header>
+
+    @if (item.coverImage; as cover) {
+      <figure class="article__cover">
+        <img [src]="cover.url" [alt]="cover.alt ?? ''" fetchpriority="high" />
+      </figure>
+    }
+
+    <div class="ql-editor article__content" [innerHTML]="content()"></div>
+
+    @if (item.tags.length > 0) {
+      <footer class="article__footer">
+        <h2 class="visually-hidden">თეგები</h2>
+        <ul class="article__tags" role="list">
+          @for (tag of item.tags; track tag) {
+            <li>
+              <a class="article__tag" routerLink="/" [queryParams]="{ tag }">#{{ tag }}</a>
+            </li>
+          }
+        </ul>
+      </footer>
+    }
+  </article>
+}

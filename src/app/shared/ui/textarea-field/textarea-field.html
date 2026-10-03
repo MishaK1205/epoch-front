@@ -1,0 +1,41 @@
+<div class="field" [class.field--invalid]="errorMessage()" [class.field--disabled]="disabled()">
+  <label class="field__label" [for]="id">
+    {{ label() }}
+    @if (required()) {
+      <span class="field__required" aria-hidden="true">*</span>
+    }
+  </label>
+
+  <textarea
+    #textareaEl
+    class="field__textarea"
+    [id]="id"
+    [rows]="rows()"
+    [value]="value()"
+    [placeholder]="placeholder()"
+    [disabled]="disabled()"
+    [attr.maxlength]="maxlength()"
+    [attr.aria-required]="required() || null"
+    [attr.aria-invalid]="errorMessage() ? true : null"
+    [attr.aria-describedby]="describedBy()"
+    (input)="onInput(textareaEl.value)"
+    (blur)="onBlur()"
+  ></textarea>
+
+  <div class="field__footer">
+    @if (errorMessage(); as message) {
+      <p class="field__message field__message--error" [id]="errorId">
+        <app-icon name="alert-circle" [size]="16" />
+        <span>{{ message }}</span>
+      </p>
+    } @else if (hint()) {
+      <p class="field__message" [id]="hintId">{{ hint() }}</p>
+    }
+    @if (counterVisible()) {
+      <p class="field__count" [id]="countId">
+        <span class="visually-hidden">სიმბოლოები:</span>
+        {{ value().length }} / {{ maxlength() }}
+      </p>
+    }
+  </div>
+</div>

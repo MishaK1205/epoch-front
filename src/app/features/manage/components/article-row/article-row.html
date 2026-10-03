@@ -1,0 +1,68 @@
+@let item = article();
+<div class="row" [class.row--pending]="pending()" [attr.aria-busy]="pending() || null">
+  <div class="row__thumb">
+    @if (item.coverImage; as cover) {
+      <img [ngSrc]="cover.url" [alt]="cover.alt ?? ''" fill />
+    } @else {
+      <app-icon name="image" [size]="24" />
+    }
+  </div>
+
+  <div class="row__body">
+    <a class="row__title" [routerLink]="['/manage/articles', item.id]">{{ item.title }}</a>
+    <p class="row__meta">
+      <app-badge [variant]="statusBadge()">{{ statusLabel() }}</app-badge>
+      @if (item.category; as category) {
+        <span class="row__category">{{ category.name }}</span>
+      }
+      @if (item.author; as author) {
+        <span>{{ author.username }}</span>
+      }
+      <span>
+        განახლდა <time [attr.datetime]="item.updatedAt">{{ item.updatedAt | timeAgo }}</time>
+      </span>
+    </p>
+  </div>
+
+  <div class="row__actions">
+    <a appButton variant="ghost" size="sm" [routerLink]="['/manage/articles', item.id]">
+      <app-icon btnIconStart name="edit" [size]="16" />
+      რედაქტირება
+    </a>
+    @if (published()) {
+      <button
+        appButton
+        type="button"
+        variant="outline"
+        size="sm"
+        [disabled]="pending()"
+        (click)="unpublish.emit()"
+      >
+        გამოქვეყნების გაუქმება
+      </button>
+    } @else {
+      <button
+        appButton
+        type="button"
+        variant="outline"
+        size="sm"
+        [disabled]="pending()"
+        (click)="publish.emit()"
+      >
+        გამოქვეყნება
+      </button>
+    }
+    <button
+      appButton
+      type="button"
+      variant="danger-ghost"
+      size="sm"
+      [disabled]="pending()"
+      [attr.aria-label]="'წაშლა: ' + item.title"
+      (click)="remove.emit()"
+    >
+      <app-icon btnIconStart name="trash" [size]="16" />
+      წაშლა
+    </button>
+  </div>
+</div>

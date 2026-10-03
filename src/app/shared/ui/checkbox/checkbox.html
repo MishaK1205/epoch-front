@@ -1,0 +1,29 @@
+<label
+  class="checkbox"
+  [class.checkbox--invalid]="errorMessage()"
+  [class.checkbox--disabled]="disabled()"
+>
+  <input
+    #inputEl
+    type="checkbox"
+    class="checkbox__input"
+    [checked]="checked()"
+    [disabled]="disabled()"
+    [attr.aria-required]="required() || null"
+    [attr.aria-invalid]="errorMessage() ? true : null"
+    [attr.aria-describedby]="errorMessage() ? errorId : null"
+    (change)="onToggle(inputEl.checked)"
+    (blur)="onBlur()"
+  />
+  <span class="checkbox__box" aria-hidden="true">
+    <app-icon name="check" [size]="14" />
+  </span>
+  <span class="checkbox__label"><ng-content /></span>
+</label>
+
+@if (errorMessage(); as message) {
+  <p class="checkbox__error" [id]="errorId">
+    <app-icon name="alert-circle" [size]="16" />
+    <span>{{ message }}</span>
+  </p>
+}

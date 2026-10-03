@@ -1,0 +1,288 @@
+// =============================================================================
+// EPOCH DESIGN SYSTEM
+// Single source of truth for colors, typography, spacing, radii, shadows,
+// motion, z-index and breakpoints. Components and pages must use these
+// variables — never hard-coded values.
+//
+// Runtime tokens are CSS custom properties (use `var(--color-ink)`).
+// They are emitted once, by `src/styles.scss` (`@include ds.tokens`), so this
+// file can be `@use`d from component styles without duplicating any CSS.
+// Breakpoints are SCSS variables because CSS variables can't be used in media
+// queries — use them through the `up()` / `down()` mixins in `_mixins.scss`.
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// Breakpoints (min-width)
+// -----------------------------------------------------------------------------
+$breakpoints: (
+  sm: 480px,
+  md: 768px,
+  lg: 1024px,
+  xl: 1280px,
+);
+
+@mixin tokens {
+  :root {
+    // ---------------------------------------------------------------------------
+    // Color palette (raw values — prefer the semantic tokens below in components)
+    // ---------------------------------------------------------------------------
+    --palette-black: #000000;
+    --palette-gray-900: #1e1e1e;
+    --palette-gray-800: #2c2c2c;
+    --palette-gray-700: #474747;
+    --palette-gray-600: #696969;
+    --palette-gray-400: #c4c4c4;
+    --palette-gray-300: #dadada;
+    --palette-gray-200: #e9e9e9;
+    --palette-gray-100: #f4f4f4;
+    --palette-gray-50: #f8f8f9;
+    --palette-white: #ffffff;
+    // Ink-navy: refined dark surfaces (footer, brand panels) instead of pure black
+    --palette-ink-900: #111318;
+    --palette-ink-800: #16181d;
+    --palette-ink-700: #22252c;
+    --palette-ink-400: #8a8f9a;
+    --palette-ink-200: #d4d6dc;
+    --palette-slate-800: #2b3442; // footer surface (mentalfloss-style dark slate)
+    // Navy built from #071824 (hsl 205 67% 8%). 500 is that color.
+    // 600 is a lifted solid hover — 500 is already near-black, so fills lighten.
+    // 700 is the readable text step: lighter than 500, because #071824 sits next to black.
+    // 400 is the light step for text and icons on dark surfaces.
+    --palette-navy-100: #e9f1f6;
+    --palette-navy-200: #c8d9e5;
+    --palette-navy-400: #7ba4c1;
+    --palette-navy-500: #071824;
+    --palette-navy-600: #102d42;
+    --palette-navy-700: #1d5a87;
+    --palette-blue-600: #0066cc;
+    --palette-blue-100: #e8f1fb;
+    --palette-blue-200: #bdd6f2;
+    --palette-green-600: #2f7a45;
+    --palette-green-200: #bfe3ca;
+    --palette-green-100: #e6f3ea;
+    --palette-red-700: #a61f1f;
+    --palette-red-600: #c62828;
+    --palette-red-200: #f3c4c4;
+    --palette-red-100: #fdecec;
+    --palette-amber-500: #e3a008;
+
+    // ---------------------------------------------------------------------------
+    // Semantic colors
+    // ---------------------------------------------------------------------------
+    --color-ink: var(--palette-black); // headings, primary text, brand
+    --color-text: var(--palette-gray-900); // body text
+    --color-text-muted: var(--palette-gray-700); // meta: author, date
+    --color-text-subtle: var(--palette-gray-600); // hints, placeholders
+    --color-text-inverse: var(--palette-white); // text on dark / accent surfaces
+
+    --color-bg: var(--palette-white);
+    --color-surface: var(--palette-white);
+    --color-surface-alt: var(--palette-gray-100);
+    --color-surface-muted: var(--palette-gray-50); // tinted page areas (auth form side)
+    --color-surface-inverse: var(--palette-black); // hero, dark sections
+    --color-surface-raised-hover: var(--palette-gray-900); // primary button hover
+    --color-surface-hover: var(--palette-gray-50); // table/list row hover
+
+    --color-border: var(--palette-gray-200);
+    --color-border-strong: var(--palette-gray-400);
+
+    --color-accent: var(--palette-navy-500); // nav band, highlights, active states
+    --color-accent-hover: var(--palette-navy-600);
+    --color-accent-soft: var(--palette-navy-100);
+    --color-accent-border: var(--palette-navy-200); // soft accent chips/badges
+    --color-accent-text: var(--palette-navy-700); // text + text hover on white (~7.3:1)
+    --color-accent-on-dark: var(--palette-navy-400); // #071824 disappears on footer/ink
+
+    --color-link: var(--palette-blue-600);
+    --color-focus: var(--color-ink);
+
+    --color-danger: var(--palette-red-600);
+    --color-danger-hover: var(--palette-red-700);
+    --color-danger-soft: var(--palette-red-100);
+    --color-danger-border: var(--palette-red-200);
+    --color-success: var(--palette-green-600);
+    --color-success-soft: var(--palette-green-100);
+    --color-success-border: var(--palette-green-200);
+    --color-info: var(--palette-blue-600);
+    --color-info-soft: var(--palette-blue-100);
+    --color-info-border: var(--palette-blue-200);
+    --color-warning: var(--palette-amber-500);
+
+    // Form controls
+    --color-input-bg: var(--palette-gray-50);
+    --color-input-bg-focus: var(--palette-white);
+    --color-input-border: var(--palette-gray-300);
+    --color-input-border-hover: var(--palette-gray-400);
+    --color-input-border-focus: var(--palette-navy-500);
+
+    // Footer / dark brand surfaces
+    --color-footer-bg: var(--palette-slate-800);
+    --color-footer-text: var(--palette-gray-200);
+    --color-footer-muted: var(--palette-ink-400);
+    --color-footer-heading: var(--palette-white);
+    --color-footer-link-hover: var(--color-accent-on-dark);
+
+    --color-overlay: rgb(0 0 0 / 50%);
+    --gradient-image-overlay: linear-gradient(180deg, rgb(0 0 0 / 0%) 35%, rgb(0 0 0 / 80%) 100%);
+    // Auth brand panel: deep ink with a navy glow in the corner
+    --gradient-brand:
+      radial-gradient(120% 80% at 100% 0%, rgb(123 164 193 / 34%) 0%, rgb(123 164 193 / 0%) 55%),
+      linear-gradient(160deg, var(--palette-ink-700) 0%, var(--palette-ink-900) 70%);
+    // Dot grid drawn over dark panels (tile size: --pattern-dots-size)
+    --pattern-dots: radial-gradient(rgb(255 255 255 / 10%) 1px, transparent 1.5px);
+    --pattern-dots-size: 24px;
+    // Mask (alpha only) that fades decorative layers out towards the bottom
+    --mask-fade-down: linear-gradient(180deg, rgb(0 0 0 / 70%), transparent 85%);
+
+    // ---------------------------------------------------------------------------
+    // Typography
+    // Fonts support Georgian + Latin. Loaded in `src/index.html`.
+    // ---------------------------------------------------------------------------
+    // Google Sans covers Latin + Georgian; Noto Sans Georgian is the fallback if it fails to load
+    --font-sans:
+      'Google Sans', 'Noto Sans Georgian', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
+      Arial, sans-serif;
+    --font-serif: 'Noto Serif Georgian', Georgia, 'Times New Roman', serif;
+    --font-display: var(--font-sans); // logo, hero titles, section headings (uppercase)
+
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --font-weight-black: 700; // Google Sans ships 400–700; heavier would be faux-bolded
+
+    // Type scale (rem, base 16px)
+    --text-xs: 0.75rem; //  12px — footer, captions
+    --text-sm: 0.875rem; // 14px — meta, labels, hints
+    --text-md: 0.9375rem; // 15px — buttons (md)
+    --text-base: 1rem; //   16px — body, inputs
+    --text-lg: 1.125rem; // 18px — article body, list titles (mobile)
+    --text-xl: 1.25rem; //  20px — list titles
+    --text-2xl: 1.5rem; //  24px — card titles, section headings
+    --text-3xl: 1.75rem; // 28px — page titles (mobile), hero (mobile)
+    --text-4xl: 2.25rem; // 36px — page titles
+    --text-5xl: 3rem; //    48px — hero title
+    --text-6xl: 4.5rem; //  72px — brand wordmark on the auth panel
+
+    --line-height-tight: 1.2;
+    --line-height-snug: 1.35;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.7; // long-form article text
+
+    --letter-spacing-tight: -0.01em;
+    --letter-spacing-normal: 0;
+    --letter-spacing-wide: 0.04em; // uppercase display text
+    --letter-spacing-wider: 0.12em; // eyebrows, footer headings, wordmark
+
+    // ---------------------------------------------------------------------------
+    // Spacing (4px grid)
+    // ---------------------------------------------------------------------------
+    --space-0: 0;
+    --space-1: 0.25rem; //  4px
+    --space-2: 0.5rem; //   8px
+    --space-3: 0.75rem; // 12px
+    --space-4: 1rem; //    16px
+    --space-5: 1.25rem; // 20px
+    --space-6: 1.5rem; //  24px
+    --space-8: 2rem; //    32px
+    --space-10: 2.5rem; // 40px
+    --space-12: 3rem; //   48px
+    --space-16: 4rem; //   64px
+    --space-20: 5rem; //   80px
+
+    // ---------------------------------------------------------------------------
+    // Layout
+    // ---------------------------------------------------------------------------
+    --container-max: 1200px;
+    --container-narrow: 760px; // reading width
+    --container-form: 480px; // auth forms
+    --container-dialog: 440px; // confirm dialogs
+    --editor-sidebar-width: 360px; // article editor side column (≥1024px)
+    --container-padding: var(--space-4);
+    --header-height: 72px;
+    --accent-band-height: 20px; // decorative accent strip under the header bar
+
+    // ---------------------------------------------------------------------------
+    // Shape
+    // ---------------------------------------------------------------------------
+    --radius-none: 0;
+    --radius-sm: 4px; // tags, kicker chips
+    --radius-md: 6px; // checkbox, small icon buttons
+    --radius-lg: 10px; // buttons, inputs, alerts
+    --radius-xl: 14px; // panels
+    --radius-2xl: 20px; // cards
+    --radius-full: 9999px;
+
+    --border-width: 1px;
+    --border-width-strong: 2px;
+    --border-width-heavy: 3px; // active tab underline
+
+    // ---------------------------------------------------------------------------
+    // Elevation
+    // ---------------------------------------------------------------------------
+    --shadow-xs: 0 1px 2px rgb(0 0 0 / 5%);
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 8%);
+    --shadow-md: 0 4px 12px rgb(0 0 0 / 8%);
+    --shadow-lg: 0 2px 6px rgb(17 19 24 / 4%), 0 16px 40px rgb(17 19 24 / 10%);
+    --shadow-header: 0 1px 0 rgb(0 0 0 / 6%), 0 4px 12px rgb(0 0 0 / 4%);
+    // White header bar casting onto the accent category band below it
+    --shadow-header-bar: 0 2px 4px rgb(0 0 0 / 12%), 0 8px 16px rgb(0 0 0 / 14%);
+    // Buttons: soft drop shadow + inner top highlight for solid variants
+    --shadow-btn: 0 1px 2px rgb(0 0 0 / 14%), inset 0 1px 0 rgb(255 255 255 / 10%);
+    --shadow-btn-hover: 0 4px 12px rgb(0 0 0 / 18%), inset 0 1px 0 rgb(255 255 255 / 12%);
+    --shadow-btn-accent: 0 1px 2px rgb(7 24 36 / 40%), inset 0 1px 0 rgb(255 255 255 / 18%);
+    --shadow-btn-accent-hover:
+      0 6px 16px rgb(7 24 36 / 45%), inset 0 1px 0 rgb(255 255 255 / 18%);
+
+    // ---------------------------------------------------------------------------
+    // Motion
+    // ---------------------------------------------------------------------------
+    --duration-fast: 120ms;
+    --duration-normal: 200ms;
+    --duration-slow: 320ms;
+    --duration-slower: 520ms; // page/card entrance
+    --easing-standard: cubic-bezier(0.2, 0, 0, 1);
+    --easing-out: cubic-bezier(0.16, 1, 0.3, 1); // entrances
+    --easing-spring: cubic-bezier(0.34, 1.56, 0.64, 1); // check marks, pops
+
+    // ---------------------------------------------------------------------------
+    // Z-index
+    // ---------------------------------------------------------------------------
+    --z-base: 0;
+    --z-sticky: 50; // sticky action bars inside pages
+    --z-dropdown: 100;
+    --z-header: 200;
+    --z-drawer: 300;
+    --z-modal: 400;
+    --z-toast: 500;
+
+    // ---------------------------------------------------------------------------
+    // Component tokens
+    // ---------------------------------------------------------------------------
+    --control-height-sm: 36px;
+    --control-height-md: 44px;
+    --control-height-lg: 52px;
+    --input-height: 48px;
+    --checkbox-size: 20px;
+    --chip-height: 28px; // tag chips, badges
+    --progress-height: 6px; // upload progress bars
+    --table-row-min-height: 64px;
+    --table-action-width: 14rem; // inline select column in tables
+    --thumb-width: 96px; // list thumbnails (manage lists)
+    --editor-min-height: 320px; // rich text editor content area
+    --editor-picker-width: 8.5rem; // Quill heading picker (fits Georgian labels)
+    --radius-control: var(--radius-lg); // buttons + inputs share one radius
+    --radius-card: var(--radius-xl); // article teaser cards
+    // Article cards: hairline-soft resting shadow, lifted on hover
+    --shadow-card: 0 1px 2px rgb(17 19 24 / 4%), 0 4px 16px rgb(17 19 24 / 5%);
+    --shadow-card-hover: 0 2px 6px rgb(17 19 24 / 6%), 0 20px 44px rgb(17 19 24 / 12%);
+
+    // Focus rings. Default: white gap + ink ring (visible on any light surface).
+    --focus-ring: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-focus);
+    --focus-ring-inverse: 0 0 0 2px var(--color-footer-bg), 0 0 0 4px var(--color-text-inverse);
+    --focus-ring-accent: 0 0 0 4px rgb(7 24 36 / 28%); // inputs
+    --focus-ring-danger: 0 0 0 4px rgb(198 40 40 / 15%); // invalid inputs
+    // Browser autofill: paint over the yellow background with the field background
+    --shadow-autofill: inset 0 0 0 1000px var(--color-input-bg-focus);
+  }
+}

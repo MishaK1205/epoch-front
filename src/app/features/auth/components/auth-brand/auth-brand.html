@@ -1,0 +1,19 @@
+<div class="brand">
+  <p class="brand__eyebrow">ონლაინ ჟურნალი</p>
+
+  <div class="brand__body">
+    <p class="brand__wordmark">Epoch</p>
+    <p class="brand__tagline">ისტორია, ფაქტები და საინტერესო ამბები — ყოველდღე.</p>
+
+    <ul class="brand__features" role="list">
+      @for (feature of features; track feature) {
+        <li class="brand__feature">
+          <app-icon name="check-circle" [size]="18" />
+          <span>{{ feature }}</span>
+        </li>
+      }
+    </ul>
+  </div>
+
+  <p class="brand__footer">© {{ year }} Epoch</p>
+</div>

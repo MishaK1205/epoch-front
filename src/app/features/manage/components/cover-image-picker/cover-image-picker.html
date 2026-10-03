@@ -1,0 +1,126 @@
+<div class="field">
+  <span class="field__label" [id]="labelId">
+    {{ label() }}
+    @if (required()) {
+      <span class="field__required" aria-hidden="true">*</span>
+    }
+  </span>
+
+  <input
+    #fileInput
+    class="visually-hidden"
+    type="file"
+    tabindex="-1"
+    aria-hidden="true"
+    [accept]="accept"
+    [disabled]="disabled()"
+    (change)="onFileSelected(fileInput)"
+  />
+
+  @if (hasImage()) {
+    <div class="cover">
+      <figure class="cover__preview">
+        <img [src]="preview()" [alt]="altControl.value" />
+        @if (uploading()) {
+          <div class="cover__overlay"><ng-container *ngTemplateOutlet="progressBar" /></div>
+        }
+      </figure>
+      <div class="cover__side">
+        <app-input-field
+          [formControl]="altControl"
+          label="ალტერნატიული ტექსტი"
+          hint="მოკლედ აღწერეთ სურათი ეკრანის წამკითხველებისთვის."
+          [maxlength]="altMaxLength"
+          (focusout)="saveAlt()"
+        />
+        <p class="cover__status" aria-live="polite">
+          @switch (altStatus()) {
+            @case ('saving') {
+              ინახება…
+            }
+            @case ('saved') {
+              ალტერნატიული ტექსტი შენახულია.
+            }
+          }
+        </p>
+        <div class="cover__actions">
+          <button
+            appButton
+            type="button"
+            variant="outline"
+            size="sm"
+            [disabled]="disabled() || uploading()"
+            (click)="fileInput.click()"
+          >
+            <app-icon btnIconStart name="upload" [size]="16" />
+            შეცვლა
+          </button>
+          <button
+            appButton
+            type="button"
+            variant="danger-ghost"
+            size="sm"
+            [disabled]="disabled()"
+            (click)="removeImage()"
+          >
+            <app-icon btnIconStart name="close" [size]="16" />
+            მოშორება
+          </button>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <button
+      type="button"
+      class="dropzone"
+      [class.dropzone--active]="dragging()"
+      [class.dropzone--invalid]="errorMessage()"
+      [disabled]="disabled() || uploading()"
+      [attr.aria-labelledby]="labelId + ' ' + hintId"
+      [attr.aria-describedby]="errorMessage() ? errorId : null"
+      (click)="fileInput.click()"
+      (dragover)="onDragOver($event)"
+      (dragleave)="dragging.set(false)"
+      (drop)="onDrop($event)"
+    >
+      @if (uploading()) {
+        <ng-container *ngTemplateOutlet="progressBar" />
+      } @else {
+        <span class="dropzone__icon"><app-icon name="image" [size]="24" /></span>
+        <span class="dropzone__title">ჩააგდეთ სურათი ან <u>აირჩიეთ ფაილი</u></span>
+      }
+      <span class="dropzone__hint" [id]="hintId">
+        JPEG, PNG, WebP ან GIF — მაქსიმუმ {{ maxSizeMb }} MB
+      </span>
+    </button>
+  }
+
+  @for (message of uploadErrors(); track message) {
+    <p class="field__message field__message--error" role="alert">
+      <app-icon name="alert-circle" [size]="16" />
+      <span>{{ message }}</span>
+    </p>
+  }
+  @if (errorMessage(); as message) {
+    <p class="field__message field__message--error" [id]="errorId">
+      <app-icon name="alert-circle" [size]="16" />
+      <span>{{ message }}</span>
+    </p>
+  }
+</div>
+
+<ng-template #progressBar>
+  <div class="progress">
+    <div
+      class="progress__track"
+      role="progressbar"
+      aria-label="სურათის ატვირთვა"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      [attr.aria-valuenow]="progress()"
+    >
+      <div class="progress__bar" [style.width.%]="progress()"></div>
+    </div>
+    <span class="progress__label">იტვირთება… {{ progress() }}%</span>
+  </div>
+</ng-template>

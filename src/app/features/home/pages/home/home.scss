@@ -1,0 +1,47 @@
+@use 'mixins' as *;
+
+.home {
+  @include container;
+
+  padding-block: var(--space-10) var(--space-16);
+}
+
+.section-title {
+  @include display-text;
+
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-6);
+  font-size: var(--text-xl);
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.home__feed {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+// Big lead card on the left, a 2×2 block of small cards on the right
+.latest {
+  display: grid;
+  gap: var(--space-6);
+  margin-bottom: var(--space-10);
+
+  @include up(lg) {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  }
+}
+
+.latest__side {
+  display: grid;
+  gap: var(--space-6);
+
+  @include up(sm) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  // Two rows match the lead height even when fewer than 4 small cards exist
+  @include up(lg) {
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+  }
+}

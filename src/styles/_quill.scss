@@ -1,0 +1,267 @@
+@use 'mixins' as *;
+
+// =============================================================================
+// Quill 2 (snow theme) overrides.
+// Quill builds its DOM at runtime (no Angular style encapsulation), so the editor and the
+// rendered article content (`<div class="ql-editor">`) are styled here, with design tokens.
+// =============================================================================
+
+// Frame around toolbar + editor: focus glow and invalid state (`.ql-frame--invalid`).
+.ql-frame {
+  border-radius: var(--radius-control);
+  transition: box-shadow var(--duration-normal) var(--easing-standard);
+
+  &:focus-within {
+    box-shadow: var(--focus-ring-accent);
+
+    .ql-toolbar.ql-snow,
+    .ql-container.ql-snow {
+      border-color: var(--color-input-border-focus);
+    }
+  }
+}
+
+.ql-frame--invalid {
+  .ql-toolbar.ql-snow,
+  .ql-container.ql-snow {
+    border-color: var(--color-danger);
+  }
+
+  &:focus-within {
+    box-shadow: var(--focus-ring-danger);
+
+    .ql-toolbar.ql-snow,
+    .ql-container.ql-snow {
+      border-color: var(--color-danger);
+    }
+  }
+}
+
+.ql-frame--disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.ql-toolbar.ql-snow {
+  padding: var(--space-2);
+  font-family: var(--font-sans);
+  background: var(--color-surface-muted);
+  border: var(--border-width) solid var(--color-input-border);
+  border-radius: var(--radius-control) var(--radius-control) 0 0;
+  transition: border-color var(--duration-fast) var(--easing-standard);
+
+  button {
+    border-radius: var(--radius-md);
+    transition: background-color var(--duration-fast) var(--easing-standard);
+
+    &:hover {
+      background: var(--color-surface-alt);
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+
+  .ql-picker-label {
+    border-radius: var(--radius-md);
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+}
+
+.ql-snow {
+  .ql-stroke {
+    stroke: var(--color-text-muted);
+  }
+
+  .ql-fill {
+    fill: var(--color-text-muted);
+  }
+
+  .ql-picker {
+    color: var(--color-text-muted);
+  }
+
+  &.ql-toolbar button:hover,
+  &.ql-toolbar button:focus,
+  &.ql-toolbar button.ql-active,
+  &.ql-toolbar .ql-picker-label:hover,
+  &.ql-toolbar .ql-picker-label.ql-active,
+  &.ql-toolbar .ql-picker-item:hover,
+  &.ql-toolbar .ql-picker-item.ql-selected {
+    color: var(--color-accent-text);
+
+    .ql-stroke {
+      stroke: var(--color-accent-text);
+    }
+
+    .ql-fill {
+      fill: var(--color-accent-text);
+    }
+  }
+
+  .ql-picker-options {
+    padding: var(--space-1) var(--space-2);
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+  }
+
+  .ql-picker.ql-expanded .ql-picker-options {
+    border-color: var(--color-border);
+  }
+
+  .ql-tooltip {
+    z-index: var(--z-dropdown);
+    padding: var(--space-2) var(--space-3);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    color: var(--color-text);
+    background: var(--color-surface);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+
+    input[type='text'] {
+      height: var(--control-height-sm);
+      padding: 0 var(--space-2);
+      font-size: var(--text-sm);
+      border: var(--border-width) solid var(--color-input-border);
+      border-radius: var(--radius-md);
+
+      &:focus-visible {
+        outline: none;
+        border-color: var(--color-input-border-focus);
+        box-shadow: var(--focus-ring-accent);
+      }
+    }
+
+    a.ql-action,
+    a.ql-remove,
+    a.ql-preview {
+      color: var(--color-accent-text);
+    }
+  }
+}
+
+// Georgian labels for texts that Quill renders through CSS `content`.
+.ql-snow {
+  .ql-picker.ql-header {
+    width: var(--editor-picker-width);
+  }
+
+  .ql-picker.ql-header .ql-picker-label::before,
+  .ql-picker.ql-header .ql-picker-item::before {
+    content: 'ჩვეულებრივი';
+  }
+
+  .ql-picker.ql-header .ql-picker-label[data-value='2']::before,
+  .ql-picker.ql-header .ql-picker-item[data-value='2']::before {
+    content: 'სათაური 2';
+  }
+
+  .ql-picker.ql-header .ql-picker-label[data-value='3']::before,
+  .ql-picker.ql-header .ql-picker-item[data-value='3']::before {
+    content: 'სათაური 3';
+  }
+
+  .ql-tooltip::before {
+    content: 'ბმული:';
+  }
+
+  .ql-tooltip[data-mode='link']::before {
+    content: 'შეიყვანეთ ბმული:';
+  }
+
+  .ql-tooltip a.ql-action::after {
+    content: 'შეცვლა';
+  }
+
+  .ql-tooltip.ql-editing a.ql-action::after {
+    content: 'შენახვა';
+  }
+
+  .ql-tooltip a.ql-remove::before {
+    content: 'მოხსნა';
+  }
+}
+
+.ql-container.ql-snow {
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+  background: var(--color-input-bg-focus);
+  border: var(--border-width) solid var(--color-input-border);
+  border-radius: 0 0 var(--radius-control) var(--radius-control);
+  transition: border-color var(--duration-fast) var(--easing-standard);
+
+  .ql-editor {
+    min-height: var(--editor-min-height);
+    padding: var(--space-5);
+  }
+
+  .ql-editor.ql-blank::before {
+    right: var(--space-5);
+    left: var(--space-5);
+    font-style: normal;
+    color: var(--color-text-subtle);
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Content typography — shared by the editor and the public article page.
+// -----------------------------------------------------------------------------
+.ql-editor {
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text);
+
+  > * + * {
+    margin-top: var(--space-4);
+  }
+
+  h2,
+  h3 {
+    font-family: var(--font-sans);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+    color: var(--color-ink);
+  }
+
+  h2 {
+    margin-top: var(--space-8);
+    font-size: var(--text-2xl);
+  }
+
+  h3 {
+    margin-top: var(--space-6);
+    font-size: var(--text-xl);
+  }
+
+  a,
+  .ql-snow & a {
+    color: var(--color-accent-text);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  blockquote,
+  .ql-snow & blockquote {
+    padding: var(--space-1) 0 var(--space-1) var(--space-5);
+    margin-block: var(--space-6);
+    font-style: italic;
+    color: var(--color-text-muted);
+    border-left: 4px solid var(--color-accent);
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-lg);
+  }
+}

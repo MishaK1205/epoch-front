@@ -1,0 +1,62 @@
+@use 'mixins' as *;
+
+:host {
+  display: block;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.field__label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  cursor: default;
+}
+
+.field__required {
+  margin-left: var(--space-1);
+  color: var(--color-accent-text);
+}
+
+.rte__loading {
+  display: grid;
+  place-items: center;
+  min-height: var(--editor-min-height);
+  background: var(--color-input-bg);
+  border: var(--border-width) solid var(--color-input-border);
+  border-radius: var(--radius-control);
+}
+
+.rte__dismiss {
+  @include reset-button;
+
+  align-self: flex-start;
+  font-weight: var(--font-weight-semibold);
+  text-decoration: underline;
+  border-radius: var(--radius-sm);
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.field__message {
+  display: flex;
+  gap: var(--space-1);
+  align-items: flex-start;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+
+  app-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+}
+
+.field__message--error {
+  color: var(--color-danger);
+}

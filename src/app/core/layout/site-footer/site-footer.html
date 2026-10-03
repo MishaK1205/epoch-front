@@ -1,0 +1,23 @@
+<footer class="footer">
+  <div class="footer__inner">
+    <div class="footer__brand">
+      <app-logo inverse />
+    </div>
+
+    @if (categories().length > 0) {
+      <nav aria-label="კატეგორიები ფუტერში">
+        <ul class="footer__links" role="list">
+          @for (category of categories(); track category.id) {
+            <li>
+              <a class="footer__link" [routerLink]="['/category', category.slug]">{{
+                category.name
+              }}</a>
+            </li>
+          }
+        </ul>
+      </nav>
+    }
+
+    <p class="footer__copyright">© {{ year }} Epoch. ყველა უფლება დაცულია.</p>
+  </div>
+</footer>

@@ -1,0 +1,50 @@
+@if (heading(); as heading) {
+  <header class="page-heading">
+    <p class="page-heading__kicker">{{ heading.kicker }}</p>
+    <h1 class="page-heading__title">{{ heading.title }}</h1>
+  </header>
+}
+
+@if (featured(); as article) {
+  <app-article-hero [article]="article" />
+}
+
+<div class="home">
+  <section class="home__feed" aria-labelledby="feed-title">
+    <h2 id="feed-title" class="section-title">უახლესი სტატიები</h2>
+
+    @if (articles.isLoading()) {
+      <div class="feed-state"><app-spinner size="lg" /></div>
+    } @else if (errorMessages().length > 0) {
+      <app-alert variant="error">
+        @for (message of errorMessages(); track message) {
+          <p>{{ message }}</p>
+        }
+      </app-alert>
+    } @else {
+      @if (lead(); as lead) {
+        <div class="latest">
+          <app-article-list-item [article]="lead" variant="lead" />
+          @if (sideItems().length > 0) {
+            <ul class="latest__side" role="list">
+              @for (article of sideItems(); track article.id) {
+                <li><app-article-list-item [article]="article" /></li>
+              }
+            </ul>
+          }
+        </div>
+      }
+      @if (restItems().length > 0) {
+        <ul class="teaser-grid" role="list">
+          @for (article of restItems(); track article.id) {
+            <li><app-article-list-item [article]="article" /></li>
+          }
+        </ul>
+      }
+      @if (items().length === 0) {
+        <p class="feed-state">სტატიები ჯერ არ არის.</p>
+      }
+      <app-pagination [page]="page()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
+    }
+  </section>
+</div>

@@ -1,0 +1,79 @@
+// Shared by the manage list pages: toolbar, filter chips, list, loading/empty states.
+@use 'mixins' as *;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  height: var(--control-height-sm);
+  padding: 0 var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-ink);
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-full);
+  transition:
+    color var(--duration-fast) var(--easing-standard),
+    background-color var(--duration-fast) var(--easing-standard),
+    border-color var(--duration-fast) var(--easing-standard);
+
+  &:hover {
+    border-color: var(--color-ink);
+  }
+
+  &.is-active {
+    color: var(--color-text-inverse);
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+  }
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  border-block: var(--border-width) solid var(--color-border);
+
+  > li + li {
+    border-top: var(--border-width) solid var(--color-border);
+  }
+}
+
+.list--loading {
+  opacity: 0.6;
+}
+
+.state {
+  display: grid;
+  place-items: center;
+  padding-block: var(--space-12);
+}
+
+.alerts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+
+  &:empty {
+    display: none;
+  }
+}

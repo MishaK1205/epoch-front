@@ -1,0 +1,111 @@
+@use 'mixins' as *;
+
+:host {
+  @include container(var(--container-narrow));
+
+  display: block;
+  padding-block: var(--space-10) var(--space-16);
+}
+
+.state {
+  display: grid;
+  place-items: center;
+  padding-block: var(--space-12);
+}
+
+.article {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.article__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.article__kicker {
+  align-self: flex-start;
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-accent-text);
+  border-radius: var(--radius-sm);
+  transition: color var(--duration-fast) var(--easing-standard);
+
+  &:hover,
+  &:focus-visible {
+    color: var(--color-accent);
+  }
+}
+
+.article__title {
+  @include display-text;
+
+  font-size: var(--text-3xl);
+  line-height: var(--line-height-tight);
+  overflow-wrap: anywhere;
+
+  @include up(md) {
+    font-size: var(--text-5xl);
+  }
+}
+
+.article__meta {
+  display: flex;
+  gap: var(--space-2);
+  padding-bottom: var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-muted);
+  border-bottom: var(--border-width-heavy) solid var(--color-ink);
+}
+
+.article__cover {
+  overflow: hidden;
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-lg);
+
+  img {
+    width: 100%;
+    height: auto;
+  }
+}
+
+// Quill core sets `.ql-editor` up as a scrolling editor; reset that for reading.
+.article__content {
+  height: auto;
+  padding: 0;
+  overflow: visible;
+}
+
+.article__footer {
+  padding-top: var(--space-6);
+  border-top: var(--border-width) solid var(--color-border);
+}
+
+.article__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.article__tag {
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-ink);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-full);
+  transition:
+    color var(--duration-fast) var(--easing-standard),
+    background-color var(--duration-fast) var(--easing-standard),
+    border-color var(--duration-fast) var(--easing-standard);
+
+  &:hover {
+    color: var(--color-text-inverse);
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+  }
+}

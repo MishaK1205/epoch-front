@@ -1,0 +1,39 @@
+@if (totalPages() > 1) {
+  <nav class="pagination" aria-label="გვერდები">
+    <button
+      type="button"
+      class="pagination__item"
+      aria-label="წინა გვერდი"
+      [disabled]="page() <= 1"
+      (click)="select(page() - 1)"
+    >
+      <app-icon name="chevron-left" />
+    </button>
+
+    @for (item of items(); track item.key) {
+      @if (item.kind === 'page') {
+        <button
+          type="button"
+          class="pagination__item"
+          [class.pagination__item--active]="item.page === page()"
+          [attr.aria-current]="item.page === page() ? 'page' : null"
+          (click)="select(item.page)"
+        >
+          {{ item.page }}
+        </button>
+      } @else {
+        <span class="pagination__gap" aria-hidden="true">…</span>
+      }
+    }
+
+    <button
+      type="button"
+      class="pagination__item"
+      aria-label="შემდეგი გვერდი"
+      [disabled]="page() >= totalPages()"
+      (click)="select(page() + 1)"
+    >
+      <app-icon name="chevron-right" />
+    </button>
+  </nav>
+}

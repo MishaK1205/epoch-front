@@ -1,0 +1,8 @@
+@if (icon(); as icon) {
+  <span class="empty__icon"><app-icon [name]="icon" [size]="28" /></span>
+}
+<p class="empty__title">{{ title() }}</p>
+@if (description()) {
+  <p class="empty__description">{{ description() }}</p>
+}
+<div class="empty__actions"><ng-content /></div>

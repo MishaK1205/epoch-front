@@ -1,0 +1,50 @@
+<div class="field" [class.field--invalid]="errorMessage()" [class.field--disabled]="disabled()">
+  <label class="field__label" [for]="id">
+    {{ label() }}
+    @if (required()) {
+      <span class="field__required" aria-hidden="true">*</span>
+    }
+  </label>
+
+  <div class="field__control">
+    <input
+      #inputEl
+      class="field__input"
+      [class.field__input--with-toggle]="type() === 'password'"
+      [id]="id"
+      [type]="inputType()"
+      [value]="value()"
+      [placeholder]="placeholder()"
+      [disabled]="disabled()"
+      [attr.autocomplete]="autocomplete()"
+      [attr.maxlength]="maxlength()"
+      [attr.aria-required]="required() || null"
+      [attr.aria-invalid]="errorMessage() ? true : null"
+      [attr.aria-describedby]="describedBy()"
+      (input)="onInput(inputEl.value)"
+      (blur)="onBlur()"
+    />
+
+    @if (type() === 'password') {
+      <button
+        type="button"
+        class="field__toggle"
+        [disabled]="disabled()"
+        [attr.aria-label]="passwordVisible() ? 'პაროლის დამალვა' : 'პაროლის ჩვენება'"
+        [attr.aria-pressed]="passwordVisible()"
+        (click)="togglePasswordVisibility()"
+      >
+        <app-icon [name]="passwordVisible() ? 'eye-off' : 'eye'" />
+      </button>
+    }
+  </div>
+
+  @if (errorMessage(); as message) {
+    <p class="field__message field__message--error" [id]="errorId">
+      <app-icon name="alert-circle" [size]="16" />
+      <span>{{ message }}</span>
+    </p>
+  } @else if (hint()) {
+    <p class="field__message" [id]="hintId">{{ hint() }}</p>
+  }
+</div>

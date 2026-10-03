@@ -1,0 +1,23 @@
+@let item = article();
+<a class="hero" [routerLink]="['/articles', item.slug]">
+  @if (item.coverImage; as cover) {
+    <img
+      class="hero__image"
+      [ngSrc]="cover.url"
+      [alt]="cover.alt ?? ''"
+      fill
+      priority
+      sizes="100vw"
+    />
+  }
+  <div class="hero__content">
+    <h2 class="hero__title">{{ item.title }}</h2>
+    <p class="hero__meta">
+      @if (item.author; as author) {
+        <span>{{ author.username }}</span>
+        <span aria-hidden="true">|</span>
+      }
+      <time [attr.datetime]="item.publishedAt">{{ item.publishedAt | timeAgo }}</time>
+    </p>
+  </div>
+</a>

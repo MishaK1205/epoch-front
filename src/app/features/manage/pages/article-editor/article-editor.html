@@ -1,0 +1,169 @@
+@if (loading()) {
+  <div class="editor__state"><app-spinner size="lg" /></div>
+} @else if (loadErrors().length > 0) {
+  <div class="editor__state">
+    <app-alert variant="error">
+      @for (message of loadErrors(); track message) {
+        <p>{{ message }}</p>
+      }
+    </app-alert>
+    <a appButton variant="outline" routerLink="/manage/articles">
+      <app-icon btnIconStart name="chevron-left" [size]="18" />
+      სტატიების სიაში დაბრუნება
+    </a>
+  </div>
+} @else if (showForm()) {
+  <form class="editor" [formGroup]="form" (ngSubmit)="save()" novalidate>
+    <div class="editor__head">
+      <a class="editor__back" routerLink="/manage/articles">
+        <app-icon name="chevron-left" [size]="16" />
+        ყველა სტატია
+      </a>
+      <div class="editor__status">
+        <app-badge [variant]="status().badge">{{ status().label }}</app-badge>
+        @if (article(); as current) {
+          <span class="editor__updated">
+            ბოლო ცვლილება
+            <time [attr.datetime]="current.updatedAt">{{ current.updatedAt | timeAgo }}</time>
+          </span>
+          @if (published()) {
+            <a
+              appButton
+              variant="ghost"
+              size="sm"
+              target="_blank"
+              rel="noopener"
+              [routerLink]="['/articles', current.slug]"
+            >
+              <app-icon btnIconStart name="external-link" [size]="16" />
+              ნახვა
+              <span class="visually-hidden">(იხსნება ახალ ჩანართში)</span>
+            </a>
+          }
+        }
+      </div>
+    </div>
+
+    <div class="editor__alerts" aria-live="polite">
+      @if (successMessage()) {
+        <app-alert variant="success">{{ successMessage() }}</app-alert>
+      }
+      @if (serverErrors().length > 0) {
+        <app-alert variant="error">
+          @for (message of serverErrors(); track message) {
+            <p>{{ message }}</p>
+          }
+        </app-alert>
+      }
+    </div>
+
+    <div class="editor__grid">
+      <div class="editor__title">
+        <app-input-field
+          formControlName="title"
+          label="სათაური"
+          [maxlength]="limits.articleTitle.max"
+        />
+      </div>
+
+      <div class="editor__aside">
+        <div>
+          <app-select
+            formControlName="categoryId"
+            label="კატეგორია"
+            placeholder="აირჩიეთ კატეგორია"
+            [options]="categoryOptions()"
+          />
+          @if (categoryOptions().length === 0) {
+            <p class="editor__hint">
+              ჯერ შექმენით კატეგორია.
+              @if (isAdmin()) {
+                <a class="editor__link" routerLink="/manage/categories">კატეგორიების მართვა</a>
+              } @else {
+                მიმართეთ ადმინისტრატორს.
+              }
+            </p>
+          }
+        </div>
+        <app-tags-input formControlName="tags" label="თეგები" hint="Enter ან მძიმე ამატებს თეგს." />
+        <app-cover-image-picker
+          formControlName="coverImageId"
+          label="მთავარი სურათი"
+          [previewUrl]="article()?.coverImage?.url ?? null"
+          [previewAlt]="article()?.coverImage?.alt ?? ''"
+        />
+      </div>
+
+      <div class="editor__content">
+        <app-rich-text-editor
+          formControlName="content"
+          label="ტექსტი"
+          placeholder="დაიწყეთ წერა…"
+          [errorMessages]="{ maxlength: 'ტექსტი ძალიან გრძელია.' }"
+        />
+      </div>
+    </div>
+
+    <div class="editor__actions">
+      <button appButton type="submit" [loading]="busy() === 'save'" [disabled]="busy() !== null">
+        შენახვა
+      </button>
+      @if (!isNew()) {
+        @if (published()) {
+          <button
+            appButton
+            type="button"
+            variant="outline"
+            [loading]="busy() === 'unpublish'"
+            [disabled]="busy() !== null"
+            (click)="setPublished(false)"
+          >
+            გამოქვეყნების გაუქმება
+          </button>
+        } @else {
+          <button
+            appButton
+            type="button"
+            variant="accent"
+            [loading]="busy() === 'publish'"
+            [disabled]="busy() !== null"
+            (click)="setPublished(true)"
+          >
+            გამოქვეყნება
+          </button>
+        }
+        <button
+          appButton
+          type="button"
+          variant="danger-ghost"
+          class="editor__delete"
+          [loading]="busy() === 'delete'"
+          [disabled]="busy() !== null"
+          (click)="askDelete()"
+        >
+          <app-icon btnIconStart name="trash" [size]="16" />
+          წაშლა
+        </button>
+      }
+    </div>
+  </form>
+}
+
+<app-confirm-dialog
+  #deleteDialog
+  title="წავშალოთ სტატია?"
+  message="სტატია სამუდამოდ წაიშლება. ამ მოქმედების გაუქმება შეუძლებელია."
+  confirmLabel="წაშლა"
+  danger
+  (confirmed)="confirmDelete()"
+/>
+<app-confirm-dialog
+  #leaveDialog
+  title="შეუნახავი ცვლილებები"
+  message="ცვლილებები არ არის შენახული. დატოვებთ გვერდს მათი შენახვის გარეშე?"
+  confirmLabel="გასვლა"
+  cancelLabel="დარჩენა"
+  danger
+  (confirmed)="resolveLeave(true)"
+  (cancelled)="resolveLeave(false)"
+/>

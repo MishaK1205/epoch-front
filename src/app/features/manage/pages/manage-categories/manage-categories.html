@@ -1,0 +1,105 @@
+<section class="panel" aria-labelledby="new-category-title">
+  <h2 id="new-category-title" class="panel__title">ახალი კატეგორია</h2>
+  <app-category-form #createForm [pending]="creating()" (submitted)="create($event)" />
+</section>
+
+<div class="alerts" aria-live="polite">
+  @if (successMessage()) {
+    <app-alert variant="success">{{ successMessage() }}</app-alert>
+  }
+  @if (actionErrors().length > 0) {
+    <app-alert variant="error">
+      @for (message of actionErrors(); track message) {
+        <p>{{ message }}</p>
+      }
+    </app-alert>
+  }
+</div>
+
+@if (categories.isLoading() && !categories.hasValue()) {
+  <div class="state"><app-spinner size="lg" /></div>
+} @else if (loadErrors().length > 0) {
+  <app-alert variant="error">
+    @for (message of loadErrors(); track message) {
+      <p>{{ message }}</p>
+    }
+  </app-alert>
+} @else if (items().length === 0) {
+  <app-empty-state
+    icon="plus"
+    title="კატეგორიები ჯერ არ არის."
+    description="დაამატეთ პირველი კატეგორია ზემოთ მოცემული ფორმით — სტატიებს კატეგორია სჭირდება."
+  />
+} @else {
+  <ul class="list" role="list" aria-label="კატეგორიები">
+    @for (category of items(); track category.id) {
+      <li>
+        @if (editingId() === category.id) {
+          <div class="category category--editing">
+            <app-category-form
+              [category]="category"
+              [pending]="pendingId() === category.id"
+              (submitted)="update(category, $event)"
+              (cancelled)="editingId.set(null)"
+            />
+          </div>
+        } @else {
+          <div class="category" [attr.aria-busy]="pendingId() === category.id || null">
+            <div class="category__info">
+              <p class="category__name">
+                {{ category.name }}
+                <span class="category__slug">/{{ category.slug }}</span>
+              </p>
+              @if (category.description) {
+                <p class="category__description">{{ category.description }}</p>
+              }
+            </div>
+            <app-badge [variant]="category.articleCount > 0 ? 'info' : 'neutral'">
+              {{ category.articleCount }} სტატია
+            </app-badge>
+            <div class="category__actions">
+              <button
+                appButton
+                type="button"
+                variant="ghost"
+                size="sm"
+                [disabled]="pendingId() !== null"
+                (click)="startEdit(category)"
+              >
+                <app-icon btnIconStart name="edit" [size]="16" />
+                რედაქტირება
+              </button>
+              <button
+                appButton
+                type="button"
+                variant="danger-ghost"
+                size="sm"
+                [disabled]="pendingId() !== null || category.articleCount > 0"
+                [loading]="pendingId() === category.id"
+                [attr.aria-describedby]="category.articleCount > 0 ? 'in-use-' + category.id : null"
+                (click)="askDelete(category)"
+              >
+                <app-icon btnIconStart name="trash" [size]="16" />
+                წაშლა
+              </button>
+              @if (category.articleCount > 0) {
+                <p class="category__hint" [id]="'in-use-' + category.id">
+                  კატეგორია გამოიყენება სტატიებში
+                </p>
+              }
+            </div>
+          </div>
+        }
+      </li>
+    }
+  </ul>
+}
+
+<app-confirm-dialog
+  #deleteDialog
+  title="წავშალოთ კატეგორია?"
+  [message]="deleteMessage()"
+  confirmLabel="წაშლა"
+  danger
+  (confirmed)="confirmDelete()"
+/>

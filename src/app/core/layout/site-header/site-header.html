@@ -1,0 +1,80 @@
+<header class="header">
+  <div class="header__top">
+    <div class="header__bar">
+      <button
+        type="button"
+        class="header__menu-btn"
+        aria-controls="site-drawer"
+        [attr.aria-expanded]="menuOpen()"
+        [attr.aria-label]="menuOpen() ? 'მენიუს დახურვა' : 'მენიუს გახსნა'"
+        (click)="toggleMenu()"
+      >
+        <app-icon [name]="menuOpen() ? 'close' : 'menu'" [size]="28" />
+      </button>
+
+      <app-logo />
+
+      <div class="header__actions">
+        @if (user(); as user) {
+          <span class="header__user">
+            <app-icon name="user" [size]="18" />
+            {{ user.username }}
+          </span>
+          @if (canWriteArticles()) {
+            <a appButton variant="outline" size="sm" routerLink="/manage">
+              <app-icon btnIconStart name="settings" [size]="16" />
+              მართვა
+            </a>
+          }
+          <button appButton type="button" variant="outline" size="sm" (click)="logout()">
+            გასვლა
+          </button>
+        } @else {
+          <nav class="header__auth" aria-label="ანგარიში">
+            <a class="header__auth-link" routerLink="/login">შესვლა</a>
+            <span class="header__auth-sep" aria-hidden="true">|</span>
+            <a class="header__auth-link header__auth-link--register" routerLink="/register">
+              რეგისტრაცია
+            </a>
+          </nav>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="header__band" aria-hidden="true"></div>
+</header>
+
+@if (menuOpen()) {
+  <div class="drawer-backdrop" aria-hidden="true" (click)="closeMenu()"></div>
+}
+<aside
+  id="site-drawer"
+  class="drawer"
+  aria-label="მენიუ"
+  [class.drawer--open]="menuOpen()"
+  [attr.inert]="menuOpen() ? null : ''"
+>
+  <div class="drawer__head">
+    <app-logo />
+    <button
+      type="button"
+      class="header__menu-btn"
+      aria-label="მენიუს დახურვა"
+      (click)="closeMenu()"
+    >
+      <app-icon name="close" [size]="28" />
+    </button>
+  </div>
+
+  <p class="drawer__title">კატეგორიები</p>
+  <ul class="drawer__list" role="list">
+    @for (category of categories(); track category.id) {
+      <li>
+        <a class="drawer__link" [routerLink]="['/category', category.slug]">{{ category.name }}</a>
+      </li>
+    } @empty {
+      <li class="drawer__empty">კატეგორიები ჯერ არ არის.</li>
+    }
+  </ul>
+</aside>

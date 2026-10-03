@@ -1,0 +1,79 @@
+<div class="toolbar">
+  <nav class="chips" aria-label="სტატუსის ფილტრი">
+    @for (filter of filters; track filter.label) {
+      <a
+        class="chip"
+        routerLink="."
+        [class.is-active]="(status() ?? null) === filter.value"
+        [attr.aria-current]="(status() ?? null) === filter.value ? 'page' : null"
+        [queryParams]="{ status: filter.value, page: null }"
+        >{{ filter.label }}</a
+      >
+    }
+  </nav>
+  <a appButton variant="accent" routerLink="/manage/articles/new">
+    <app-icon btnIconStart name="plus" [size]="18" />
+    ახალი სტატია
+  </a>
+</div>
+
+<div class="alerts" aria-live="polite">
+  @if (successMessage()) {
+    <app-alert variant="success">{{ successMessage() }}</app-alert>
+  }
+  @if (actionErrors().length > 0) {
+    <app-alert variant="error">
+      @for (message of actionErrors(); track message) {
+        <p>{{ message }}</p>
+      }
+    </app-alert>
+  }
+</div>
+
+@if (articles.isLoading() && !articles.hasValue()) {
+  <div class="state"><app-spinner size="lg" /></div>
+} @else if (loadErrors().length > 0) {
+  <app-alert variant="error">
+    @for (message of loadErrors(); track message) {
+      <p>{{ message }}</p>
+    }
+  </app-alert>
+} @else if (items().length === 0) {
+  <app-empty-state
+    icon="edit"
+    [title]="status() ? 'ამ ფილტრით სტატიები არ მოიძებნა.' : 'სტატიები ჯერ არ არის.'"
+    description="დაწერეთ პირველი სტატია — ის დრაფტად შეინახება, სანამ არ გამოაქვეყნებთ."
+  >
+    <a appButton variant="accent" routerLink="/manage/articles/new">
+      <app-icon btnIconStart name="plus" [size]="18" />
+      ახალი სტატია
+    </a>
+  </app-empty-state>
+} @else {
+  <ul class="list" role="list" [class.list--loading]="articles.isLoading()">
+    @for (row of rows(); track row.article.id) {
+      <li>
+        <app-article-row
+          [article]="row.article"
+          [pending]="row.pending"
+          (publish)="publish(row.article)"
+          (unpublish)="unpublish(row.article)"
+          (remove)="askDelete(row.article)"
+        />
+      </li>
+    }
+  </ul>
+}
+
+@if (totalPages() > 1) {
+  <app-pagination [page]="page()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
+}
+
+<app-confirm-dialog
+  #deleteDialog
+  title="წავშალოთ სტატია?"
+  [message]="deleteMessage()"
+  confirmLabel="წაშლა"
+  danger
+  (confirmed)="confirmDelete()"
+/>

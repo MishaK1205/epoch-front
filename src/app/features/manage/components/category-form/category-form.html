@@ -1,0 +1,36 @@
+<form
+  class="category-form"
+  [formGroup]="form"
+  (ngSubmit)="submit()"
+  (keydown.escape)="editing() && cancelled.emit()"
+  novalidate
+>
+  <app-input-field formControlName="name" label="სახელი" [maxlength]="limits.categoryName.max" />
+  <app-textarea-field
+    formControlName="description"
+    label="აღწერა"
+    hint="არასავალდებულო."
+    [rows]="3"
+    [maxlength]="limits.categoryDescription.max"
+    showCount
+  />
+  <div class="category-form__actions">
+    <button appButton type="submit" [loading]="pending()" [disabled]="pending()">
+      @if (!editing()) {
+        <app-icon btnIconStart name="plus" [size]="18" />
+      }
+      {{ editing() ? 'შენახვა' : 'კატეგორიის დამატება' }}
+    </button>
+    @if (editing()) {
+      <button
+        appButton
+        type="button"
+        variant="ghost"
+        [disabled]="pending()"
+        (click)="cancelled.emit()"
+      >
+        გაუქმება
+      </button>
+    }
+  </div>
+</form>

@@ -1,0 +1,96 @@
+<nav class="chips" aria-label="როლის ფილტრი">
+  @for (filter of filters; track filter.label) {
+    <a
+      class="chip"
+      routerLink="."
+      [class.is-active]="(role() ?? null) === filter.value"
+      [attr.aria-current]="(role() ?? null) === filter.value ? 'page' : null"
+      [queryParams]="{ role: filter.value, page: null }"
+      >{{ filter.label }}</a
+    >
+  }
+</nav>
+
+<div class="alerts" aria-live="polite">
+  @if (successMessage()) {
+    <app-alert variant="success">{{ successMessage() }}</app-alert>
+  }
+  @if (actionErrors().length > 0) {
+    <app-alert variant="error">
+      @for (message of actionErrors(); track message) {
+        <p>{{ message }}</p>
+      }
+    </app-alert>
+  }
+</div>
+
+@if (users.isLoading() && !users.hasValue()) {
+  <div class="state"><app-spinner size="lg" /></div>
+} @else if (loadErrors().length > 0) {
+  <app-alert variant="error">
+    @for (message of loadErrors(); track message) {
+      <p>{{ message }}</p>
+    }
+  </app-alert>
+} @else if (rows().length === 0) {
+  <app-empty-state icon="user" title="მომხმარებლები ვერ მოიძებნა." />
+} @else {
+  <table class="table" [class.list--loading]="users.isLoading()">
+    <caption class="visually-hidden">
+      მომხმარებლები და მათი როლები
+    </caption>
+    <thead>
+      <tr>
+        <th scope="col">მომხმარებელი</th>
+        <th scope="col">ელ-ფოსტა</th>
+        <th scope="col">როლი</th>
+        <th scope="col">დარეგისტრირდა</th>
+        <th scope="col">როლის შეცვლა</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of rows(); track row.user.id) {
+        <tr [attr.aria-busy]="pendingId() === row.user.id || null">
+          <th scope="row" class="table__user">
+            {{ row.user.username }}
+            @if (row.self) {
+              <span class="table__self">(თქვენ)</span>
+            }
+          </th>
+          <td class="table__email">{{ row.user.email }}</td>
+          <td>
+            <app-badge [variant]="roleBadges[row.user.role]">{{
+              roleLabels[row.user.role]
+            }}</app-badge>
+          </td>
+          <td class="table__muted">
+            <time [attr.datetime]="row.user.createdAt">{{ row.user.createdAt | timeAgo }}</time>
+          </td>
+          <td class="table__action">
+            <app-select
+              [formControl]="row.control"
+              [label]="'როლი: ' + row.user.username"
+              hideLabel
+              [options]="roleOptions"
+              [hint]="row.self ? 'საკუთარი როლის შეცვლა შეუძლებელია.' : ''"
+              (selectionChange)="onRoleSelected(row, $event)"
+            />
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}
+
+@if (totalPages() > 1) {
+  <app-pagination [page]="page()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
+}
+
+<app-confirm-dialog
+  #roleDialog
+  title="როლის შეცვლა"
+  [message]="changeMessage()"
+  confirmLabel="შეცვლა"
+  (confirmed)="confirmChange()"
+  (cancelled)="cancelChange()"
+/>

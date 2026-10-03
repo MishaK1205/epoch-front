@@ -1,0 +1,42 @@
+<div class="field" [class.field--invalid]="errorMessage()" [class.field--disabled]="disabled()">
+  <label class="field__label" [class.visually-hidden]="hideLabel()" [for]="id">
+    {{ label() }}
+    @if (required()) {
+      <span class="field__required" aria-hidden="true">*</span>
+    }
+  </label>
+
+  <div class="field__control">
+    <select
+      #selectEl
+      class="field__select"
+      [class.field__select--placeholder]="value() === ''"
+      [id]="id"
+      [disabled]="disabled()"
+      [attr.aria-required]="required() || null"
+      [attr.aria-invalid]="errorMessage() ? true : null"
+      [attr.aria-describedby]="describedBy()"
+      (change)="onSelect(selectEl.value)"
+      (blur)="onBlur()"
+    >
+      @if (placeholder() || value() === '') {
+        <option value="" disabled [selected]="value() === ''">{{ placeholder() }}</option>
+      }
+      @for (option of options(); track option.value) {
+        <option [value]="option.value" [selected]="option.value === value()">
+          {{ option.label }}
+        </option>
+      }
+    </select>
+    <app-icon class="field__chevron" name="chevron-down" [size]="18" />
+  </div>
+
+  @if (errorMessage(); as message) {
+    <p class="field__message field__message--error" [id]="errorId">
+      <app-icon name="alert-circle" [size]="16" />
+      <span>{{ message }}</span>
+    </p>
+  } @else if (hint()) {
+    <p class="field__message" [id]="hintId">{{ hint() }}</p>
+  }
+</div>

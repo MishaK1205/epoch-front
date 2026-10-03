@@ -1,0 +1,15 @@
+:host {
+  display: block;
+}
+
+.category-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.category-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}

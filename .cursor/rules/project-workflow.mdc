@@ -1,0 +1,20 @@
+---
+description: Mandatory workflow — read project guidelines and change log before every task, update change log after
+alwaysApply: true
+---
+
+# Mandatory workflow for every task
+
+## Before starting any task
+1. Read `docs/PROJECT_GUIDELINES.md` fully and follow it (structure, naming, when to create
+   components/directives/pipes/services, modern Angular syntax).
+2. Read `docs/CHANGELOG.md` to understand what has already been done in the project.
+
+## After finishing any task that changes the project
+1. Add a new entry at the **top** of `docs/CHANGELOG.md` (below the template section) using the
+   entry template in that file: date, task, every added/modified/removed file with a short reason,
+   and notes on decisions.
+2. If the task introduced or changed a convention, update `docs/PROJECT_GUIDELINES.md` too and
+   mention it in the change log entry.
+
+Pure questions/explanations that change no files do not need a change log entry.

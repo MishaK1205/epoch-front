@@ -1,0 +1,34 @@
+<dialog
+  #dialog
+  class="dialog"
+  [attr.aria-labelledby]="titleId"
+  [attr.aria-describedby]="message() ? messageId : null"
+  (cancel)="close()"
+  (close)="onClose()"
+  (click)="onDialogClick($event)"
+>
+  @if (isOpen()) {
+    <div class="dialog__body">
+      @if (danger()) {
+        <span class="dialog__icon"><app-icon name="alert-circle" [size]="24" /></span>
+      }
+      <h2 class="dialog__title" [id]="titleId">{{ title() }}</h2>
+      @if (message()) {
+        <p class="dialog__message" [id]="messageId">{{ message() }}</p>
+      }
+      <div class="dialog__actions">
+        <button appButton type="button" variant="outline" (click)="close()">
+          {{ cancelLabel() }}
+        </button>
+        <button
+          appButton
+          type="button"
+          [variant]="danger() ? 'danger' : 'primary'"
+          (click)="confirm()"
+        >
+          {{ confirmLabel() }}
+        </button>
+      </div>
+    </div>
+  }
+</dialog>

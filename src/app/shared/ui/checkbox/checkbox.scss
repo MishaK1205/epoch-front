@@ -1,0 +1,89 @@
+@use 'mixins' as *;
+
+:host {
+  display: block;
+}
+
+.checkbox {
+  display: inline-flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.checkbox__input {
+  @include visually-hidden;
+}
+
+.checkbox__box {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: var(--checkbox-size);
+  height: var(--checkbox-size);
+  margin-top: 1px;
+  color: var(--color-text-inverse);
+  background: var(--color-input-bg);
+  border: var(--border-width) solid var(--color-input-border-hover);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
+  transition:
+    background-color var(--duration-fast) var(--easing-standard),
+    border-color var(--duration-fast) var(--easing-standard),
+    box-shadow var(--duration-normal) var(--easing-standard);
+
+  app-icon {
+    opacity: 0;
+    transform: scale(0.4);
+    transition:
+      opacity var(--duration-fast) var(--easing-standard),
+      transform var(--duration-normal) var(--easing-spring);
+  }
+}
+
+.checkbox:hover .checkbox__box {
+  background: var(--color-input-bg-focus);
+  border-color: var(--color-ink);
+}
+
+.checkbox__input:checked + .checkbox__box {
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+
+  app-icon {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.checkbox__input:focus-visible + .checkbox__box {
+  @include focus-ring;
+}
+
+.checkbox--invalid .checkbox__box {
+  background: var(--color-danger-soft);
+  border-color: var(--color-danger);
+}
+
+.checkbox--disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.checkbox__error {
+  display: flex;
+  gap: var(--space-1);
+  align-items: flex-start;
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+  line-height: var(--line-height-snug);
+  color: var(--color-danger);
+
+  app-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+}

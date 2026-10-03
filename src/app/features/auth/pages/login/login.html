@@ -1,0 +1,45 @@
+<app-auth-card title="შესვლა" subtitle="კეთილი იყოს თქვენი დაბრუნება Epoch-ზე.">
+  <form class="form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    @if (serverErrors().length > 0) {
+      <app-alert variant="error">
+        @for (message of serverErrors(); track message) {
+          <p>{{ message }}</p>
+        }
+      </app-alert>
+    }
+
+    <app-input-field
+      formControlName="identifier"
+      label="მომხმარებლის სახელი ან ელ-ფოსტა"
+      autocomplete="username"
+      [maxlength]="limits.loginIdentifier.max"
+    />
+
+    <app-input-field
+      formControlName="password"
+      type="password"
+      label="პაროლი"
+      autocomplete="current-password"
+      [maxlength]="limits.password.max"
+    />
+
+    <button
+      appButton
+      type="submit"
+      size="lg"
+      fullWidth
+      class="form__submit"
+      [loading]="submitting()"
+      [disabled]="submitting()"
+    >
+      შესვლა
+    </button>
+  </form>
+
+  <p authCardFooter>
+    არ გაქვთ ანგარიში?
+    <a class="link" routerLink="/register" [queryParams]="{ returnUrl: returnUrl() }"
+      >დარეგისტრირდით</a
+    >
+  </p>
+</app-auth-card>
