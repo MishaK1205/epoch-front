@@ -22,6 +22,31 @@ After finishing every task, **add a new entry at the top** using the template be
 
 ---
 
+## 2026-10-04 — Point the production build at https://api.epoch.ge; Vercel config
+
+**Task:** The deployed app at `https://epoch.ge` failed every API call with
+`net::ERR_NAME_NOT_RESOLVED`. Make the production build call the production API.
+
+**Changes:**
+
+- Modified `src/environments/environment.ts` — production `apiUrl` was the placeholder
+  `https://api.example.com` (the root cause); now `https://api.epoch.ge`. This is the file used
+  by the `production` configuration (`defaultConfiguration` of `build`); `development` swaps in
+  `environment.development.ts` (`http://localhost:3000`, unchanged).
+- Added `vercel.json` — build command `npm run build` (production configuration), output
+  directory `dist/epoch-front/browser`, and an SPA rewrite to `/index.html` so deep links don't
+  404 on refresh (the app is client-only, no SSR).
+
+**Notes:** No other code needed changes: every API service and `authInterceptor` already use
+`environment.apiUrl`, there are no relative/hardcoded API URLs, no `withCredentials`, no CSP, no
+image loader, and cover/article image URLs are used as returned (absolute). Verified: production
+`ng build` passes; `dist/` contains `api.epoch.ge` and no `localhost:3000` / `api.example.com`;
+`ng test` (45) passes; the production build served locally requested
+`https://api.epoch.ge/categories` (200 `[]`) and a wrong-credentials login returned
+`401 Invalid credentials`.
+
+---
+
 ## 2026-10-03 — Article cards: premium surface, soft chip, lift on hover
 
 **Task:** The card colors felt off; make the cards look more premium.
