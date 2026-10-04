@@ -22,6 +22,25 @@ After finishing every task, **add a new entry at the top** using the template be
 
 ---
 
+## 2026-10-04 — Brand favicon instead of the Angular default
+
+**Task:** Replace the Angular logo in the browser tab with an icon in the primary color.
+
+**Changes:**
+
+- Added `public/favicon.svg` — a bold white "E" (drawn from bars so it stays crisp at 16px) on a
+  `--color-accent` (`#071824`) rounded square. Source of truth for the icon.
+- Modified `public/favicon.ico` — regenerated from the SVG (16/32/48 px PNG frames) for browsers
+  that don't take SVG icons; replaces the Angular default.
+- Added `public/apple-touch-icon.png` — 180 px version for iOS home screens.
+- Modified `src/index.html` — `<link rel="icon">` for the `.ico` and the SVG, the
+  `apple-touch-icon` link, and `<meta name="theme-color" content="#071824">`.
+
+**Notes:** Rasters were produced from the same shapes as the SVG with a throwaway script (not
+committed). If the mark changes, edit `favicon.svg` and regenerate the `.ico` / touch icon.
+
+---
+
 ## 2026-10-04 — Reading lists UI: save / mark-read toggles, library pages, header links
 
 **Task:** Give users a way to save articles and mark them as read, with a polished UI: toggles
