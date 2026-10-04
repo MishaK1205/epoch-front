@@ -1,13 +1,22 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  RESPONSE_INIT,
+} from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { DomSanitizer, SafeHtml, Title } from '@angular/platform-browser';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
 import { getApiErrorMessages } from '../../../../core/api/api-error-messages';
 import { ArticlesApi } from '../../../../core/api/articles/articles-api';
 import { AuthService } from '../../../../core/auth/auth-service';
 import { ReadingListToggle } from '../../../../core/reading-list/reading-list-toggle/reading-list-toggle';
 import { ReadingListStore } from '../../../../core/services/reading-list-store';
+import { Seo } from '../../../../core/services/seo';
 import { TimeAgoPipe } from '../../../../shared/pipes/time-ago-pipe';
 import { Alert } from '../../../../shared/ui/alert/alert';
 import { Button } from '../../../../shared/ui/button/button';
@@ -24,7 +33,9 @@ import { Spinner } from '../../../../shared/ui/spinner/spinner';
 })
 export class ArticleDetail {
   private readonly articlesApi = inject(ArticlesApi);
-  private readonly title = inject(Title);
+  private readonly seo = inject(Seo);
+  /** Set only during server rendering. */
+  private readonly responseInit = inject(RESPONSE_INIT, { optional: true });
   private readonly sanitizer = inject(DomSanitizer);
   private readonly readingList = inject(ReadingListStore);
 
@@ -59,9 +70,25 @@ export class ArticleDetail {
   constructor() {
     effect(() => {
       if (this.article.hasValue()) {
-        this.title.setTitle(`${this.article.value().title} — Epoch`);
+        const article = this.article.value();
+        this.seo.update({
+          title: `${article.title} — Epoch`,
+          description: article.excerpt,
+          image: article.coverImage?.url,
+          imageAlt: article.coverImage?.alt,
+          article: {
+            publishedAt: article.publishedAt,
+            modifiedAt: article.updatedAt,
+            author: article.author?.username ?? null,
+            section: article.category?.name ?? null,
+            tags: article.tags,
+          },
+        });
       } else if (this.notFound()) {
-        this.title.setTitle('სტატია ვერ მოიძებნა — Epoch');
+        this.seo.update({ title: 'სტატია ვერ მოიძებნა — Epoch' });
+        if (this.responseInit) {
+          this.responseInit.status = 404;
+        }
       }
     });
   }

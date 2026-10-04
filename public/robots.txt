@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /manage
+Disallow: /me
+Disallow: /login
+Disallow: /register
+
+Sitemap: https://www.epoch.ge/sitemap.xml

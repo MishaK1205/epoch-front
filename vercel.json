@@ -2,5 +2,11 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "npm run build",
   "outputDirectory": "dist/epoch-front/browser",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "functions": {
+    "api/index.mjs": { "includeFiles": "dist/epoch-front/**" }
+  },
+  "rewrites": [
+    { "source": "/", "destination": "/api" },
+    { "source": "/(.*)", "destination": "/api" }
+  ]
 }

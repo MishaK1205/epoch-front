@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { getApiErrorMessages } from '../../../../core/api/api-error-messages';
@@ -7,6 +7,7 @@ import { AuthService } from '../../../../core/auth/auth-service';
 import { ReadingListToggle } from '../../../../core/reading-list/reading-list-toggle/reading-list-toggle';
 import { CategoriesStore } from '../../../../core/services/categories-store';
 import { ReadingListStore } from '../../../../core/services/reading-list-store';
+import { Seo } from '../../../../core/services/seo';
 import { Alert } from '../../../../shared/ui/alert/alert';
 import { ArticleCard } from '../../../../shared/ui/article-card/article-card';
 import { Pagination } from '../../../../shared/ui/pagination/pagination';
@@ -27,6 +28,7 @@ export class CategoryArticles {
   private readonly articlesApi = inject(ArticlesApi);
   private readonly categoriesStore = inject(CategoriesStore);
   private readonly router = inject(Router);
+  private readonly seo = inject(Seo);
 
   protected readonly loggedIn = inject(AuthService).isLoggedIn;
   protected readonly readArticleIds = inject(ReadingListStore).readIds;
@@ -52,6 +54,18 @@ export class CategoryArticles {
   protected readonly errorMessages = computed(() =>
     this.articles.error() ? getApiErrorMessages(this.articles.error()) : [],
   );
+
+  constructor() {
+    effect(() => {
+      const category = this.category();
+      if (category) {
+        this.seo.update({
+          title: `${category.name} — Epoch`,
+          description: category.description || `${category.name} — სტატიები Epoch-ზე.`,
+        });
+      }
+    });
+  }
 
   protected goToPage(page: number): void {
     void this.router.navigate([], { queryParams: { page }, queryParamsHandling: 'merge' });

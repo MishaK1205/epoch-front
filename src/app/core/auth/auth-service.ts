@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { computed, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 import { firstValueFrom, Observable, tap } from 'rxjs';
 import { AuthApi } from '../api/auth/auth-api';
 import { AuthResponse, LoginRequest, RegisterRequest } from '../api/auth/auth.models';
@@ -14,6 +15,8 @@ const MAX_TIMER_DELAY_MS = 2_147_483_647;
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly authApi = inject(AuthApi);
+  /** `null` during server rendering: the server always renders the guest view. */
+  private readonly storage = isPlatformBrowser(inject(PLATFORM_ID)) ? localStorage : null;
 
   private readonly _currentUser = signal<User | null>(null);
   private initialization: Promise<void> | null = null;
@@ -42,15 +45,15 @@ export class AuthService {
 
   /** Client-only: there is no logout endpoint. */
   logout(): void {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(TOKEN_EXPIRES_AT_KEY);
+    this.storage?.removeItem(TOKEN_KEY);
+    this.storage?.removeItem(TOKEN_EXPIRES_AT_KEY);
     this.clearExpiryTimer();
     this._currentUser.set(null);
   }
 
   /** Returns the stored token, or `null` if missing or expired. */
   getToken(): string | null {
-    const token = localStorage.getItem(TOKEN_KEY);
+    const token = this.storage?.getItem(TOKEN_KEY);
     if (!token) {
       return null;
     }
@@ -90,14 +93,14 @@ export class AuthService {
 
   private startSession(response: AuthResponse): void {
     const expiresAt = Date.now() + response.expiresIn * 1000;
-    localStorage.setItem(TOKEN_KEY, response.accessToken);
-    localStorage.setItem(TOKEN_EXPIRES_AT_KEY, String(expiresAt));
+    this.storage?.setItem(TOKEN_KEY, response.accessToken);
+    this.storage?.setItem(TOKEN_EXPIRES_AT_KEY, String(expiresAt));
     this.scheduleExpiry(expiresAt);
     this._currentUser.set(response.user);
   }
 
   private getExpiresAt(): number | null {
-    const value = Number(localStorage.getItem(TOKEN_EXPIRES_AT_KEY));
+    const value = Number(this.storage?.getItem(TOKEN_EXPIRES_AT_KEY));
     return Number.isFinite(value) && value > 0 ? value : null;
   }
 

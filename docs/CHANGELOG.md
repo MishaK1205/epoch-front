@@ -22,6 +22,65 @@ After finishing every task, **add a new entry at the top** using the template be
 
 ---
 
+## 2026-10-04 — Server-side rendering and SEO (articles indexable by Google)
+
+**Task:** Google didn't show the articles in search. The live site sent every crawler the same
+empty `<app-root>` shell titled "Epoch", with no description, and no robots.txt or sitemap
+(both URLs returned `index.html`). Add SSR and the SEO pieces it needs.
+
+**Changes:**
+
+- Modified `package.json` / `package-lock.json` — `ng add @angular/ssr` added `@angular/ssr`,
+  `@angular/platform-server`, `express`, `@types/express`, `@types/node`, and the
+  `serve:ssr:epoch-front` script (approved by the user).
+- Modified `angular.json` — `server`, `outputMode: "server"`, `ssr.entry`;
+  `security.allowedHosts` = `epoch.ge`, `www.epoch.ge`, `*.vercel.app`.
+- Modified `tsconfig.app.json` — `types: ["node"]` (from `ng add`).
+- Added `src/main.server.ts`, `src/app/app.config.server.ts` (generated).
+- Added `src/app/app.routes.server.ts` — Server rendering for home, category, article and the
+  `**` 404 (status 404); Client rendering for login, register, `/manage`, `/me`.
+- Modified `src/server.ts` — generated Express server plus `GET /sitemap.xml`; removed the
+  example comment.
+- Added `src/server/sitemap.ts` — builds the sitemap (home, categories, all published articles
+  with `lastmod`, paging the API at 100) and caches it in memory for 1 h.
+- Added `api/index.mjs` — Vercel function that forwards requests to the SSR `reqHandler`.
+- Modified `vercel.json` — static files from `dist/epoch-front/browser`, function
+  `includeFiles: dist/epoch-front/**`, all other paths (including `/`) rewritten to `/api`. The
+  old SPA rewrite to `/index.html` is gone (with SSR there is no `index.html`, only
+  `index.csr.html`, used internally for client-rendered routes).
+- Modified `src/app/app.config.ts` — `provideClientHydration(withEventReplay())`;
+  `TitleStrategy` → `SeoTitleStrategy`.
+- Added `src/app/core/services/seo.ts` (+ spec) — `Seo`: title, description, canonical link,
+  `og:*`, `twitter:*`, `article:*` tags and schema.org `Article` JSON-LD (`<` escaped).
+- Added `src/app/core/services/seo-title-strategy.ts` — resets `Seo` to route defaults on every
+  navigation.
+- Modified `src/app/core/auth/auth-service.ts` — `localStorage` only in the browser; on the
+  server the storage is `null`, so SSR always renders the guest view.
+- Modified `features/articles/pages/article-detail/article-detail.ts` — uses `Seo` (excerpt,
+  cover image, author, category, tags) instead of `Title`; missing slugs set response status 404.
+- Modified `features/home/pages/category-articles/category-articles.ts` — page title and
+  description from the category (the title used to stay "კატეგორია — Epoch").
+- Modified `src/environments/environment*.ts` — `siteUrl` (`https://www.epoch.ge` /
+  `http://localhost:4200`).
+- Modified `src/index.html` — default `<meta name="description">`.
+- Added `public/robots.txt` — disallows `/manage`, `/me`, `/login`, `/register`; points to the
+  sitemap.
+- Modified `docs/PROJECT_GUIDELINES.md` — new "Server-side rendering and SEO" section; article
+  page note.
+
+**Notes:** Verified with the production build served locally (`Host: www.epoch.ge`): the
+Banach–Tarski article returns 200 with the real title, description, canonical, OG/Twitter image,
+`article:*` tags, JSON-LD and the full article text in the HTML. A missing article and an unknown
+URL return 404, `/sitemap.xml` lists the 4 categories and 3 articles, and `api/index.mjs` serves
+the same through a plain Node server. In the browser the page hydrates (all 16 `ngh` markers
+consumed), and client-side navigation updates the head. `ng build` (no warnings) and `ng test`
+(63) pass. The Vercel deployment itself was not tested from here. HttpClient stays on XHR
+(`xhr2` on the server), so upload progress is unaffected. Restart any running `ng serve` (the
+tsconfig and angular.json changed). After deploying: add the site in Google Search Console,
+submit `https://www.epoch.ge/sitemap.xml`, and request indexing for the article URLs.
+
+---
+
 ## 2026-10-04 — Brand favicon instead of the Angular default
 
 **Task:** Replace the Angular logo in the browser tab with an icon in the primary color.

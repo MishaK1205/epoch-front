@@ -33,6 +33,14 @@
             "allowedCommonJsDependencies": ["quill-delta"],
             "stylePreprocessorOptions": {
               "includePaths": ["src/styles"]
+            },
+            "server": "src/main.server.ts",
+            "outputMode": "server",
+            "security": {
+              "allowedHosts": ["epoch.ge", "www.epoch.ge", "*.vercel.app"]
+            },
+            "ssr": {
+              "entry": "src/server.ts"
             }
           },
           "configurations": {
