@@ -5,6 +5,7 @@ import { getApiErrorMessages } from '../../../../core/api/api-error-messages';
 import { ArticlesApi } from '../../../../core/api/articles/articles-api';
 import { AuthService } from '../../../../core/auth/auth-service';
 import { ReadingListToggle } from '../../../../core/reading-list/reading-list-toggle/reading-list-toggle';
+import { CategoriesStore } from '../../../../core/services/categories-store';
 import { ReadingListStore } from '../../../../core/services/reading-list-store';
 import { Alert } from '../../../../shared/ui/alert/alert';
 import { ArticleCard } from '../../../../shared/ui/article-card/article-card';
@@ -12,15 +13,30 @@ import { Pagination } from '../../../../shared/ui/pagination/pagination';
 import { Spinner } from '../../../../shared/ui/spinner/spinner';
 import { toPage } from '../../../../shared/utils/page-param';
 import { ArticleHero } from '../../components/article-hero/article-hero';
+import { ArticleSection } from '../../components/article-section/article-section';
+import { CategorySection } from '../../components/category-section/category-section';
 
-const PAGE_SIZE = 13;
-/** Compact teasers shown next to the lead card. */
-const SIDE_ITEMS = 4;
+/** Front page: the hero plus the 5 articles of the "უახლესი სტატიები" section. */
+const HOME_SIZE = 6;
+/** Tag feed (`?tag=`): paginated teaser grid. */
+const TAG_PAGE_SIZE = 12;
 
-/** Public article feed. Query params: `?tag=<tag>&page=<n>`. Categories live at `/category/:slug`. */
+/**
+ * Public front page: hero, the 5 latest articles, then one section per category.
+ * `?tag=<tag>&page=<n>` switches to a paginated tag feed. Categories live at `/category/:slug`.
+ */
 @Component({
   selector: 'app-home',
-  imports: [Alert, Pagination, Spinner, ArticleHero, ArticleCard, ReadingListToggle],
+  imports: [
+    Alert,
+    Pagination,
+    Spinner,
+    ArticleHero,
+    ArticleCard,
+    ArticleSection,
+    CategorySection,
+    ReadingListToggle,
+  ],
   templateUrl: './home.html',
   styleUrl: './home.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,13 +47,17 @@ export class Home {
 
   protected readonly loggedIn = inject(AuthService).isLoggedIn;
   protected readonly readArticleIds = inject(ReadingListStore).readIds;
+  protected readonly categories = inject(CategoriesStore).categories;
 
   readonly tag = input<string>();
   readonly page = input(1, { transform: toPage });
 
   protected readonly articles = rxResource({
-    params: () => ({ page: this.page(), tag: this.tag() }),
-    stream: ({ params }) => this.articlesApi.listPublished({ ...params, limit: PAGE_SIZE }),
+    params: () => {
+      const tag = this.tag();
+      return tag ? { tag, page: this.page(), limit: TAG_PAGE_SIZE } : { limit: HOME_SIZE };
+    },
+    stream: ({ params }) => this.articlesApi.listPublished(params),
   });
 
   protected readonly heading = computed(() => {
@@ -48,18 +68,11 @@ export class Home {
   protected readonly items = computed(() =>
     this.articles.hasValue() ? this.articles.value().items : [],
   );
-  protected readonly featured = computed(() =>
-    !this.heading() && this.page() === 1 ? (this.items()[0] ?? null) : null,
-  );
-  protected readonly listItems = computed(() =>
-    this.featured() ? this.items().slice(1) : this.items(),
-  );
-  /** Latest section: one large lead card, a column of compact teasers, then the rest. */
-  protected readonly lead = computed(() => this.listItems()[0] ?? null);
-  protected readonly sideItems = computed(() => this.listItems().slice(1, 1 + SIDE_ITEMS));
-  protected readonly restItems = computed(() => this.listItems().slice(1 + SIDE_ITEMS));
+  /** Front page only: the newest article fills the hero, the next 5 the latest section. */
+  protected readonly featured = computed(() => (this.heading() ? null : (this.items()[0] ?? null)));
+  protected readonly latest = computed(() => this.items().slice(1, HOME_SIZE));
   protected readonly totalPages = computed(() =>
-    this.articles.hasValue() ? Math.ceil(this.articles.value().total / PAGE_SIZE) : 0,
+    this.articles.hasValue() ? Math.ceil(this.articles.value().total / TAG_PAGE_SIZE) : 0,
   );
   protected readonly errorMessages = computed(() =>
     this.articles.error() ? getApiErrorMessages(this.articles.error()) : [],

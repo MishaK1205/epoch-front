@@ -10,49 +10,20 @@
 }
 
 <div class="home">
-  <section class="home__feed" aria-labelledby="feed-title">
-    <h2 id="feed-title" class="section-title">უახლესი სტატიები</h2>
-
-    @if (articles.isLoading()) {
-      <div class="feed-state"><app-spinner size="lg" /></div>
-    } @else if (errorMessages().length > 0) {
-      <app-alert variant="error">
-        @for (message of errorMessages(); track message) {
-          <p>{{ message }}</p>
-        }
-      </app-alert>
-    } @else {
-      @let readIds = readArticleIds();
-      @if (lead(); as lead) {
-        <div class="latest">
-          <app-article-card [article]="lead" variant="lead" [read]="readIds.has(lead.id)">
-            @if (loggedIn()) {
-              <app-reading-list-toggle cardAction appearance="icon" [articleId]="lead.id" />
-            }
-          </app-article-card>
-          @if (sideItems().length > 0) {
-            <ul class="latest__side" role="list">
-              @for (article of sideItems(); track article.id) {
-                <li>
-                  <app-article-card [article]="article" [read]="readIds.has(article.id)">
-                    @if (loggedIn()) {
-                      <app-reading-list-toggle
-                        cardAction
-                        appearance="icon"
-                        size="sm"
-                        [articleId]="article.id"
-                      />
-                    }
-                  </app-article-card>
-                </li>
-              }
-            </ul>
-          }
-        </div>
+  @if (articles.isLoading()) {
+    <div class="feed-state"><app-spinner size="lg" /></div>
+  } @else if (errorMessages().length > 0) {
+    <app-alert variant="error">
+      @for (message of errorMessages(); track message) {
+        <p>{{ message }}</p>
       }
-      @if (restItems().length > 0) {
+    </app-alert>
+  } @else if (heading()) {
+    <section class="home__feed" aria-label="სტატიები">
+      @if (items().length > 0) {
+        @let readIds = readArticleIds();
         <ul class="teaser-grid" role="list">
-          @for (article of restItems(); track article.id) {
+          @for (article of items(); track article.id) {
             <li>
               <app-article-card [article]="article" [read]="readIds.has(article.id)">
                 @if (loggedIn()) {
@@ -67,11 +38,19 @@
             </li>
           }
         </ul>
-      }
-      @if (items().length === 0) {
-        <p class="feed-state">სტატიები ჯერ არ არის.</p>
+      } @else {
+        <p class="feed-state">ამ თეგით სტატიები არ არის.</p>
       }
       <app-pagination [page]="page()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
+    </section>
+  } @else {
+    @if (latest().length > 0) {
+      <app-article-section title="უახლესი სტატიები" [articles]="latest()" />
+    } @else if (!featured()) {
+      <p class="feed-state">სტატიები ჯერ არ არის.</p>
     }
-  </section>
+    @for (category of categories(); track category.id) {
+      <app-category-section [category]="category" />
+    }
+  }
 </div>

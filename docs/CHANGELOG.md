@@ -22,6 +22,51 @@ After finishing every task, **add a new entry at the top** using the template be
 
 ---
 
+## 2026-10-04 — Home: 5 latest articles, then a section per category; chip clipping fix
+
+**Task:** "უახლესი სტატიები" should show only 5 articles with nothing below it; under it add one
+section per category (e.g. ბერძნული მითოლოგია, პარადოქსები და ეფექტები) in the same lead + small
+cards layout, each with a button next to the title that opens the category's full list. Also fix
+the category chip ("პარადოქსები და ეფექტები") being cut off in small article cards.
+
+**Changes:**
+
+- Added `features/home/components/article-section/article-section.ts` / `.html` / `.scss` —
+  `ArticleSection`: underlined section title with an optional "ყველა სტატია" outline pill button
+  (`chevron-right` icon, `[link]` router commands), a `lead` card and a 2×2 block of small cards
+  (first 5 of `[articles]`). It renders the `ReadingListToggle`s itself (injects `AuthService` /
+  `ReadingListStore`), since projected per-item content can't come from the parent. The
+  `.latest*` grid styles moved here from `home.scss` as `.section__grid` / `.section__side`.
+- Added `features/home/components/category-section/category-section.ts` — `CategorySection`:
+  takes a `Category`, loads its 5 newest articles with `listPublished({ category, limit: 5 })`
+  via `rxResource`, and renders an `ArticleSection` titled with the category name linking to
+  `/category/:slug`. The host is `[hidden]` while loading, on error, or when the category has no
+  articles, so the parent's flex gap doesn't leave a blank step.
+- Modified `features/home/pages/home/home.ts` / `.html` / `.scss` — the front page requests only
+  6 articles (hero + 5 for the latest section) and has no pagination; after the latest section
+  it loops over `CategoriesStore.categories()` rendering a `CategorySection` each. `?tag=` now
+  shows a paginated `.teaser-grid` (12 per page, like the category page) instead of the old
+  lead + rest layout. `.home` is a flex column with a `--space-12` gap between sections;
+  `.section-title` / `.latest*` styles are gone.
+- Modified `shared/ui/article-card/article-card.scss` — `.item__chip` no longer uses
+  `white-space: nowrap` + `overflow: hidden` + `text-overflow: ellipsis` (`text-overflow` doesn't
+  apply to flex boxes, so long names were just cut mid-word); the chip wraps onto a second line
+  and stays left-aligned.
+- Modified `docs/PROJECT_GUIDELINES.md` — card chip wraps instead of staying single-line; new
+  "Home page" bullet describing `ArticleSection` / `CategorySection` and the tag feed.
+
+**Notes:** A section is rendered for every category from the API (currently ბერძნული მითოლოგია,
+ისტორიული პიროვნებები, კომპოზიტორები, პარადოქსები და ეფექტები) rather than hard-coding the two
+named ones, so new categories appear automatically and empty ones are hidden. Each category
+section is its own request (4 today); SSR waits for them and the hydration transfer cache
+replays them in the browser. Articles may appear in both the latest section and their category
+section — that duplication is expected on a front page. A category with a single article shows
+only the lead card. Verified in the browser against the live API at 1280px and 390px: hero +
+5 latest, four category sections with working "ყველა სტატია" links, wrapped chips fully
+readable, `/?tag=მათემატიკა` renders the grid. `ng build` (no warnings) and `ng test` (63) pass.
+
+---
+
 ## 2026-10-04 — Server-side rendering and SEO (articles indexable by Google)
 
 **Task:** Google didn't show the articles in search. The live site sent every crawler the same

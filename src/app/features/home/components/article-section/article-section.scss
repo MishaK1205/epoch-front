@@ -1,0 +1,51 @@
+@use 'mixins' as *;
+
+:host {
+  display: block;
+}
+
+// Underlined heading row: title on the left, optional "all articles" button on the right
+.section__head {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-6);
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.section__title {
+  @include display-text;
+
+  min-width: 0;
+  font-size: var(--text-xl);
+}
+
+.section__more {
+  flex-shrink: 0;
+}
+
+// Big lead card on the left, a 2×2 block of small cards on the right
+.section__grid {
+  display: grid;
+  gap: var(--space-6);
+
+  @include up(lg) {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  }
+}
+
+.section__side {
+  display: grid;
+  gap: var(--space-6);
+
+  @include up(sm) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  // Two rows match the lead height even when fewer than 4 small cards exist
+  @include up(lg) {
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+  }
+}
