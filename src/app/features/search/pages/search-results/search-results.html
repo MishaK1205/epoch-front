@@ -1,0 +1,107 @@
+<header class="page-heading">
+  <p class="page-heading__kicker">ძიება</p>
+  <h1 class="page-heading__title">სტატიების ძიება</h1>
+
+  <form class="search-form" role="search" (submit)="onSubmit($event)">
+    <label class="visually-hidden" for="search-page-input">სტატიების ძიება</label>
+    <input
+      #input
+      id="search-page-input"
+      class="search-form__input"
+      type="text"
+      autocomplete="off"
+      spellcheck="false"
+      enterkeyhint="search"
+      placeholder="სათაური ან თეგი, მაგ.: ბახი"
+      [maxLength]="maxLength"
+      [value]="draft()"
+      (input)="draft.set(input.value)"
+    />
+    <button appButton type="submit" size="lg">
+      <app-icon btnIconStart name="search" [size]="18" />
+      ძიება
+    </button>
+  </form>
+  @if (!query()) {
+    <p class="search-form__hint">
+      მოძებნეთ სტატიები სათაურით ან თეგით — საკმარისია სიტყვის ნაწილიც.
+    </p>
+  }
+</header>
+
+<section class="search" aria-label="ძიების შედეგები">
+  @if (!query()) {
+    <app-empty-state icon="search" title="რას ეძებთ?" description="მაგ.: ბახი, ბაროკო, რომი." />
+  } @else if (results.isLoading()) {
+    <div class="feed-state"><app-spinner size="lg" label="ძიება…" /></div>
+  } @else if (error(); as error) {
+    <app-alert variant="error">
+      @for (message of error.messages; track message) {
+        <p>{{ message }}</p>
+      }
+    </app-alert>
+    @if (error.retry) {
+      <button appButton type="button" variant="outline" class="search__retry" (click)="retry()">
+        სცადეთ თავიდან
+      </button>
+    }
+  } @else if (noResults()) {
+    <app-empty-state
+      icon="search"
+      [title]="'„' + query() + '“ — ვერაფერი მოიძებნა'"
+      description="შეამოწმეთ მართლწერა ან სცადეთ ნაკლები სიტყვა."
+    >
+      @if (popularTags.hasValue() && popularTags.value().length > 0) {
+        <div class="popular-tags">
+          <p class="popular-tags__title">ან დაათვალიერეთ პოპულარული თეგები:</p>
+          <ul class="tag-list" role="list">
+            @for (tag of popularTags.value(); track tag.name) {
+              <li>
+                <a class="tag-list__tag" routerLink="/" [queryParams]="{ tag: tag.name }"
+                  >#{{ tag.name }}</a
+                >
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    </app-empty-state>
+  } @else if (items().length > 0) {
+    <p class="search__summary">
+      „{{ query() }}“ — ნაპოვნია <strong>{{ total() }}</strong> სტატია
+    </p>
+    @let readIds = readArticleIds();
+    <ul class="teaser-grid" role="list">
+      @for (item of items(); track item.article.id) {
+        <li>
+          <app-article-card
+            [article]="item.article"
+            [read]="readIds.has(item.article.id)"
+            [highlightQuery]="query()"
+          >
+            @if (loggedIn()) {
+              <app-reading-list-toggle
+                cardAction
+                appearance="icon"
+                size="sm"
+                [articleId]="item.article.id"
+              />
+            }
+            @if (item.tags.length > 0) {
+              <ul cardFooter class="tag-list" role="list" aria-label="დამთხვეული თეგები">
+                @for (tag of item.tags; track tag) {
+                  <li>
+                    <a class="tag-list__tag" routerLink="/" [queryParams]="{ tag }"
+                      >#<app-highlight-text [text]="tag" [query]="query()"
+                    /></a>
+                  </li>
+                }
+              </ul>
+            }
+          </app-article-card>
+        </li>
+      }
+    </ul>
+    <app-pagination [page]="page()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
+  }
+</section>

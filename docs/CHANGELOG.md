@@ -22,6 +22,80 @@ After finishing every task, **add a new entry at the top** using the template be
 
 ---
 
+## 2026-10-05 — Article search: header box with live suggestions and `/search` page
+
+**Task:** Use the new backend `GET /articles/search` (partial, case-insensitive match on title
+and tags) for a header search box with live suggestions and a full results page, with
+highlighted matches and "matched in tag" chips.
+
+**Changes:**
+
+- Modified `core/api/articles/articles.models.ts` — `SearchArticlesQuery` (`q`, `page`, `limit`).
+- Modified `core/api/articles/articles-api.ts` (+ spec) — `search()`; tests for the params.
+- Modified `core/api/api-limits.ts` — documented the existing `search.max` (100) as the limit for
+  both `q` parameters (reused instead of adding a `searchQuery` key).
+- Added `shared/utils/highlight.ts` (+ spec) — `normalizeSearchQuery`, `searchTerms`,
+  `highlight`, `matchingTags`, `containsAllTerms` (pure, regex characters escaped).
+- Added `shared/ui/highlight-text/` — `<app-highlight-text [text] [query]>`, renders segments
+  with `<mark class="hit">` (computed, no `innerHTML`).
+- Modified `shared/ui/article-card/` — optional `highlightQuery` input (highlighted title) and a
+  `[cardFooter]` slot under the body, outside the link; the card is now a flex column.
+- Added `core/search/search-box/` (+ spec) — header combobox: 300 ms debounce, 2-char minimum,
+  `switchMap` cancels stale requests, `catchError` inside, top 5 with thumbnail / highlighted
+  title / category / matched-tag chips, "ყველა შედეგი (N)", loading / empty / error rows, arrow
+  keys, Enter, Escape (close, then clear), outside click, closes on navigation, live region.
+  Below `lg` it collapses to an icon that expands the field over the header bar.
+- Modified `core/layout/site-header/` — renders `<app-search-box />` between the logo and the
+  actions; `.header__bar` is `position: relative`.
+- Added `features/search/search.routes.ts` and `features/search/pages/search-results/` (+ spec) —
+  `/search?q=&page=`: start state, spinner, results grid with highlighted cards and matched-tag
+  links to `/?tag=`, empty state with popular tags (`GET /tags?limit=10`), 400 messages via
+  `getApiErrorMessages` or a generic message with "სცადეთ თავიდან", pagination, jump to the last
+  page when the URL asks for one past the end, `Seo` title `ძიება: <q> — Epoch`.
+- Modified `app.routes.ts` / `app.routes.server.ts` — lazy `SEARCH_ROUTES`; `search` is
+  server-rendered.
+- Modified `src/styles/_design-system.scss` — `--color-search-hit`, `--search-box-width`,
+  `--search-thumb-size`.
+- Modified `public/robots.txt` — `Disallow: /search` (result pages shouldn't be indexed).
+- Modified `docs/PROJECT_GUIDELINES.md` — Search section, `HighlightText` in the UI kit table,
+  `search` in the SSR render-mode list.
+
+**Notes:** Followed project conventions instead of the prompt's defaults: the service is the
+existing `ArticlesApi` (there is no `ArticlesService`); the box lives in `core/search/` (smart
+app-wide widgets go under `core/<topic>/`, not `shared/`); the page reads `q` / `page` through
+query-param `input()`s + `rxResource` (cancels the previous request like `switchMap`); the title
+goes through `Seo`, not `Title`; loading uses the spinner (the project has no skeletons); page
+size is 12 like the other teaser grids; the tag page is `/?tag=`. Clicking a suggestion clears the
+header field (it only keeps text on `/search`). No existing UI used `GET /articles?q=`.
+Verified in the browser against the local API (mobile and desktop header, suggestions, tag
+chips, results page). `ng build` (no warnings) and `ng test` (101) pass.
+
+---
+
+## 2026-10-05 — Copy protection on public pages
+
+**Task:** Prevent visitors from copying content from the site.
+
+**Changes:**
+
+- Added `src/app/core/services/copy-protection.ts` (+ spec) — `CopyProtection` (browser only)
+  cancels `copy`, `cut`, `contextmenu`, `dragstart` and `selectstart` on the document unless the
+  target matches `COPY_ALLOWED_SELECTOR` (form fields, `contenteditable`, `[data-allow-copy]`);
+  `isCopyAllowed` helper.
+- Modified `src/app/app.config.ts` — instantiates `CopyProtection` eagerly.
+- Modified `src/styles/_base.scss` — `user-select: none` and `-webkit-touch-callout: none` on
+  `body`, text selection back on for the allowed elements, `-webkit-user-drag: none` on images.
+- Modified `src/app/features/manage/components/manage-shell/manage-shell.ts` — host gets
+  `data-allow-copy`, so the whole `/manage` area stays copyable for editors.
+- Modified `docs/PROJECT_GUIDELINES.md` — copy protection convention.
+
+**Notes:** This is a deterrent, not real protection: view-source, dev tools, disabling
+JavaScript, screenshots and scrapers still get the content (the SSR HTML must stay readable for
+SEO). Right-click is blocked everywhere outside the allowed areas, including on links.
+`ng build` and `ng test` (86) pass.
+
+---
+
 ## 2026-10-05 — Fetch backend on the server; expandable subcategories in the drawer
 
 **Task:** Explain and remove the `NG02801` / "XHR support in `@angular/platform-server` is

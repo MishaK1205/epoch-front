@@ -73,6 +73,19 @@ export interface ListArticlesQuery {
   q?: string;
 }
 
+/**
+ * GET /articles/search — unlike `ListArticlesQuery.q`, matches partial words, but only in the
+ * title and tags. Every space-separated word must appear (in any order). Newest first.
+ */
+export interface SearchArticlesQuery {
+  /** Required; 1–100 chars after trimming; partial, case-insensitive. Never send it blank. */
+  q: string;
+  /** Integer >= 1, default 1. */
+  page?: number;
+  /** Integer 1–100, default 20. */
+  limit?: number;
+}
+
 /** GET /articles/manage */
 export interface ManageArticlesQuery {
   page?: number;

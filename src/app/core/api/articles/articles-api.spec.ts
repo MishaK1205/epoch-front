@@ -30,6 +30,26 @@ describe('ArticlesApi', () => {
     req.flush({ items: [], total: 0, page: 2, limit: 20 });
   });
 
+  it('search sends only q when page and limit are omitted', () => {
+    api.search({ q: 'სებას' }).subscribe();
+
+    const req = http.expectOne((r) => r.url === `${baseUrl}/search`);
+    expect(req.request.method).toBe('GET');
+    expect(req.request.params.keys()).toEqual(['q']);
+    expect(req.request.params.get('q')).toBe('სებას');
+    req.flush({ items: [], total: 0, page: 1, limit: 20 });
+  });
+
+  it('search sends q, page and limit', () => {
+    api.search({ q: 'bach', page: 2, limit: 5 }).subscribe();
+
+    const req = http.expectOne((r) => r.url === `${baseUrl}/search`);
+    expect(req.request.params.keys().sort()).toEqual(['limit', 'page', 'q']);
+    expect(req.request.params.get('page')).toBe('2');
+    expect(req.request.params.get('limit')).toBe('5');
+    req.flush({ items: [], total: 0, page: 2, limit: 5 });
+  });
+
   it('getBySlug encodes non-Latin slugs', () => {
     api.getBySlug('ისტორია-abc').subscribe();
 

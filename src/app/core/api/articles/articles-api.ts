@@ -10,6 +10,7 @@ import {
   CreateArticleRequest,
   ListArticlesQuery,
   ManageArticlesQuery,
+  SearchArticlesQuery,
   UpdateArticleRequest,
 } from './articles.models';
 
@@ -25,6 +26,13 @@ export class ArticlesApi {
   /** Public. Published articles only, newest `publishedAt` first. */
   listPublished(query: ListArticlesQuery = {}): Observable<Paginated<ArticleSummary>> {
     return this.http.get<Paginated<ArticleSummary>>(this.baseUrl, { params: toHttpParams(query) });
+  }
+
+  /** Public. Partial, case-insensitive match on title and tags. Published only, newest first. */
+  search(query: SearchArticlesQuery): Observable<Paginated<ArticleSummary>> {
+    return this.http.get<Paginated<ArticleSummary>>(`${this.baseUrl}/search`, {
+      params: toHttpParams(query),
+    });
   }
 
   /** Public. Drafts return 404. */

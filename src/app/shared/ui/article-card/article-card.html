@@ -23,7 +23,13 @@
           </span>
         }
       </div>
-      <h3 class="item__title">{{ item.title }}</h3>
+      <h3 class="item__title">
+        @if (highlightQuery()) {
+          <app-highlight-text [text]="item.title" [query]="highlightQuery()" />
+        } @else {
+          {{ item.title }}
+        }
+      </h3>
       @if (isLead()) {
         <p class="item__excerpt">{{ item.excerpt }}</p>
         <p class="item__meta">
@@ -36,6 +42,9 @@
       }
     </div>
   </a>
+  <div class="item__footer">
+    <ng-content select="[cardFooter]" />
+  </div>
   <div class="item__action">
     <ng-content select="[cardAction]" />
   </div>

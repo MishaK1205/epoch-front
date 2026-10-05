@@ -39,6 +39,10 @@ export const routes: Routes = [
           import('./features/library/library.routes').then((m) => m.LIBRARY_ROUTES),
       },
       {
+        path: '',
+        loadChildren: () => import('./features/search/search.routes').then((m) => m.SEARCH_ROUTES),
+      },
+      {
         path: '**',
         title: 'გვერდი ვერ მოიძებნა — Epoch',
         loadComponent: () =>

@@ -1,0 +1,8 @@
+.hit {
+  padding-inline: 0.1em;
+  font-weight: var(--font-weight-bold);
+  color: inherit;
+  background: var(--color-search-hit);
+  border-radius: var(--radius-sm);
+  box-decoration-break: clone;
+}

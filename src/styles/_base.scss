@@ -13,6 +13,21 @@ body {
   background: var(--color-bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  // Copy protection; keep the exceptions in sync with `COPY_ALLOWED_SELECTOR` (CopyProtection).
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+input,
+textarea,
+[contenteditable]:not([contenteditable='false']),
+[data-allow-copy] {
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
+img {
+  -webkit-user-drag: none;
 }
 
 h1,

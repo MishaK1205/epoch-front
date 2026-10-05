@@ -3,5 +3,6 @@ Disallow: /manage
 Disallow: /me
 Disallow: /login
 Disallow: /register
+Disallow: /search
 
 Sitemap: https://www.epoch.ge/sitemap.xml

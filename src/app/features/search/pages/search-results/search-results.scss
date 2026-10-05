@@ -1,0 +1,111 @@
+@use 'mixins' as *;
+@use 'feed-page';
+
+.search {
+  @include container;
+
+  padding-block: var(--space-8) var(--space-16);
+}
+
+.search-form {
+  display: flex;
+  gap: var(--space-3);
+  max-width: var(--container-narrow);
+  margin-top: var(--space-6);
+}
+
+.search-form__input {
+  flex: 1;
+  min-width: 0;
+  height: var(--control-height-lg);
+  padding-inline: var(--space-5);
+  font: inherit;
+  font-size: var(--text-lg);
+  color: var(--color-text);
+  background: var(--color-input-bg);
+  border: var(--border-width) solid var(--color-input-border);
+  border-radius: var(--radius-control);
+  outline: none;
+  transition:
+    border-color var(--duration-fast) var(--easing-standard),
+    box-shadow var(--duration-fast) var(--easing-standard);
+
+  &::placeholder {
+    color: var(--color-text-subtle);
+  }
+
+  &:hover {
+    border-color: var(--color-input-border-hover);
+  }
+
+  &:focus {
+    background: var(--color-input-bg-focus);
+    border-color: var(--color-input-border-focus);
+    box-shadow: var(--focus-ring-accent);
+  }
+}
+
+.search-form__hint {
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.search__summary {
+  margin-bottom: var(--space-6);
+  color: var(--color-text-muted);
+
+  strong {
+    color: var(--color-ink);
+  }
+}
+
+.search__retry {
+  margin-top: var(--space-4);
+}
+
+// Matched tags on result cards and popular tags in the empty state; link to the tag feed
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.tag-list__tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--chip-height);
+  padding-inline: var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-accent-text);
+  background: var(--color-accent-soft);
+  border-radius: var(--radius-full);
+  transition: color var(--duration-fast) var(--easing-standard);
+
+  &:hover {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.popular-tags {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.popular-tags__title {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.popular-tags .tag-list {
+  justify-content: center;
+}

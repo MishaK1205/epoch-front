@@ -16,5 +16,6 @@ export const API_LIMITS = {
   tags: { maxCount: 10, minLength: 1, maxLength: 30 },
   pagination: { defaultLimit: 20, maxLimit: 100 },
   tagsQuery: { defaultLimit: 50, maxLimit: 100 },
+  /** `q` of GET /articles and GET /articles/search (after trimming). */
   search: { max: 100 },
 } as const;

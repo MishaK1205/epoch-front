@@ -1,0 +1,120 @@
+<button
+  type="button"
+  class="search-box__icon-btn search-box__toggle"
+  aria-label="სტატიების ძიება"
+  [attr.aria-controls]="ids.form"
+  [attr.aria-expanded]="expanded()"
+  (click)="expand()"
+>
+  <app-icon name="search" [size]="22" />
+</button>
+
+<form class="search-box__form" role="search" [id]="ids.form" (submit)="onSubmit($event)">
+  <div class="search-box__field">
+    <label class="visually-hidden" [for]="ids.input">სტატიების ძიება</label>
+    <input
+      #input
+      class="search-box__input"
+      type="text"
+      role="combobox"
+      aria-autocomplete="list"
+      autocomplete="off"
+      spellcheck="false"
+      enterkeyhint="search"
+      placeholder="ძიება სათაურით ან თეგით"
+      [id]="ids.input"
+      [maxLength]="maxLength"
+      [value]="text()"
+      [attr.aria-expanded]="panelOpen()"
+      [attr.aria-controls]="ids.list"
+      [attr.aria-activedescendant]="activeId()"
+      (input)="onInput(input.value)"
+      (focus)="onFocus()"
+      (keydown)="onKeydown($event)"
+    />
+    <button type="submit" class="search-box__icon-btn search-box__submit" aria-label="ძიება">
+      <app-icon name="search" [size]="18" />
+    </button>
+  </div>
+
+  <button
+    type="button"
+    class="search-box__icon-btn search-box__close"
+    aria-label="ძიების დახურვა"
+    (click)="collapse()"
+  >
+    <app-icon name="close" [size]="22" />
+  </button>
+
+  <div class="search-box__panel" [hidden]="!panelOpen()">
+    @switch (state().status) {
+      @case ('loading') {
+        <p class="search-box__message"><app-spinner size="sm" label="" /> ძიება…</p>
+      }
+      @case ('error') {
+        <p class="search-box__message">ძიება ახლა მიუწვდომელია. სცადეთ მოგვიანებით.</p>
+      }
+    }
+    @let results = suggestions();
+    @if (results && results.total === 0 && state().status === 'done') {
+      <p class="search-box__message">„{{ results.q }}“ — ვერაფერი მოიძებნა</p>
+    }
+
+    <div role="listbox" aria-label="ძიების შედეგები" [id]="ids.list">
+      @if (results) {
+        @for (option of results.options; track option.article.id; let index = $index) {
+          <div
+            class="search-box__option"
+            role="option"
+            [id]="option.id"
+            [class.is-active]="activeIndex() === index"
+            [attr.aria-selected]="activeIndex() === index"
+            (mousedown)="$event.preventDefault()"
+            (mouseenter)="activeIndex.set(index)"
+            (click)="openArticle(option.article)"
+          >
+            <span class="search-box__thumb">
+              @if (option.article.coverImage; as cover) {
+                <img [ngSrc]="cover.url" alt="" fill />
+              } @else {
+                <app-icon name="image" [size]="18" />
+              }
+            </span>
+            <span class="search-box__text">
+              <span class="search-box__title">
+                <app-highlight-text [text]="option.article.title" [query]="results.q" />
+              </span>
+              <span class="search-box__meta">
+                @if (option.article.category; as category) {
+                  <span class="search-box__category">{{ category.name }}</span>
+                }
+                @for (tag of option.tags; track tag) {
+                  <span class="search-box__tag">
+                    #<app-highlight-text [text]="tag" [query]="results.q" />
+                  </span>
+                }
+              </span>
+            </span>
+          </div>
+        }
+        @if (showAll()) {
+          <div
+            class="search-box__option search-box__all"
+            role="option"
+            [id]="ids.all"
+            [class.is-active]="activeIndex() === results.options.length"
+            [attr.aria-selected]="activeIndex() === results.options.length"
+            (mousedown)="$event.preventDefault()"
+            (mouseenter)="activeIndex.set(results.options.length)"
+            (click)="submit()"
+          >
+            ყველა შედეგი ({{ results.total }})
+            <app-icon name="chevron-right" [size]="16" />
+          </div>
+        }
+      }
+    </div>
+  </div>
+</form>
+
+<p class="visually-hidden" aria-live="polite">{{ statusMessage() }}</p>

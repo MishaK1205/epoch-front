@@ -176,7 +176,7 @@ something only one component needs — use a `computed()` signal in that compone
 
 - The app is server-rendered with `@angular/ssr` (`outputMode: "server"`) so search engines get
   the full HTML. Render modes per route live in `app.routes.server.ts`: public pages (home,
-  `category/:slug`, `articles/:slug`, 404) are `RenderMode.Server`; login, register, `/manage` and
+  `category/:slug`, `articles/:slug`, `search`, 404) are `RenderMode.Server`; login, register, `/manage` and
   `/me` are `RenderMode.Client`. Add every new route there.
 - Code runs on the server too: never touch `window`, `document`, `localStorage`, `navigator` or
   timers that matter only in the browser at construction time. Guard with
@@ -196,6 +196,12 @@ something only one component needs — use a `computed()` signal in that compone
 - `angular.json` `security.allowedHosts` lists the hosts the SSR server answers
   (`epoch.ge`, `www.epoch.ge`, `*.vercel.app`); other hosts get 400. Locally, run the built
   server with `NG_ALLOWED_HOSTS=127.0.0.1 PORT=4310 npm run serve:ssr:epoch-front`.
+- Copy protection: `CopyProtection` (`core/services/copy-protection.ts`, started eagerly in
+  `app.config.ts`) cancels `copy`, `cut`, `contextmenu`, `dragstart` and `selectstart`, and
+  `_base.scss` sets `user-select: none` on `body`. Inputs, textareas, `contenteditable` (Quill)
+  and anything inside `[data-allow-copy]` (the `ManageShell` host) stay copyable. Keep the CSS
+  exceptions in sync with `COPY_ALLOWED_SELECTOR`. It is only a deterrent: the SSR HTML stays
+  fully readable for search engines.
 - `AngularNodeAppEngine` is created with `trustProxyHeaders: true`: Vercel sends
   `X-Forwarded-For` / `-Port`, and any untrusted `X-Forwarded-*` header makes Angular silently
   serve the empty client-side page. To verify SSR, check for `ng-server-context` in the HTML of
@@ -379,6 +385,7 @@ component (in `shared/ui/` if generic, else in the feature) that uses the design
 | `Spinner`       | `<app-spinner size="sm\|md\|lg" />`                                                                                                                                                                                        |
 | `Pagination`    | `<app-pagination [page] [totalPages] (pageChange) />`                                                                                                                                                                      |
 | `Icon`          | `<app-icon name="menu" [size]="20" />` — add new icons to `icon.html` + `IconName`                                                                                                                                         |
+| `HighlightText` | `<app-highlight-text [text]="title" [query]="q" />` — marks the search words with `<mark>`                                                                                                                                |
 
 Auth-only components live in `features/auth/components/`: `AuthCard` (split-screen page shell),
 `AuthBrand` (dark brand panel), `PasswordStrength` (`<app-password-strength [password] />`).
@@ -464,6 +471,26 @@ pattern for new form controls. Validation messages come from
   `ReadingList` page whose `kind` input comes from route `data`. Header: logged-in users get a
   bookmark icon link to `/me/saved` and a "ჩემი ბიბლიოთეკა" section at the top of the drawer.
 - Route params and query params are bound to component `input()`s (`withComponentInputBinding()`).
+
+### Search
+
+- Search boxes use `ArticlesApi.search()` (`GET /articles/search`: partial, case-insensitive,
+  title + tags only, every word must match, newest first). `listPublished({ q })` is whole-word
+  full-text over title + content — don't use it for search UI. Never send a blank `q`; normalize
+  input with `normalizeSearchQuery` (`shared/utils/highlight.ts`) and cap it at
+  `API_LIMITS.search.max`.
+- Show why something matched without HTML strings: `<app-highlight-text [text] [query] />`
+  (`shared/ui/highlight-text`, `<mark class="hit">`, `--color-search-hit`) and
+  `matchingTags(tags, q)` / `containsAllTerms(text, q)`. `ArticleCard` takes
+  `[highlightQuery]` and a `[cardFooter]` slot (outside the card link) for tag links.
+- `SearchBox` (`core/search/search-box`, in the header between the logo and the actions): ARIA
+  combobox, suggestions from 2 characters (300 ms debounce, `switchMap`, top 5 + "all results"),
+  Enter / icon → `/search?q=`. Below `lg` it is an icon that expands the field over the header
+  bar (`.header__bar` is `position: relative`). It mirrors `q` on `/search` and clears after any
+  other navigation.
+- `/search` (`features/search`, `SearchResults`) reads `q` / `page` from query-param inputs;
+  blank `q` = start state with no request. Tag chips link to the tag feed (`/?tag=`). The route
+  is `Disallow`ed in `robots.txt`.
 
 ### Testing
 

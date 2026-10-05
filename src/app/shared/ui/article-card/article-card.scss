@@ -9,6 +9,8 @@
 // Card: image on top, white panel with a tinted category chip and a serif title
 .item {
   position: relative;
+  display: flex;
+  flex-direction: column;
   height: 100%;
   overflow: hidden;
   background: var(--color-surface);
@@ -44,8 +46,8 @@
 
 .item__link {
   display: flex;
+  flex: 1;
   flex-direction: column;
-  height: 100%;
   border-radius: inherit;
 
   &:focus-visible {
@@ -73,6 +75,15 @@
   right: var(--space-3);
   z-index: 1;
   display: flex;
+
+  &:empty {
+    display: none;
+  }
+}
+
+// Projected footer (tag links) under the body, outside the link
+.item__footer {
+  padding: 0 var(--space-5) var(--space-5);
 
   &:empty {
     display: none;

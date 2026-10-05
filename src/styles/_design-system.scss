@@ -92,6 +92,7 @@ $breakpoints: (
     --color-accent-border: var(--palette-navy-200); // soft accent chips/badges
     --color-accent-text: var(--palette-navy-700); // text + text hover on white (~7.3:1)
     --color-accent-on-dark: var(--palette-navy-400); // #071824 disappears on footer/ink
+    --color-search-hit: var(--palette-navy-200); // <mark> behind matched search words
 
     --color-link: var(--palette-blue-600);
     --color-focus: var(--color-ink);
@@ -270,6 +271,8 @@ $breakpoints: (
     --table-row-min-height: 64px;
     --table-action-width: 14rem; // inline select column in tables
     --thumb-width: 96px; // list thumbnails (manage lists)
+    --search-box-width: 28rem; // header search field (≥1024px)
+    --search-thumb-size: 48px; // search suggestion thumbnails
     --editor-min-height: 320px; // rich text editor content area
     --editor-picker-width: 8.5rem; // Quill heading picker (fits Georgian labels)
     --radius-control: var(--radius-lg); // buttons + inputs share one radius
