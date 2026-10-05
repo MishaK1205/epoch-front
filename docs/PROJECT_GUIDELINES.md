@@ -153,6 +153,13 @@ something only one component needs — use a `computed()` signal in that compone
   register, logout, `currentUser` and role signals. Guards: `authGuard`, `guestGuard`, `roleGuard(...)`.
 - Redirect URLs for guards / 401 handling: override the `AUTH_CONFIG` token (`core/tokens`).
 - Show errors with `getApiErrorMessages(err)`; validate forms with `API_LIMITS`.
+- Categories are a two-level tree: `GET /categories` returns only top-level `Category` items,
+  each with `subcategories: CategoryBase[]` (a subcategory has `parent` set). Never search that
+  array directly — use `flattenCategories` / `findCategoryById` / `findCategoryBySlug` /
+  `isSubcategory` (`core/api/categories/categories.utils.ts`) or `CategoriesStore.findBySlug` /
+  `findTopLevelById`. Articles have a top-level `category` and an optional `subcategory`.
+  Requests never send `''` for ids: forms keep `''` for "not chosen", and request builders
+  omit the field (create) or send `null` (PATCH `subcategoryId`).
 - URLs always come from `environment.apiUrl`; encode path segments with `encodeURIComponent`.
   Three environments: `environment.ts` (production build: `https://api.epoch.ge`),
   `environment.development.ts` (`npm start` / `npm run start:local`: `http://localhost:3000`) and
@@ -276,7 +283,9 @@ export class UserCard {
 - If you must subscribe, use `takeUntilDestroyed()` (inject `DestroyRef` outside injection context).
 - RxJS is for streams/events composition (debounce search, websockets); signals for state.
 - `HttpClient` is configured with `provideHttpClient(withInterceptors([...]))`. Do **not** add
-  `withFetch()`: the fetch backend can't report upload progress (`ImagesApi.uploadWithProgress`).
+  `withFetch()` there: the fetch backend can't report upload progress
+  (`ImagesApi.uploadWithProgress`). Only the server uses fetch (`app.config.server.ts` overrides
+  `HttpBackend` with `FetchBackend`), since `platform-server`'s XHR polyfill is deprecated.
 
 ### Templates
 
@@ -361,7 +370,7 @@ component (in `shared/ui/` if generic, else in the feature) that uses the design
 | `Button`        | `<button appButton variant="primary\|accent\|outline\|ghost\|inverse\|danger\|danger-ghost" size="sm\|md\|lg" fullWidth pill [loading]>` — also on `<a appButton>`; icons via `<app-icon btnIconStart … />` / `btnIconEnd` |
 | `InputField`    | `<app-input-field formControlName="x" label="…" type="text\|email\|password…" hint="…" [errorMessages]="{…}" />`                                                                                                           |
 | `TextareaField` | `<app-textarea-field formControlName="x" label="…" [rows]="4" [maxlength]="500" showCount hint="…" [errorMessages]="{…}" />`                                                                                               |
-| `Select`        | `<app-select formControlName="x" label="…" [options]="[{ value, label }]" placeholder="…" hideLabel hint="…" (selectionChange)="…" />`                                                                                     |
+| `Select`        | `<app-select formControlName="x" label="…" [options]="[{ value, label } \| { group, options }]" placeholder="…" emptyLabel="…" hideLabel hint="…" (selectionChange)="…" />` — `emptyLabel` = selectable `''` option ("None"); `selectionChange` fires on user picks only |
 | `Checkbox`      | `<app-checkbox formControlName="x">label content</app-checkbox>`                                                                                                                                                           |
 | `Alert`         | `<app-alert variant="error\|success\|info">…</app-alert>`                                                                                                                                                                  |
 | `Badge`         | `<app-badge variant="neutral\|success\|accent\|info">text</app-badge>`                                                                                                                                                     |
@@ -380,10 +389,20 @@ Auth-only components live in `features/auth/components/`: `AuthCard` (split-scre
   `roleGuard('admin')`. `ManageShell` renders the "მართვა" kicker, the h1 (route `title` without
   " — Epoch") and role-aware tabs. The server enforces permissions; the UI only hides/disables.
 - Manage-only components (`RichTextEditor`, `CoverImagePicker`, `TagsInput`, `ArticleRow`,
-  `CategoryForm`) live in `features/manage/components/`. List pages share
+  `CategoryForm`, `CategoryRow`) live in `features/manage/components/`. List pages share
   `features/manage/manage-page.scss`.
 - Show manage API errors with `getManageErrorMessages(err)` (`manage-errors.ts`) — it translates
-  backend messages and falls back to `getApiErrorMessages`.
+  backend messages and falls back to `getApiErrorMessages`. To show known backend messages on a
+  field, use `applyManageErrors(err, { 'backend message': 'field' }, form.controls)`: it sets a
+  `server` error (rendered by every form control via `validation-messages.ts`) and returns the
+  rest for the page alert.
+- `/manage/categories` is a two-level tree (`CategoryRow` per row, inline `CategoryForm` for edit
+  and "add subcategory"). The parent is chosen only on create; edit shows it read-only and never
+  sends `parentId`. After every category mutation reload both the page list and
+  `CategoriesStore`. `/manage/articles` accepts `?categoryId=` (category or subcategory).
+- The article editor has two pickers: Category (top-level only) and Subcategory (children of the
+  picked category, "None" first, hidden when there are none). Reset the subcategory from the
+  Category select's `(selectionChange)` (user picks only), so prefilling an article keeps it.
 - Editors with unsaved state implement `HasUnsavedChanges.canDeactivate()` (return `true` or a
   `Promise<boolean>` resolved from a `ConfirmDialog`) and use `canDeactivate: [unsavedChangesGuard]`
   on the route, plus a `(window:beforeunload)` host listener.
@@ -406,7 +425,11 @@ pattern for new form controls. Validation messages come from
   (`core/services/categories-store.ts`). The drawer and the footer show **only categories** (no
   auth links). The accent strip under the header bar is decorative (no links).
 - Category links always point to `/category/:slug` (`features/home/pages/category-articles`),
-  never to `/?category=`. Feed-style pages (home, category, library) share the
+  never to `/?category=`. Subcategories use the same route with their own slug: the page shows a
+  `parent › name` breadcrumb for them and "All + subcategory" chips for any category that has
+  subcategories. The drawer list is `DrawerCategories` (`core/layout/drawer-categories`): a category with
+  subcategories has a chevron toggle (collapsed by default) next to its link; the footer and the home
+  sections list top-level categories only. Feed-style pages (home, category, library) share the
   `src/styles/_feed-page.scss` partial (`.page-heading*`, `.feed-state`, `.teaser-grid`) via
   `@use 'feed-page';` in their component SCSS. Parse `?page=` with `toPage()` from
   `shared/utils/page-param.ts`.

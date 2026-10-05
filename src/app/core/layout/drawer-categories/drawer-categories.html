@@ -1,0 +1,41 @@
+@let expanded = expandedIds();
+<ul class="list" role="list">
+  @for (category of categories(); track category.id) {
+    <li>
+      <div class="row">
+        <a class="link" [routerLink]="['/category', category.slug]">{{ category.name }}</a>
+        @if (category.subcategories.length > 0) {
+          <button
+            type="button"
+            class="toggle"
+            [class.toggle--open]="expanded.has(category.id)"
+            [attr.aria-expanded]="expanded.has(category.id)"
+            [attr.aria-controls]="'drawer-subcategories-' + category.id"
+            [attr.aria-label]="'ქვეკატეგორიები: ' + category.name"
+            (click)="toggle(category.id)"
+          >
+            <app-icon name="chevron-down" [size]="20" />
+          </button>
+        }
+      </div>
+      @if (category.subcategories.length > 0) {
+        <ul
+          class="sublist"
+          role="list"
+          [id]="'drawer-subcategories-' + category.id"
+          [hidden]="!expanded.has(category.id)"
+        >
+          @for (subcategory of category.subcategories; track subcategory.id) {
+            <li>
+              <a class="link link--sub" [routerLink]="['/category', subcategory.slug]">{{
+                subcategory.name
+              }}</a>
+            </li>
+          }
+        </ul>
+      }
+    </li>
+  } @empty {
+    <li class="empty">კატეგორიები ჯერ არ არის.</li>
+  }
+</ul>

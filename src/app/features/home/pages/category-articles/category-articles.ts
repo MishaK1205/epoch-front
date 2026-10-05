@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { getApiErrorMessages } from '../../../../core/api/api-error-messages';
 import { ArticlesApi } from '../../../../core/api/articles/articles-api';
 import { AuthService } from '../../../../core/auth/auth-service';
@@ -16,10 +16,13 @@ import { toPage } from '../../../../shared/utils/page-param';
 
 const PAGE_SIZE = 12;
 
-/** Articles of one category: `/category/:slug?page=<n>`. */
+/**
+ * Articles of one category or subcategory: `/category/:slug?page=<n>`. A top-level list includes
+ * its subcategories' articles; subcategory chips switch between them.
+ */
 @Component({
   selector: 'app-category-articles',
-  imports: [Alert, Pagination, Spinner, ArticleCard, ReadingListToggle],
+  imports: [RouterLink, Alert, Pagination, Spinner, ArticleCard, ReadingListToggle],
   templateUrl: './category-articles.html',
   styleUrl: './category-articles.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -41,7 +44,15 @@ export class CategoryArticles {
     stream: ({ params }) => this.articlesApi.listPublished({ ...params, limit: PAGE_SIZE }),
   });
 
+  /** A category or a subcategory. */
   protected readonly category = computed(() => this.categoriesStore.findBySlug(this.slug()));
+  /** The top-level category whose subcategory chips are shown: this one or its parent. */
+  private readonly root = computed(() => {
+    const category = this.category();
+    return category && this.categoriesStore.findTopLevelById(category.parent?.id ?? category.id);
+  });
+  protected readonly rootSlug = computed(() => this.root()?.slug ?? '');
+  protected readonly subcategories = computed(() => this.root()?.subcategories ?? []);
   protected readonly title = computed(() => this.category()?.name ?? this.slug());
   protected readonly description = computed(() => this.category()?.description ?? '');
 

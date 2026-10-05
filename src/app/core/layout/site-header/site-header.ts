@@ -6,11 +6,12 @@ import { Button } from '../../../shared/ui/button/button';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { AuthService } from '../../auth/auth-service';
 import { CategoriesStore } from '../../services/categories-store';
+import { DrawerCategories } from '../drawer-categories/drawer-categories';
 import { Logo } from '../logo/logo';
 
 @Component({
   selector: 'app-site-header',
-  imports: [RouterLink, RouterLinkActive, Button, Icon, Logo],
+  imports: [RouterLink, RouterLinkActive, Button, Icon, Logo, DrawerCategories],
   templateUrl: './site-header.html',
   styleUrl: './site-header.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

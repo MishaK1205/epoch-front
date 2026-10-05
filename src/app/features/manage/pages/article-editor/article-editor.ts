@@ -9,10 +9,17 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { rxResource, takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { rxResource, takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
+import {
+  AbstractControl,
+  NonNullableFormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { filter, finalize, Observable, of, switchMap, take, tap } from 'rxjs';
+import { getApiErrorMessages } from '../../../../core/api/api-error-messages';
 import { API_LIMITS } from '../../../../core/api/api-limits';
 import { ArticlesApi } from '../../../../core/api/articles/articles-api';
 import { Article } from '../../../../core/api/articles/articles.models';
@@ -32,7 +39,7 @@ import { tagListValidator } from '../../../../shared/validators/tag-list';
 import { CoverImagePicker } from '../../components/cover-image-picker/cover-image-picker';
 import { RichTextEditor } from '../../components/rich-text-editor/rich-text-editor';
 import { TagsInput } from '../../components/tags-input/tags-input';
-import { getManageErrorMessages } from '../../manage-errors';
+import { applyManageErrors, getManageErrorMessages } from '../../manage-errors';
 import { ARTICLE_DELETED_STATE_KEY, STATUS_BADGES, STATUS_LABELS } from '../../manage-labels';
 import { HasUnsavedChanges } from '../../unsaved-changes-guard';
 import {
@@ -47,6 +54,19 @@ type EditorAction = 'save' | 'publish' | 'unpublish' | 'delete';
 /** Navigation state flag set after `create()`, so the edit page can show the success message. */
 const CREATED_STATE_KEY = 'articleCreated';
 const INVALID_FORM_MESSAGE = 'შეამოწმეთ მონიშნული ველები.';
+
+type CategoryField = 'categoryId' | 'subcategoryId';
+
+/** Backend messages shown on the category pickers instead of the page alert. */
+const FIELD_ERRORS: Partial<Record<string, CategoryField>> = {
+  'Category does not exist': 'categoryId',
+  'categoryId must be a top-level category; send the subcategory as subcategoryId': 'categoryId',
+  'Subcategory does not exist': 'subcategoryId',
+  'Subcategory does not belong to the selected category': 'subcategoryId',
+  'subcategoryId must be a mongodb id': 'subcategoryId',
+};
+/** The picked category / subcategory is gone: reload the category tree. */
+const STALE_CATEGORY_MESSAGES = new Set(['Category does not exist', 'Subcategory does not exist']);
 
 /** `/manage/articles/new` and `/manage/articles/:id`. */
 @Component({
@@ -103,6 +123,7 @@ export class ArticleEditor implements HasUnsavedChanges {
       ],
     ],
     categoryId: ['', Validators.required],
+    subcategoryId: ['', (control: AbstractControl) => this.subcategoryInCategory(control)],
     coverImageId: ['', Validators.required],
     tags: [[] as string[], tagListValidator(API_LIMITS.tags)],
     content: [
@@ -130,11 +151,26 @@ export class ArticleEditor implements HasUnsavedChanges {
     const status = this.article()?.status ?? 'draft';
     return { label: STATUS_LABELS[status], badge: STATUS_BADGES[status] };
   });
+  /** Top-level categories only; subcategories have their own picker. */
   protected readonly categoryOptions = computed<SelectOption[]>(() =>
     this.categoriesStore.categories().map((category) => ({
       value: category.id,
       label: category.name,
     })),
+  );
+  private readonly categoryId = toSignal(this.form.controls.categoryId.valueChanges, {
+    initialValue: this.form.controls.categoryId.value,
+  });
+  private readonly selectedCategory = computed(() =>
+    this.categoriesStore.findTopLevelById(this.categoryId()),
+  );
+  /** Empty (picker hidden) when no category is picked or it has no subcategories. */
+  protected readonly subcategoryOptions = computed<SelectOption[]>(
+    () =>
+      this.selectedCategory()?.subcategories.map((subcategory) => ({
+        value: subcategory.id,
+        label: subcategory.name,
+      })) ?? [],
   );
 
   private baseline: ArticleFormValue | null = null;
@@ -188,7 +224,7 @@ export class ArticleEditor implements HasUnsavedChanges {
               state: { [CREATED_STATE_KEY]: true },
             });
           },
-          error: (err: unknown) => this.serverErrors.set(getManageErrorMessages(err)),
+          error: (err: unknown) => this.showSaveErrors(err),
         });
       return;
     }
@@ -196,8 +232,13 @@ export class ArticleEditor implements HasUnsavedChanges {
       .pipe(this.finish())
       .subscribe({
         next: () => this.successMessage.set('ცვლილებები შენახულია.'),
-        error: (err: unknown) => this.serverErrors.set(getManageErrorMessages(err)),
+        error: (err: unknown) => this.showSaveErrors(err),
       });
+  }
+
+  /** The user picked another category: its subcategories differ, so clear the subcategory. */
+  protected onCategoryPicked(): void {
+    this.form.controls.subcategoryId.setValue('');
   }
 
   /** Saves pending changes first, then publishes / unpublishes. */
@@ -222,7 +263,7 @@ export class ArticleEditor implements HasUnsavedChanges {
           this.article.set(article);
           this.successMessage.set(publish ? 'სტატია გამოქვეყნდა.' : 'სტატია დაბრუნდა დრაფტებში.');
         },
-        error: (err: unknown) => this.serverErrors.set(getManageErrorMessages(err)),
+        error: (err: unknown) => this.showSaveErrors(err),
       });
   }
 
@@ -275,7 +316,30 @@ export class ArticleEditor implements HasUnsavedChanges {
       : true;
   }
 
+  /** Category errors go to the pickers (the subcategory one only while it's shown). */
+  private showSaveErrors(err: unknown): void {
+    if (getApiErrorMessages(err).some((message) => STALE_CATEGORY_MESSAGES.has(message))) {
+      this.categoriesStore.reload();
+    }
+    const { categoryId, subcategoryId } = this.form.controls;
+    const controls =
+      this.subcategoryOptions().length > 0 ? { categoryId, subcategoryId } : { categoryId };
+    const messages = applyManageErrors(err, FIELD_ERRORS, controls);
+    this.serverErrors.set(messages.length > 0 ? messages : [INVALID_FORM_MESSAGE]);
+  }
+
+  /** A picked subcategory must be one of the selected category's (unknown until loaded). */
+  private subcategoryInCategory(control: AbstractControl): ValidationErrors | null {
+    const id: unknown = control.value;
+    const category = id ? this.selectedCategory() : undefined;
+    if (!category || category.subcategories.some((subcategory) => subcategory.id === id)) {
+      return null;
+    }
+    return { subcategory: true };
+  }
+
   private checkValid(): boolean {
+    this.form.controls.subcategoryId.updateValueAndValidity();
     if (this.form.valid) {
       return true;
     }

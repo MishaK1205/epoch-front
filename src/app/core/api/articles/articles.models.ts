@@ -15,7 +15,10 @@ export interface ArticleSummary {
   /** Plain text, about 200 characters, may end with '…'. */
   excerpt: string;
   coverImage: ImageSummary | null;
+  /** Always a top-level category; `null` if it was deleted. */
   category: CategorySummary | null;
+  /** A subcategory of `category`; `null` when the article has none. */
+  subcategory: CategorySummary | null;
   /** Lowercase. */
   tags: string[];
   author: AuthorSummary | null;
@@ -40,8 +43,13 @@ export interface CreateArticleRequest {
   content: string;
   /** Id of an image uploaded via POST /images. */
   coverImageId: string;
-  /** Id of an existing category. */
+  /** Id of an existing TOP-LEVEL category. */
   categoryId: string;
+  /**
+   * Id of a subcategory of `categoryId`. Omit or `null` = none; never `''`. On PATCH: omit =
+   * keep, `null` = remove. When `categoryId` changes, send this too (the old one won't match).
+   */
+  subcategoryId?: string | null;
   /** Max 10; each 1–30 chars; lowercased and de-duplicated by the server. */
   tags?: string[];
 }
@@ -53,8 +61,10 @@ export type UpdateArticleRequest = Partial<CreateArticleRequest>;
 export interface ListArticlesQuery {
   page?: number;
   limit?: number;
-  /** Category SLUG (not id), max 100. */
+  /** Category or subcategory SLUG, max 100. A top-level slug includes its subcategories. */
   category?: string;
+  /** Category or subcategory id. */
+  categoryId?: string;
   /** Exact tag, case-insensitive, max 30. */
   tag?: string;
   /** Author USERNAME (not id), max 30. */
@@ -68,4 +78,6 @@ export interface ManageArticlesQuery {
   page?: number;
   limit?: number;
   status?: ArticleStatus;
+  /** Category or subcategory id. */
+  categoryId?: string;
 }

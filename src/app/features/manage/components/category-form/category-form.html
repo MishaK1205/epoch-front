@@ -2,9 +2,26 @@
   class="category-form"
   [formGroup]="form"
   (ngSubmit)="submit()"
-  (keydown.escape)="editing() && cancelled.emit()"
+  (keydown.escape)="canCancel() && cancelled.emit()"
   novalidate
 >
+  @if (category(); as current) {
+    <p class="category-form__parent">
+      @if (current.parent; as parent) {
+        ქვეკატეგორია. მთავარი კატეგორია: <strong>{{ parent.name }}</strong> (ვერ შეიცვლება)
+      } @else {
+        ზედა დონის კატეგორია
+      }
+    </p>
+  } @else {
+    <app-select
+      formControlName="parentId"
+      label="მთავარი კატეგორია"
+      emptyLabel="არცერთი — ზედა დონის კატეგორია"
+      hint="აირჩიეთ, თუ ქვეკატეგორიას ქმნით. მშობლის შეცვლა მოგვიანებით შეუძლებელია."
+      [options]="parentOptions()"
+    />
+  }
   <app-input-field formControlName="name" label="სახელი" [maxlength]="limits.categoryName.max" />
   <app-textarea-field
     formControlName="description"
@@ -19,9 +36,15 @@
       @if (!editing()) {
         <app-icon btnIconStart name="plus" [size]="18" />
       }
-      {{ editing() ? 'შენახვა' : 'კატეგორიის დამატება' }}
+      @if (editing()) {
+        შენახვა
+      } @else if (creatingSubcategory()) {
+        ქვეკატეგორიის დამატება
+      } @else {
+        დამატება
+      }
     </button>
-    @if (editing()) {
+    @if (canCancel()) {
       <button
         appButton
         type="button"

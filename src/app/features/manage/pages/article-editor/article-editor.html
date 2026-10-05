@@ -67,13 +67,24 @@
       </div>
 
       <div class="editor__aside">
-        <div>
+        <div class="editor__categories">
           <app-select
             formControlName="categoryId"
             label="კატეგორია"
             placeholder="აირჩიეთ კატეგორია"
             [options]="categoryOptions()"
+            (selectionChange)="onCategoryPicked()"
           />
+          @if (subcategoryOptions().length > 0) {
+            <app-select
+              formControlName="subcategoryId"
+              label="ქვეკატეგორია"
+              emptyLabel="არცერთი"
+              hint="არასავალდებულო."
+              [options]="subcategoryOptions()"
+              [errorMessages]="{ subcategory: 'ქვეკატეგორია არჩეულ კატეგორიას არ ეკუთვნის.' }"
+            />
+          }
           @if (categoryOptions().length === 0) {
             <p class="editor__hint">
               ჯერ შექმენით კატეგორია.

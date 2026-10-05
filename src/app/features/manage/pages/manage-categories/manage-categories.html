@@ -1,6 +1,11 @@
 <section class="panel" aria-labelledby="new-category-title">
   <h2 id="new-category-title" class="panel__title">ახალი კატეგორია</h2>
-  <app-category-form #createForm [pending]="creating()" (submitted)="create($event)" />
+  <app-category-form
+    #createForm
+    [parents]="items()"
+    [pending]="creating() && addingToId() === null"
+    (submitted)="create($event, createForm)"
+  />
 </section>
 
 <div class="alerts" aria-live="polite">
@@ -11,6 +16,31 @@
     <app-alert variant="error">
       @for (message of actionErrors(); track message) {
         <p>{{ message }}</p>
+      }
+      @if (deleteConflict(); as conflict) {
+        <p class="conflict-action">
+          @if (conflict.kind === 'subcategories') {
+            <button
+              appButton
+              type="button"
+              variant="outline"
+              size="sm"
+              (click)="showSubcategories(conflict.category)"
+            >
+              ქვეკატეგორიების ნახვა
+            </button>
+          } @else {
+            <a
+              appButton
+              variant="outline"
+              size="sm"
+              routerLink="/manage/articles"
+              [queryParams]="{ categoryId: conflict.category.id }"
+            >
+              სტატიების ნახვა
+            </a>
+          }
+        </p>
       }
     </app-alert>
   }
@@ -31,64 +61,82 @@
     description="დაამატეთ პირველი კატეგორია ზემოთ მოცემული ფორმით — სტატიებს კატეგორია სჭირდება."
   />
 } @else {
+  <p class="note">
+    სტატიების რაოდენობაში ითვლება მხოლოდ გამოქვეყნებული სტატიები. მთავარი კატეგორიის რიცხვი მისი
+    ქვეკატეგორიების სტატიებსაც მოიცავს.
+  </p>
   <ul class="list" role="list" aria-label="კატეგორიები">
     @for (category of items(); track category.id) {
       <li>
         @if (editingId() === category.id) {
-          <div class="category category--editing">
+          <div class="editing">
             <app-category-form
+              #editForm
               [category]="category"
               [pending]="pendingId() === category.id"
-              (submitted)="update(category, $event)"
-              (cancelled)="editingId.set(null)"
+              (submitted)="update(category, $event, editForm)"
+              (cancelled)="inline.set(null)"
             />
           </div>
         } @else {
-          <div class="category" [attr.aria-busy]="pendingId() === category.id || null">
-            <div class="category__info">
-              <p class="category__name">
-                {{ category.name }}
-                <span class="category__slug">/{{ category.slug }}</span>
-              </p>
-              @if (category.description) {
-                <p class="category__description">{{ category.description }}</p>
-              }
-            </div>
-            <app-badge [variant]="category.articleCount > 0 ? 'info' : 'neutral'">
-              {{ category.articleCount }} სტატია
-            </app-badge>
-            <div class="category__actions">
-              <button
-                appButton
-                type="button"
-                variant="ghost"
-                size="sm"
-                [disabled]="pendingId() !== null"
-                (click)="startEdit(category)"
-              >
-                <app-icon btnIconStart name="edit" [size]="16" />
-                რედაქტირება
-              </button>
-              <button
-                appButton
-                type="button"
-                variant="danger-ghost"
-                size="sm"
-                [disabled]="pendingId() !== null || category.articleCount > 0"
-                [loading]="pendingId() === category.id"
-                [attr.aria-describedby]="category.articleCount > 0 ? 'in-use-' + category.id : null"
-                (click)="askDelete(category)"
-              >
-                <app-icon btnIconStart name="trash" [size]="16" />
-                წაშლა
-              </button>
-              @if (category.articleCount > 0) {
-                <p class="category__hint" [id]="'in-use-' + category.id">
-                  კატეგორია გამოიყენება სტატიებში
-                </p>
-              }
-            </div>
-          </div>
+          <app-category-row
+            [category]="category"
+            [subcategoryCount]="category.subcategories.length"
+            [pending]="pendingId() === category.id"
+            [locked]="pendingId() !== null"
+            (edit)="startEdit(category)"
+            (addSubcategory)="startAddSubcategory(category)"
+            (remove)="askDelete(category)"
+          />
+        }
+
+        @if (category.subcategories.length > 0 || addingToId() === category.id) {
+          <ul
+            class="subcategories"
+            role="list"
+            tabindex="-1"
+            [id]="'subcategories-' + category.id"
+            [attr.aria-label]="'ქვეკატეგორიები: ' + category.name"
+          >
+            @for (subcategory of category.subcategories; track subcategory.id) {
+              <li>
+                @if (editingId() === subcategory.id) {
+                  <div class="editing">
+                    <app-category-form
+                      #subEditForm
+                      [category]="subcategory"
+                      [pending]="pendingId() === subcategory.id"
+                      (submitted)="update(subcategory, $event, subEditForm)"
+                      (cancelled)="inline.set(null)"
+                    />
+                  </div>
+                } @else {
+                  <app-category-row
+                    [category]="subcategory"
+                    [pending]="pendingId() === subcategory.id"
+                    [locked]="pendingId() !== null"
+                    (edit)="startEdit(subcategory)"
+                    (remove)="askDelete(subcategory)"
+                  />
+                }
+              </li>
+            }
+            @if (addingToId() === category.id) {
+              <li>
+                <div class="editing">
+                  <app-category-form
+                    #subForm
+                    cancellable
+                    [parents]="items()"
+                    [parentId]="category.id"
+                    [pending]="creating()"
+                    (submitted)="create($event, subForm)"
+                    (cancelled)="inline.set(null)"
+                  />
+                </div>
+              </li>
+            }
+          </ul>
         }
       </li>
     }
@@ -97,7 +145,7 @@
 
 <app-confirm-dialog
   #deleteDialog
-  title="წავშალოთ კატეგორია?"
+  title="წავშალოთ?"
   [message]="deleteMessage()"
   confirmLabel="წაშლა"
   danger

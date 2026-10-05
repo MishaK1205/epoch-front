@@ -23,9 +23,17 @@
   <article class="article">
     <header class="article__head">
       @if (item.category; as category) {
-        <a class="article__kicker" [routerLink]="['/category', category.slug]">{{
-          category.name
-        }}</a>
+        <nav class="article__kicker" aria-label="კატეგორია">
+          <a class="article__kicker-link" [routerLink]="['/category', category.slug]">{{
+            category.name
+          }}</a>
+          @if (item.subcategory; as subcategory) {
+            <span aria-hidden="true">›</span>
+            <a class="article__kicker-link" [routerLink]="['/category', subcategory.slug]">{{
+              subcategory.name
+            }}</a>
+          }
+        </nav>
       }
       <h1 class="article__title">{{ item.title }}</h1>
       <p class="article__meta">

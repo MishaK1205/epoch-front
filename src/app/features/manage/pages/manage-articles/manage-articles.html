@@ -1,16 +1,28 @@
 <div class="toolbar">
-  <nav class="chips" aria-label="სტატუსის ფილტრი">
-    @for (filter of filters; track filter.label) {
-      <a
-        class="chip"
-        routerLink="."
-        [class.is-active]="(status() ?? null) === filter.value"
-        [attr.aria-current]="(status() ?? null) === filter.value ? 'page' : null"
-        [queryParams]="{ status: filter.value, page: null }"
-        >{{ filter.label }}</a
-      >
-    }
-  </nav>
+  <div class="filters">
+    <nav class="chips" aria-label="სტატუსის ფილტრი">
+      @for (filter of filters; track filter.label) {
+        <a
+          class="chip"
+          routerLink="."
+          queryParamsHandling="merge"
+          [class.is-active]="(status() ?? null) === filter.value"
+          [attr.aria-current]="(status() ?? null) === filter.value ? 'page' : null"
+          [queryParams]="{ status: filter.value, page: null }"
+          >{{ filter.label }}</a
+        >
+      }
+    </nav>
+    <app-select
+      class="filters__select"
+      label="კატეგორიის ფილტრი"
+      hideLabel
+      emptyLabel="ყველა კატეგორია"
+      [formControl]="categoryFilter"
+      [options]="categoryOptions()"
+      (selectionChange)="filterByCategory($event)"
+    />
+  </div>
   <a appButton variant="accent" routerLink="/manage/articles/new">
     <app-icon btnIconStart name="plus" [size]="18" />
     ახალი სტატია
@@ -41,7 +53,7 @@
 } @else if (items().length === 0) {
   <app-empty-state
     icon="edit"
-    [title]="status() ? 'ამ ფილტრით სტატიები არ მოიძებნა.' : 'სტატიები ჯერ არ არის.'"
+    [title]="filtered() ? 'ამ ფილტრით სტატიები არ მოიძებნა.' : 'სტატიები ჯერ არ არის.'"
     description="დაწერეთ პირველი სტატია — ის დრაფტად შეინახება, სანამ არ გამოაქვეყნებთ."
   >
     <a appButton variant="accent" routerLink="/manage/articles/new">

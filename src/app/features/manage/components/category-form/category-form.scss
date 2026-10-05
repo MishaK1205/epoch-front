@@ -8,6 +8,16 @@
   gap: var(--space-4);
 }
 
+.category-form__parent {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+
+  strong {
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-ink);
+  }
+}
+
 .category-form__actions {
   display: flex;
   flex-wrap: wrap;

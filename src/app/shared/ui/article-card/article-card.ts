@@ -14,7 +14,8 @@ import { Icon } from '../icon/icon';
 export type ArticleCardVariant = 'card' | 'lead';
 
 /**
- * Article teaser card: image on top, light panel with a category chip and a serif title.
+ * Article teaser card: image on top, light panel with a category chip ("Category › Subcategory";
+ * plain text, since the whole card is one link) and a serif title.
  * - `card` (default): small card; its size comes from the grid it sits in.
  * - `lead`: large card with a wider image, bigger title, excerpt and meta.
  * - `read`: shows a small "read" chip next to the category.

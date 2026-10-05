@@ -15,6 +15,21 @@
   justify-content: space-between;
 }
 
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-4);
+  align-items: center;
+}
+
+.filters__select {
+  width: 100%;
+
+  @include up(sm) {
+    width: var(--filter-select-width);
+  }
+}
+
 .chips {
   display: flex;
   flex-wrap: wrap;

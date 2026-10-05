@@ -23,12 +23,20 @@ export interface SelectOption {
   label: string;
 }
 
+/** Rendered as an `<optgroup>`. */
+export interface SelectOptionGroup {
+  group: string;
+  options: readonly SelectOption[];
+}
+
 let nextId = 0;
 
 /**
  * Styled native select for reactive forms:
  * `<app-select formControlName="categoryId" label="კატეგორია" [options]="[{ value, label }]" />`.
+ * `options` may mix plain options and `{ group, options }` groups.
  * `hideLabel` keeps the label for screen readers only (inline table usage).
+ * `emptyLabel` adds a selectable `''` option (e.g. "None") instead of the disabled placeholder.
  */
 @Component({
   selector: 'app-select',
@@ -43,8 +51,9 @@ export class Select implements ControlValueAccessor, AfterContentInit {
   private readonly controlState = new ControlState();
 
   readonly label = input.required<string>();
-  readonly options = input<readonly SelectOption[]>([]);
+  readonly options = input<readonly (SelectOption | SelectOptionGroup)[]>([]);
   readonly placeholder = input('');
+  readonly emptyLabel = input('');
   readonly hint = input('');
   readonly hideLabel = input(false, { transform: booleanAttribute });
   readonly errorMessages = input<ValidationMessageOverrides>({});
@@ -58,6 +67,15 @@ export class Select implements ControlValueAccessor, AfterContentInit {
   protected readonly value = signal('');
   protected readonly disabled = signal(false);
   protected readonly required = this.controlState.required;
+
+  protected readonly entries = computed(() =>
+    this.options().map((entry) =>
+      'group' in entry
+        ? { key: `group:${entry.group}`, group: entry, option: null }
+        : { key: `option:${entry.value}`, group: null, option: entry },
+    ),
+  );
+  protected readonly showPlaceholder = computed(() => this.value() === '' && !this.emptyLabel());
 
   protected readonly errorMessage = computed(() =>
     this.controlState.touched()

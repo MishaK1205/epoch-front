@@ -3,6 +3,9 @@ import { ValidationErrors } from '@angular/forms';
 /** Custom messages per validator key, e.g. `{ pattern: 'Only letters and digits' }`. */
 export type ValidationMessageOverrides = Partial<Record<string, string>>;
 
+/** Error key for a server message shown on a field: `control.setErrors({ server: 'text' })`. */
+export const SERVER_ERROR_KEY = 'server';
+
 /** Returns a user-facing (Georgian) message for the first error in `errors`. */
 export function getValidationMessage(
   errors: ValidationErrors | null,
@@ -33,6 +36,8 @@ export function getValidationMessage(
       return 'არასწორი ფორმატი.';
     case 'mismatch':
       return 'მნიშვნელობები არ ემთხვევა.';
+    case SERVER_ERROR_KEY:
+      return typeof details === 'string' ? details : 'არასწორი მნიშვნელობა.';
     default:
       return 'არასწორი მნიშვნელობა.';
   }

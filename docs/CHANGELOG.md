@@ -22,6 +22,116 @@ After finishing every task, **add a new entry at the top** using the template be
 
 ---
 
+## 2026-10-05 — Fetch backend on the server; expandable subcategories in the drawer
+
+**Task:** Explain and remove the `NG02801` / "XHR support in `@angular/platform-server` is
+deprecated" warnings in the dev-server log, and make categories with subcategories expandable
+in the sidebar (drawer).
+
+**Changes:**
+
+- Modified `src/app/app.config.server.ts` — provides `FetchBackend` and
+  `{ provide: HttpBackend, useExisting: FetchBackend }`, so SSR requests use `fetch`.
+- Added `src/app/core/layout/drawer-categories/drawer-categories.ts` / `.html` / `.scss` —
+  `DrawerCategories`: the drawer's category list; categories with subcategories get a chevron
+  toggle button (`aria-expanded`, `aria-controls`, rotates under `motion-ok`), collapsed by
+  default; the category name stays a link.
+- Modified `src/app/core/layout/site-header/site-header.html` / `.ts` / `.scss` — uses
+  `DrawerCategories`; the old inline category list and its styles are removed (the header
+  stylesheet was at its 4 kB budget).
+- Modified `docs/PROJECT_GUIDELINES.md` — server-only fetch backend; `DrawerCategories`.
+
+**Notes:** The warnings came from SSR: the app deliberately uses the XHR backend (fetch can't
+report upload progress), so on the server Angular used the deprecated `xhr2` polyfill and warned
+once per request. The browser still uses XHR; only the server config overrides `HttpBackend`.
+Verified on the running `start:local` server: the home page is server-rendered
+(`ng-server-context`) and no new warnings were logged. `ng build` (no warnings) and `ng test`
+(82) pass.
+
+---
+
+## 2026-10-05 — Subcategories (one level) in the client, admin, editor and public pages
+
+**Task:** The backend now supports optional, one-level subcategories (`GET /categories` returns
+only top-level categories with `subcategories` nested; articles get an optional `subcategory`).
+Update the typed client, the admin category flow, the article editor and every place that
+shows or filters by category.
+
+**Changes:**
+
+- Modified `core/api/categories/categories.models.ts` — `CategoryBase` (`parent`,
+  `articleCount` incl. subcategories), `Category.subcategories`, `CreateCategoryRequest.parentId`,
+  `UpdateCategoryRequest` without `parentId`.
+- Added `core/api/categories/categories.utils.ts` (+ spec) — `flattenCategories`,
+  `findCategoryById`, `findCategoryBySlug`, `isSubcategory`; exported from the `core/api` barrel.
+- Modified `core/api/categories/categories-api.ts` — JSDoc for the nested list, `parentId`, no
+  parent change on PATCH, both delete 409s. Added `categories-api.spec.ts` (POST body with
+  `parentId`, PATCH body, Georgian slug encoding).
+- Modified `core/api/articles/articles.models.ts` — `ArticleSummary.subcategory`,
+  `CreateArticleRequest.subcategoryId?: string | null`, `ListArticlesQuery.categoryId`,
+  `ManageArticlesQuery.categoryId`.
+- Modified `core/services/categories-store.ts` — `findBySlug` searches subcategories too
+  (returns `CategoryBase`); new `findTopLevelById`.
+- Modified `shared/ui/select/select.ts` / `.html` — `{ group, options }` entries render as
+  `<optgroup>`; `emptyLabel` adds a selectable `''` option ("None") instead of the disabled
+  placeholder.
+- Modified `shared/validators/validation-messages.ts` — `SERVER_ERROR_KEY` (`server`): a string
+  error detail is shown as the field message.
+- Modified `features/manage/manage-errors.ts` (+ spec) — translations for the new backend
+  messages (parent missing, nested subcategory, subcategory errors, "has N subcategory(ies)");
+  `applyManageErrors` (backend message → field `server` error, returns the rest);
+  `getCategoryDeleteConflict` (`subcategories` / `articles`). `getManageErrorMessages` is now a
+  thin wrapper over it.
+- Added `features/manage/components/category-row/` — presentational tree row: name, slug,
+  description, article count ("სულ N" for parents), Edit / Delete, and "add subcategory" on
+  top-level rows; Delete disabled while there are subcategories or published articles.
+- Modified `features/manage/components/category-form/` — create mode has a Parent select
+  ("None — top-level" + top-level categories, preselect via `[parentId]`); edit mode shows the
+  parent read-only; `cancellable`; `showErrors(err)` maps name / parent errors to the fields.
+  Added `category-request.ts` (+ spec) — `toCreateCategoryRequest` (omits empty `parentId` /
+  description) and `toUpdateCategoryRequest` (name / description diff, never `parentId`).
+- Modified `features/manage/pages/manage-categories/` — two-level tree with indented
+  subcategories, inline edit / "add subcategory" forms, a note that counts are published-only and
+  include subcategories, delete 409 handling with a "show subcategories" button or a link to
+  `/manage/articles?categoryId=…`, list + `CategoriesStore` reload after every mutation (and
+  after "Parent category does not exist"). Row styles moved to `CategoryRow`.
+- Modified `features/manage/pages/article-editor/` — `subcategoryId` control and a Subcategory
+  picker ("არცერთი" first, hidden without subcategories) fed by the picked category; the Category
+  select's `(selectionChange)` resets it (so prefill keeps it); client check that it belongs to
+  the category; category / subcategory backend errors shown on the pickers (store reloaded for
+  "does not exist"). `article-form.ts`: `''` in the form, omitted on create, `null` on PATCH, and
+  a category change always sends both fields. Specs: `article-form.spec.ts` (payloads),
+  new `article-editor.spec.ts` (prefill kept, reset on pick, `null` on removal; Quill stubbed).
+- Modified `features/manage/pages/manage-articles/` + `manage-page.scss` — grouped category
+  filter (`?categoryId=`, optgroup per category with subcategories); status chips keep the
+  category filter.
+- Modified `features/manage/components/article-row/article-row.html`,
+  `shared/ui/article-card/article-card.html` / `.ts` — "Category › Subcategory".
+- Modified `features/articles/pages/article-detail/article-detail.html` / `.scss` — kicker links
+  to the category and the subcategory.
+- Modified `features/home/pages/category-articles/` — works for subcategory slugs; breadcrumb
+  `parent › name` for subcategories; "ყველა" + subcategory chips for categories with children.
+- Modified `core/layout/site-header/site-header.html` / `.scss` — drawer nests subcategories.
+- Modified `src/server/sitemap.ts` — includes subcategory pages (`flattenCategories`).
+- Modified `core/services/reading-list-store.spec.ts` — fixture has `subcategory: null`.
+- Modified `src/styles/_design-system.scss` — `--filter-select-width`.
+- Modified `docs/PROJECT_GUIDELINES.md` — category tree / helpers / `''` vs `null` rule,
+  `Select` `emptyLabel` + groups, `applyManageErrors`, manage categories + editor pickers,
+  category page / drawer behaviour, `CategoryRow`.
+
+**Notes:** Form controls keep `''` for "not chosen" (the shared `Select` is string-only); only
+request builders turn it into "omitted" / `null`. Card chips are plain text because the whole
+card is one link (nested links are invalid), so only the article page and the category page
+link to subcategories. The category page reads the tree from `CategoriesStore` (as before)
+rather than `GET /categories/:slug`. Footer and home sections stay top-level only (a parent's
+list already contains its subcategories' articles). The production API (`api.epoch.ge`) still
+returns the old shape (no `parent` / `subcategories`); deploy the backend before this frontend,
+or `category.subcategories.length` will throw. `ng build` (no warnings) and `ng test` (82)
+pass; SSR of home and a category page checked against the local API (no subcategories in the
+local data, so the tree UI itself was not checked in a browser).
+
+---
+
 ## 2026-10-05 — Fix: production served the empty client-side page instead of SSR
 
 **Task:** Google showed epoch.ge as a bare "Epoch" result (no description, generic icon,

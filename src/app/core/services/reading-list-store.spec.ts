@@ -22,6 +22,7 @@ function item(id: string): ReadingListItem {
     excerpt: '',
     coverImage: null,
     category: null,
+    subcategory: null,
     tags: [],
     author: null,
     status: 'published',

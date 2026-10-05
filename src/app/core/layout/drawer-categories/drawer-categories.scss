@@ -1,0 +1,84 @@
+@use 'mixins' as *;
+
+:host {
+  display: block;
+}
+
+.row {
+  display: flex;
+  gap: var(--space-1);
+  align-items: center;
+}
+
+.link {
+  display: block;
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-2) var(--space-3);
+  margin-inline: calc(-1 * var(--space-3)) 0;
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-ink);
+  border-radius: var(--radius-lg);
+  transition:
+    color var(--duration-fast) var(--easing-standard),
+    background-color var(--duration-fast) var(--easing-standard);
+
+  &:hover,
+  &:focus-visible {
+    color: var(--color-accent-text);
+    background: var(--color-surface-muted);
+  }
+}
+
+.link--sub {
+  font-size: var(--text-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+}
+
+.toggle {
+  @include reset-button;
+
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: var(--control-height-sm);
+  height: var(--control-height-sm);
+  color: var(--color-text-muted);
+  border-radius: var(--radius-full);
+  transition:
+    color var(--duration-fast) var(--easing-standard),
+    background-color var(--duration-fast) var(--easing-standard);
+
+  &:hover {
+    color: var(--color-ink);
+    background: var(--color-surface-muted);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  app-icon {
+    @include motion-ok {
+      transition: rotate var(--duration-normal) var(--easing-out);
+    }
+  }
+}
+
+.toggle--open app-icon {
+  rotate: 180deg;
+}
+
+// Subcategories: indented under their category
+.sublist {
+  padding-left: var(--space-4);
+  margin-bottom: var(--space-2);
+}
+
+.empty {
+  padding: var(--space-2) 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-subtle);
+}

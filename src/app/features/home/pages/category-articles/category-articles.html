@@ -1,8 +1,36 @@
 <header class="page-heading">
-  <p class="page-heading__kicker">კატეგორია</p>
+  @if (category()?.parent; as parent) {
+    <nav class="page-heading__kicker" aria-label="კატეგორია">
+      <a class="crumb" [routerLink]="['/category', parent.slug]">{{ parent.name }}</a>
+      <span aria-hidden="true"> › </span>
+      <span aria-current="page">{{ title() }}</span>
+    </nav>
+  } @else {
+    <p class="page-heading__kicker">კატეგორია</p>
+  }
   <h1 class="page-heading__title">{{ title() }}</h1>
   @if (description(); as description) {
     <p class="page-heading__description">{{ description }}</p>
+  }
+  @if (subcategories().length > 0) {
+    <nav class="subcategories" aria-label="ქვეკატეგორიები">
+      <a
+        class="subcategories__chip"
+        [routerLink]="['/category', rootSlug()]"
+        [class.is-active]="slug() === rootSlug()"
+        [attr.aria-current]="slug() === rootSlug() ? 'page' : null"
+        >ყველა</a
+      >
+      @for (subcategory of subcategories(); track subcategory.id) {
+        <a
+          class="subcategories__chip"
+          [routerLink]="['/category', subcategory.slug]"
+          [class.is-active]="slug() === subcategory.slug"
+          [attr.aria-current]="slug() === subcategory.slug ? 'page' : null"
+          >{{ subcategory.name }}</a
+        >
+      }
+    </nav>
   }
 </header>
 

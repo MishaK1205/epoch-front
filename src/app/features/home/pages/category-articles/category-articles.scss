@@ -6,3 +6,51 @@
 
   padding-block: var(--space-8) var(--space-16);
 }
+
+.crumb {
+  border-radius: var(--radius-sm);
+  transition: color var(--duration-fast) var(--easing-standard);
+
+  &:hover,
+  &:focus-visible {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+// Subcategory filter: "All" (the parent) + one pill per subcategory
+.subcategories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+
+.subcategories__chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-height-sm);
+  padding: var(--space-1) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-accent-text);
+  background: var(--color-accent-soft);
+  border-radius: var(--radius-full);
+  transition:
+    color var(--duration-fast) var(--easing-standard),
+    background-color var(--duration-fast) var(--easing-standard);
+
+  &:hover {
+    color: var(--color-accent);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &.is-active {
+    color: var(--color-text-inverse);
+    background: var(--color-accent);
+  }
+}

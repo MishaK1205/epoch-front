@@ -95,13 +95,5 @@
   }
 
   <p class="drawer__title">კატეგორიები</p>
-  <ul class="drawer__list" role="list">
-    @for (category of categories(); track category.id) {
-      <li>
-        <a class="drawer__link" [routerLink]="['/category', category.slug]">{{ category.name }}</a>
-      </li>
-    } @empty {
-      <li class="drawer__empty">კატეგორიები ჯერ არ არის.</li>
-    }
-  </ul>
+  <app-drawer-categories [categories]="categories()" />
 </aside>

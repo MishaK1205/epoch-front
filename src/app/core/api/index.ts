@@ -12,6 +12,7 @@ export * from './auth/auth-api';
 export * from './auth/auth.models';
 export * from './categories/categories-api';
 export * from './categories/categories.models';
+export * from './categories/categories.utils';
 export * from './images/image-file';
 export * from './images/images-api';
 export * from './images/images.models';

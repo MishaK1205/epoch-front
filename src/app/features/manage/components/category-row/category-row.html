@@ -1,0 +1,61 @@
+@let item = category();
+<div class="category" [class.category--sub]="!isTopLevel()" [attr.aria-busy]="pending() || null">
+  <div class="category__info">
+    <p class="category__name">
+      {{ item.name }}
+      <span class="category__slug">/{{ item.slug }}</span>
+    </p>
+    @if (item.description) {
+      <p class="category__description">{{ item.description }}</p>
+    }
+  </div>
+  <app-badge
+    [variant]="item.articleCount > 0 ? 'info' : 'neutral'"
+    [attr.title]="subcategoryCount() > 0 ? 'ქვეკატეგორიების სტატიების ჩათვლით' : null"
+  >
+    {{ countLabel() }}
+  </app-badge>
+  <div class="category__actions">
+    <button
+      appButton
+      type="button"
+      variant="ghost"
+      size="sm"
+      [disabled]="locked()"
+      (click)="edit.emit()"
+    >
+      <app-icon btnIconStart name="edit" [size]="16" />
+      რედაქტირება
+    </button>
+    @if (isTopLevel()) {
+      <button
+        appButton
+        type="button"
+        variant="ghost"
+        size="sm"
+        [disabled]="locked()"
+        [attr.aria-label]="'ქვეკატეგორიის დამატება: ' + item.name"
+        (click)="addSubcategory.emit()"
+      >
+        <app-icon btnIconStart name="plus" [size]="16" />
+        ქვეკატეგორია
+      </button>
+    }
+    <button
+      appButton
+      type="button"
+      variant="danger-ghost"
+      size="sm"
+      [disabled]="locked() || deleteBlockedReason() !== ''"
+      [loading]="pending()"
+      [attr.aria-describedby]="deleteBlockedReason() ? hintId() : null"
+      (click)="remove.emit()"
+    >
+      <app-icon btnIconStart name="trash" [size]="16" />
+      წაშლა
+    </button>
+    @if (deleteBlockedReason(); as reason) {
+      <p class="category__hint" [id]="hintId()">{{ reason }}</p>
+    }
+  </div>
+</div>

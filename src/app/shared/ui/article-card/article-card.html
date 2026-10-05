@@ -9,7 +9,12 @@
     <div class="item__body">
       <div class="item__chips">
         @if (item.category; as category) {
-          <span class="item__chip">{{ category.name }}</span>
+          <span class="item__chip">
+            {{ category.name }}
+            @if (item.subcategory; as subcategory) {
+              <span aria-hidden="true">›</span> {{ subcategory.name }}
+            }
+          </span>
         }
         @if (read()) {
           <span class="item__chip item__chip--read">

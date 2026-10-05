@@ -13,7 +13,12 @@
     <p class="row__meta">
       <app-badge [variant]="statusBadge()">{{ statusLabel() }}</app-badge>
       @if (item.category; as category) {
-        <span class="row__category">{{ category.name }}</span>
+        <span class="row__category">
+          {{ category.name }}
+          @if (item.subcategory; as subcategory) {
+            <span aria-hidden="true">›</span> {{ subcategory.name }}
+          }
+        </span>
       }
       @if (item.author; as author) {
         <span>{{ author.username }}</span>

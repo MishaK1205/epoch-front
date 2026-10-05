@@ -1,5 +1,6 @@
 import type { ArticleSummary } from '../app/core/api/articles/articles.models';
 import type { Category } from '../app/core/api/categories/categories.models';
+import { flattenCategories } from '../app/core/api/categories/categories.utils';
 import type { Paginated } from '../app/shared/models/paginated';
 import { environment } from '../environments/environment';
 
@@ -14,7 +15,7 @@ interface SitemapEntry {
 
 let cached: { xml: string; expiresAt: number } | null = null;
 
-/** `sitemap.xml` with the home page, every category and every published article. */
+/** `sitemap.xml` with the home page, every (sub)category and every published article. */
 export async function getSitemapXml(): Promise<string> {
   if (cached && cached.expiresAt > Date.now()) {
     return cached.xml;
@@ -22,7 +23,7 @@ export async function getSitemapXml(): Promise<string> {
   const [categories, articles] = await Promise.all([fetchCategories(), fetchArticles()]);
   const entries: SitemapEntry[] = [
     { path: '/', lastModified: articles[0]?.updatedAt },
-    ...categories.map((category) => ({
+    ...flattenCategories(categories).map((category) => ({
       path: `/category/${encodeURIComponent(category.slug)}`,
       lastModified: category.updatedAt,
     })),
