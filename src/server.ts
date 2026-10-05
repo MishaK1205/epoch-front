@@ -11,7 +11,12 @@ import { getSitemapXml } from './server/sitemap';
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
 const app = express();
-const angularApp = new AngularNodeAppEngine();
+/**
+ * Vercel's proxy sets `X-Forwarded-For` / `-Port` on every request. Any untrusted
+ * `X-Forwarded-*` header makes Angular silently serve the empty client-side page instead of SSR,
+ * so all of them are trusted; hosts are still checked against `security.allowedHosts`.
+ */
+const angularApp = new AngularNodeAppEngine({ trustProxyHeaders: true });
 
 app.get('/sitemap.xml', (_req, res, next) => {
   getSitemapXml()

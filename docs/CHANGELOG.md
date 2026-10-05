@@ -22,6 +22,79 @@ After finishing every task, **add a new entry at the top** using the template be
 
 ---
 
+## 2026-10-05 — Fix: production served the empty client-side page instead of SSR
+
+**Task:** Google showed epoch.ge as a bare "Epoch" result (no description, generic icon,
+"translate this page"). Find out why.
+
+**Changes:**
+
+- Modified `src/server.ts` — `new AngularNodeAppEngine({ trustProxyHeaders: true })`.
+
+**Notes:** Root cause: `@angular/ssr` 21 trusts only `X-Forwarded-Host` / `-Proto` by default;
+any other `X-Forwarded-*` header makes `AngularAppEngine.handle` call `serveClientSidePage()`
+(`deoptToCSR`) with just a console warning. Vercel adds `X-Forwarded-For` / `-Port` to every
+request, so since the SSR deploy every URL returned `index.csr.html` (title "Epoch", no
+canonical / OG tags, no articles), and Google indexed that. Reproduced locally: the built server
+rendered 34 cards without the header and 0 with `X-Forwarded-For`; after the fix the home page
+and articles are fully rendered with all four Vercel headers, and a foreign
+`X-Forwarded-Host` still gets 400 (allowed-host check is unchanged). After deploying, request
+re-indexing in Google Search Console; the result updates on Google's next crawl.
+
+---
+
+## 2026-10-05 — Composer articles as drafts + reusable article-drafts tool
+
+**Task:** Write six articles (Monteverdi, Purcell, Vivaldi, Bach, Handel, Scarlatti) in the
+style of the "რიჰარდ ვაგნერი" article, with a cover photo each, and save them as drafts in the
+production database. Then keep the tooling so future articles can be added the same way.
+
+**Changes:**
+
+- Added `tools/articles/lib.py` — helpers (`P`, `H1`, `H2`, `H3`, `UL`, `OL`, `html`) that
+  emit Quill-compatible HTML (`data-list` lists, `<p><br /></p>` spacers like the editor).
+- Added `tools/articles/articles/_template.py` — skeleton of an article source (title,
+  category, cover URL, alt, tags, content in the Wagner-article structure). The six composer
+  sources were removed after upload: the database is the source of truth.
+- Added `tools/articles/build.py` — validates against `API_LIMITS`, downloads covers, writes
+  `build/payloads.json` and plain-text proofs for proofreading.
+- Added `tools/articles/serve.py` — serves `build/` on `127.0.0.1:4399` with CORS for
+  `http://localhost:4200`.
+- Added `tools/articles/upload.js` — run in the logged-in dev app tab: uploads covers and
+  creates drafts, skips existing titles, reports whether the server kept the content intact.
+- Added `tools/articles/README.md` (workflow + article structure and writing rules) and
+  `tools/articles/.gitignore` (`build/`).
+- Modified `docs/PROJECT_GUIDELINES.md` — new "Content tooling" section.
+
+**Notes:** Data change in production: six drafts in "კომპოზიტორები" by `master_elodin`, covers
+from Wikimedia Commons (public domain); none published (public API returns 404 for them). The
+upload runs inside the browser page so the access token never leaves it. Python 3 (system) is
+used for the tool; no npm dependencies added.
+
+---
+
+## 2026-10-05 — `start:local` / `start:prod-api` scripts (dev server against either API)
+
+**Task:** One command to run the app against the local API and another against the production
+API.
+
+**Changes:**
+
+- Added `src/environments/environment.prod-api.ts` — `production: false`, `apiUrl:
+  https://api.epoch.ge`, `siteUrl: http://localhost:4200`.
+- Modified `angular.json` — `prod-api` configuration for `build` (same settings as
+  `development`, but the file replacement points to `environment.prod-api.ts`) and for `serve`.
+- Modified `package.json` — scripts `start:local` (`ng serve --configuration development`) and
+  `start:prod-api` (`ng serve --configuration prod-api`). `npm start` is unchanged (= local).
+- Modified `docs/PROJECT_GUIDELINES.md` — lists the three environment files and scripts.
+
+**Notes:** A separate dev configuration was used instead of `ng serve --configuration
+production` so the prod-API run keeps fast rebuilds, source maps and no budgets. Verified: the
+`prod-api` build contains `api.epoch.ge` and no `localhost:3000`; the `development` build
+contains `localhost:3000`.
+
+---
+
 ## 2026-10-04 — Home: 5 latest articles, then a section per category; chip clipping fix
 
 **Task:** "უახლესი სტატიები" should show only 5 articles with nothing below it; under it add one

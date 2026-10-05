@@ -69,6 +69,17 @@
                   "with": "src/environments/environment.development.ts"
                 }
               ]
+            },
+            "prod-api": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod-api.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -81,6 +92,9 @@
             },
             "development": {
               "buildTarget": "epoch-front:build:development"
+            },
+            "prod-api": {
+              "buildTarget": "epoch-front:build:prod-api"
             }
           },
           "defaultConfiguration": "development"

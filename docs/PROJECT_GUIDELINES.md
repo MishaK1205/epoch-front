@@ -154,6 +154,10 @@ something only one component needs — use a `computed()` signal in that compone
 - Redirect URLs for guards / 401 handling: override the `AUTH_CONFIG` token (`core/tokens`).
 - Show errors with `getApiErrorMessages(err)`; validate forms with `API_LIMITS`.
 - URLs always come from `environment.apiUrl`; encode path segments with `encodeURIComponent`.
+  Three environments: `environment.ts` (production build: `https://api.epoch.ge`),
+  `environment.development.ts` (`npm start` / `npm run start:local`: `http://localhost:3000`) and
+  `environment.prod-api.ts` (`npm run start:prod-api`: dev build against `https://api.epoch.ge`).
+  Add any new environment key to all three.
 - Quill editor: use helpers from `core/editor/quill-image-handler.ts`; never enable the video
   button. Use the `RichTextEditor` CVA (`features/manage/components/rich-text-editor`), which
   loads Quill with a dynamic `import('quill')` inside `afterNextRender` (keep it a lazy chunk —
@@ -185,8 +189,20 @@ something only one component needs — use a `computed()` signal in that compone
 - `angular.json` `security.allowedHosts` lists the hosts the SSR server answers
   (`epoch.ge`, `www.epoch.ge`, `*.vercel.app`); other hosts get 400. Locally, run the built
   server with `NG_ALLOWED_HOSTS=127.0.0.1 PORT=4310 npm run serve:ssr:epoch-front`.
+- `AngularNodeAppEngine` is created with `trustProxyHeaders: true`: Vercel sends
+  `X-Forwarded-For` / `-Port`, and any untrusted `X-Forwarded-*` header makes Angular silently
+  serve the empty client-side page. To verify SSR, check for `ng-server-context` in the HTML of
+  a request that carries those headers.
 - Vercel: `api/index.mjs` forwards every non-static request to the SSR `reqHandler`;
   `vercel.json` serves `dist/epoch-front/browser` statically and rewrites everything else to it.
+
+### Content tooling (`tools/articles/`)
+
+- New articles written by the agent go through `tools/articles/` (see its `README.md`): one
+  Python source per article in `articles/`, `build.py` → proofread → `serve.py` → `upload.js` in
+  the logged-in `npm run start:prod-api` tab. It only creates **drafts**; publishing is manual.
+- Follow the article structure and Georgian writing rules in that README. `build/` is generated
+  and git-ignored. The folder is outside `src/` and not part of the Angular build.
 
 ### Utils (`shared/utils/`)
 
