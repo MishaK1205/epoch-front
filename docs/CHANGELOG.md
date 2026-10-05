@@ -22,6 +22,26 @@ After finishing every task, **add a new entry at the top** using the template be
 
 ---
 
+## 2026-10-06 — Article card: category chip on narrow cards
+
+**Task:** "Category › Subcategory" chips were cut off on narrow article cards; find a better
+presentation.
+
+**Changes:**
+
+- Modified `shared/ui/article-card/article-card.html` — the parent category and `›` are wrapped
+  in `.item__chip-parent`; the chip has a `title` with the full path.
+- Modified `shared/ui/article-card/article-card.scss` — `.item` is an `article-card` inline-size
+  container; at ≤ 22rem card width the parent category is visually hidden, so the chip shows only
+  the subcategory (screen readers still read the full path).
+
+**Notes:** A container query (not a media query) because the same card is wide or narrow at the
+same viewport depending on the grid it's in (lead vs. side cards, 2-up vs. 3-up). Cards without a
+subcategory are unchanged. Verified in the browser at 1024px (187px cards show the subcategory
+only) and 813px (371px cards keep the full path). `ng build` and `ng test` (101) pass.
+
+---
+
 ## 2026-10-05 — Article search: header box with live suggestions and `/search` page
 
 **Task:** Use the new backend `GET /articles/search` (partial, case-insensitive match on title

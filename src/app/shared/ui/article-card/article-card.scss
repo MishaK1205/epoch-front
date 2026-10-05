@@ -1,5 +1,8 @@
 @use 'mixins' as *;
 
+// Card width below which the category chip drops the parent category
+$chip-full-path-min-width: 22rem;
+
 // The host fills its grid cell so cards in one row share a height
 :host {
   display: block;
@@ -9,6 +12,7 @@
 // Card: image on top, white panel with a tinted category chip and a serif title
 .item {
   position: relative;
+  container: article-card / inline-size;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -124,6 +128,20 @@
   letter-spacing: var(--letter-spacing-wide);
   background: var(--color-accent-soft);
   border-radius: var(--radius-full);
+}
+
+.item__chip-parent {
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: center;
+}
+
+// Narrow cards (3-up grids, half of a section) can't fit "Category › Subcategory" on one line,
+// so the chip keeps only the subcategory; the full path stays in `title` and for screen readers.
+@container article-card (max-width: #{$chip-full-path-min-width}) {
+  .item__chip-parent {
+    @include visually-hidden;
+  }
 }
 
 .item__chip--read {

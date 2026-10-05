@@ -16,7 +16,8 @@ export type ArticleCardVariant = 'card' | 'lead';
 
 /**
  * Article teaser card: image on top, light panel with a category chip ("Category › Subcategory";
- * plain text, since the whole card is one link) and a serif title.
+ * plain text, since the whole card is one link; narrow cards show only the subcategory) and a
+ * serif title.
  * - `card` (default): small card; its size comes from the grid it sits in.
  * - `lead`: large card with a wider image, bigger title, excerpt and meta.
  * - `read`: shows a small "read" chip next to the category.
