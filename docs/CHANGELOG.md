@@ -22,6 +22,218 @@ After finishing every task, **add a new entry at the top** using the template be
 
 ---
 
+## 2026-10-07 — "რა? სად? როდის?" browsing page + collapsible answers
+
+**Task:** A new route listing every package; clicking one opens its questions page. Link it from
+the sidebar, visible and accessible to admins only. Answers collapse / expand, all collapsed at
+first.
+
+**Changes:**
+
+- Added `shared/ui/www-question-list/` (+ spec) — `WwwQuestionList`: numbered questions (Quill
+  HTML), each answer + comment behind a "პასუხის ჩვენება / დამალვა" toggle button
+  (`aria-expanded`, rotating chevron), all collapsed at first; "ყველა პასუხის ჩვენება / დამალვა"
+  for all; a new question list (`linkedSignal`) collapses them again.
+- Added `features/what-where-when/what-where-when.routes.ts` — `/what-where-when` and `:id` under
+  `roleGuard('admin')`.
+- Added `features/what-where-when/pages/package-list/` — `PackageList`: heading, category chips
+  (only categories with packages, `?categoryId=`), package cards (date, category, name, question
+  count, authors) linking to the questions page, `?page=` pagination, loading / error / empty
+  states.
+- Added `features/what-where-when/pages/package-questions/` — `PackageQuestions`: back link,
+  name + meta (date, category → filtered list, authors, count), "რედაქტირება" link to the manage
+  editor, the question list; 404 and error states; page title with the package name.
+- Modified `features/manage/pages/www-package-view/` — uses `WwwQuestionList` (the header "hide
+  answers" button and the per-page question markup / styles are gone).
+- Modified `app.routes.ts` — lazy-loads `WHAT_WHERE_WHEN_ROUTES`.
+- Modified `app.routes.server.ts` — `what-where-when` and `what-where-when/**` render in the
+  browser.
+- Modified `public/robots.txt` — `Disallow: /what-where-when`.
+- Modified `core/layout/site-header/` — admin-only "თამაშები" drawer section with the
+  "რა? სად? როდის?" link.
+- Modified `shared/ui/icon/` — `help-circle` icon.
+- Modified `docs/PROJECT_GUIDELINES.md` — `WwwQuestionList`, the `/what-where-when` area, render
+  mode.
+
+**Notes:** The page lives outside `/manage` (its own feature, no manage tabs) since it's for
+reading, not editing. Features can't import each other, so the question list moved to
+`shared/ui/` (it only imports the question DTO type, like `ArticleCard`). A toggle button with
+`[hidden]` replaces `<details>`, so "show all" and the per-question toggles share one state.
+The manage preview gets the same collapsed-by-default answers. The pages are client-rendered and
+copy-protected like other non-manage pages. `ng build` (no warnings) and `ng test` (157) pass;
+not checked in a browser (no admin session).
+
+---
+
+## 2026-10-07 — Import "რა? სად? როდის?" questions from a Word document
+
+**Task:** Upload a Word / Pages document on the package editor and fill in every question (with
+its images), answer and comment automatically; the package fields are filled in by hand.
+
+**Changes:**
+
+- Added `shared/utils/zip.ts` (+ spec, `zip-testing.ts` test helper) — `openZip`: minimal ZIP
+  reader (stored + deflated entries) on the browser's `DecompressionStream`, no dependency.
+- Added `shared/utils/docx.ts` (+ spec) — `readDocx`: body paragraphs (table cells included,
+  headers / footers / deleted text skipped) split into lines at manual line breaks, with bold /
+  italic / underline / strike, external links, images (`readImage(id)` → `File`) and automatic list
+  numbering resolved through `numbering.xml` and paragraph styles.
+- Added `features/manage/pages/www-package-editor/www-question-import.ts` (+ spec) —
+  `splitQuestions`, `questionHtml`, `questionImageIds`.
+- Added `features/manage/components/www-question-import/` — drop zone / "choose file" panel:
+  reads the file, uploads question images through `ImagesApi`, emits `QuestionFormValue[]` and
+  shows the result, warnings and errors (Pages / `.doc` get export instructions).
+- Modified `features/manage/pages/www-package-editor/` — the import panel above the questions;
+  `importQuestions` drops empty questions, appends the imported ones (up to the 100 limit) and
+  marks incomplete ones as touched so their errors show at once.
+- Modified `docs/PROJECT_GUIDELINES.md` — the document import.
+
+**Notes:** Rules (checked against a real 48-question package): a question starts at an item of
+the numbered list whose items are followed by `პასუხი:` — Word's automatic numbering, so a
+numbered list of sources can't win — or, without one, at typed numbers (`1.`, `2)`) that follow
+each other. The question is everything up to `პასუხი:`; `ჩათვლა:` / `არ ჩაითვლება:` lines stay
+in the answer; `კომენტარი:` starts the comment; `წყარო:`, `ავტორი:` and a "შესვენება" line end
+it; the header before the first question is ignored. Russian labels (`Ответ:`, `Зачёт:`,
+`Комментарий:`, `Источник:`, `Автор:`) work too. Images in the question text are uploaded and
+inserted; images in answers / comments can't be stored (plain text) and are reported. Pages
+files are Apple's undocumented binary format and can't be read in the browser — the panel asks
+to export them to Word. `ng build` and `ng test` (153) pass; the upload itself was not tried in
+the browser (no admin session).
+
+---
+
+## 2026-10-07 — "რა? სად? როდის?" package categories
+
+**Task:** Add the new admin-only `/what-where-when-categories` endpoints (flat categories such as
+"Autumn cup 2026", at most one per package) to the client, an admin categories page, and
+category support in the existing package list, editor and view pages.
+
+**Changes:**
+
+- Modified `core/api/what-where-when/what-where-when.models.ts` — `WhatWhereWhenCategory`,
+  `WhatWhereWhenCategorySummary`, category request types; `category` on `WhatWhereWhenSummary`
+  (and so on `WhatWhereWhenPackage`), `categoryId` on `CreateWhatWhereWhenRequest` and
+  `ListWhatWhereWhenQuery`.
+- Added `core/api/what-where-when/what-where-when-categories-api.ts` (+ spec) —
+  `WhatWhereWhenCategoriesApi`: `list`, `get`, `create`, `update`, `delete`; exported from the
+  `core/api` barrel. Separate from the article `CategoriesApi`.
+- Modified `core/api/what-where-when/what-where-when-api.spec.ts` — `list` sends `categoryId` and
+  omits an empty / missing one (`toHttpParams` already skips `''` / `undefined`).
+- Modified `core/api/api-limits.ts` — `whatWhereWhen.categoryName` / `categoryDescription`.
+- Added `features/manage/components/www-category-form/` (+ request spec) — inline create / edit
+  form (name required, not blank, max 100; description max 500), focuses the name field; the
+  name-conflict 409 and validation messages are shown on the fields. `www-category-request.ts`
+  builds the bodies (create omits an empty description; update sends only changed fields, `''`
+  clears the description).
+- Added `features/manage/pages/www-categories/` (+ spec) — `WwwCategories`
+  (`/manage/what-where-when/categories`): list with description ("—" when empty) and package
+  count linking to the filtered package list, Edit (inline form) / Delete. A category with
+  packages is never sent to the API: an alert explains it and links to its packages. A 409 from
+  the server shows its message + the same link and reloads; a 404 reloads. Loading / empty /
+  error ("სცადეთ თავიდან") states; the list reloads after every mutation.
+- Modified `features/manage/pages/www-packages/` — `?categoryId=` input passed to `list()`;
+  category filter select ("ყველა კატეგორია" + `name (count)`, resets the page); an unknown id is
+  kept as a "deleted or unknown category" option with an info alert and "ფილტრის მოხსნა"
+  (also in the error and empty states); category chip in each row (applies the filter, "—" when
+  none); "New package" carries `?categoryId=`; "კატეგორიების მართვა" link; categories reload
+  after a package delete (counts).
+- Modified `features/manage/pages/www-package-editor/` — `categoryId` control (`''` = none) and
+  a Category select ("კატეგორიის გარეშე" first) with a "manage categories" link, a hint when no
+  categories exist and a retry when they fail to load; preselected from the package or from
+  `?categoryId=` in create mode; the request always sends `categoryId` (`null` = none / remove).
+  `Category does not exist` reloads the categories, resets the select, flags the field and
+  scrolls to it; `categoryId …` messages go to the field. Specs for preselect (edit and
+  `?categoryId=`) and "No category" → `null`.
+- Modified `features/manage/pages/www-package-view/` — category in the header meta, linking to
+  the filtered list (hidden when `null`).
+- Modified `features/manage/manage.routes.ts` — `categories` route before `:id`.
+- Modified `features/manage/manage-labels.ts` — `WWW_PACKAGES_URL`, `WWW_CATEGORIES_URL`.
+- Modified `features/manage/manage-errors.ts` — Georgian texts for the category not-found,
+  duplicate-name, `categoryId` and length messages and the "used by N package(s)" 409.
+- Modified `docs/PROJECT_GUIDELINES.md` — `WhatWhereWhenCategoriesApi` and the categories page.
+
+**Notes:** Project conventions instead of the prompt's defaults: the client is
+`WhatWhereWhenCategoriesApi` in `core/api/what-where-when/` (not
+`WhatWhereWhenCategoriesService` in `core/services/`), the page is `WwwCategories` under
+`/manage/what-where-when/categories`, a list of rows instead of a `<table>` (like the other
+manage lists), success alerts instead of toasts, Georgian texts. The form keeps `''` for "no
+category" because the shared `Select` uses `''` for its empty option; the request builder sends
+`null`. No category store: each page loads `list()` when it opens, so the list is never stale
+after a change on the categories page. Navigation is a "კატეგორიების მართვა" button on the
+package list (the "რა? სად? როდის?" tab stays active on the categories page). A save with a
+deleted category clears its field error before validating, so the user can keep "No category"
+without re-picking it. The optional "+ New category" dialog in the editor was not added.
+`ng build` (no warnings) and `ng test` (138) pass; not checked in a browser (no admin session).
+
+---
+
+## 2026-10-07 — "რა? სად? როდის?" (What? Where? When?) packages: client + admin screens
+
+**Task:** Add the typed client for the new admin-only `/what-where-when` endpoints and admin
+screens to list, create, view, edit and delete quiz packages (name, authors, date, ordered
+questions with Quill HTML, plain-text answer and optional comment).
+
+**Changes:**
+
+- Added `core/api/what-where-when/what-where-when.models.ts` — `WhatWhereWhenQuestion`,
+  `WhatWhereWhenSummary`, `WhatWhereWhenPackage`, request types, `ListWhatWhereWhenQuery`.
+- Added `core/api/what-where-when/what-where-when-api.ts` (+ spec) — `WhatWhereWhenApi`: `list`,
+  `get`, `create`, `update`, `delete`; exported from the `core/api` barrel.
+- Modified `core/api/api-limits.ts` — `API_LIMITS.whatWhereWhen`.
+- Added `shared/utils/local-date.ts` (+ spec) — `parseLocalDate` (local midnight, `null` for
+  impossible dates) and `toLocalDateString`.
+- Added `shared/pipes/calendar-date-pipe.ts` — `calendarDate`: `YYYY-MM-DD` → Georgian full date
+  in local time.
+- Added `shared/validators/not-blank.ts`, `real-date.ts` (+ spec, also covers `isRichTextEmpty`
+  with Quill's `<p><br></p>`).
+- Modified `shared/validators/validation-messages.ts` — messages for `blank` and `realDate`.
+- Modified `shared/ui/input-field/input-field.ts` — `type="date"`.
+- Modified `features/manage/components/tags-input/` (+ spec) — new inputs `maxCount`,
+  `maxLength`, `lowercase`, `prefix`, `listLabel`, `removeLabel`, `countLabel` (defaults keep the
+  article-tag behaviour); `parseTags` / `mergeTags` take a `lowercase` flag. Used for authors.
+- Modified `features/manage/components/rich-text-editor/rich-text-editor.ts` — `focusOnInit`
+  input: focuses and scrolls to the editor once Quill has loaded (new questions).
+- Added `features/manage/components/www-question-card/` — question card: "კითხვა N", move up /
+  down (disabled at the ends), duplicate, remove, `RichTextEditor` + answer / comment textareas
+  with counters, red outline when invalid and touched, group-level server error.
+- Added `features/manage/pages/www-package-editor/` — `WwwPackageEditor` (create + edit) and
+  `www-package-form.ts` (+ specs): typed form, request builder (trims, de-duplicates authors,
+  omits empty comments, always the full question list), `questionErrorTarget` for backend
+  messages, unsaved-changes guard + `beforeunload`, 404 / 413 handling, scroll to the first
+  invalid field, sticky save bar with the question count.
+- Added `features/manage/pages/www-packages/` — `WwwPackages` list: `?page=`, date / question
+  count / authors / last update, View / Edit / Delete (confirm naming the package; a 404 reloads
+  the list), empty / error ("სცადეთ თავიდან") states, jump to the last page when past the end.
+- Added `features/manage/pages/www-package-view/` — `WwwPackageView`: header with meta, Edit /
+  Delete / "hide answers" (answers collapse into `<details>`), questions in Quill content styles,
+  answers and comments as text, 404 state.
+- Modified `features/manage/manage.routes.ts` — `what-where-when`, `new`, `:id`, `:id/edit`
+  under `roleGuard('admin')`; editors use `unsavedChangesGuard`.
+- Modified `features/manage/components/manage-shell/manage-shell.html` — admin-only tab.
+- Modified `features/manage/manage-errors.ts` — Georgian translations for the new backend
+  messages (package not found, date errors, empty question, missing question images, question
+  paths, the new image-delete 409); `translateManageError` is exported.
+- Modified `features/manage/manage-labels.ts` — navigation state keys and the delete message.
+- Modified `src/styles/_design-system.scss` — `--question-editor-min-height`.
+- Modified `docs/PROJECT_GUIDELINES.md` — `WhatWhereWhenApi`, the WWW manage pages, `TagsInput`
+  for authors, local calendar dates, `InputField` `date`.
+
+**Notes:** Project conventions were used instead of the prompt's defaults: routes are under
+`/manage/what-where-when` (the admin area is `/manage`), the service is `WhatWhereWhenApi` in
+`core/api/` (not `WhatWhereWhenService` in `core/services/`), components are `WwwPackages` /
+`WwwPackageEditor` / `WwwPackageView` (no `Component` suffix), the page reads `?page=` through
+an `input()` + `rxResource` (cancels like `switchMap`), success messages are alerts passed via
+navigation state (there is no toast service), and messages are Georgian. The empty check reuses
+the existing `isRichTextEmpty` / `richTextRequired`. Authors are a `string[]` control with the
+existing chip input instead of a `FormArray` of inputs. Question HTML is rendered with
+`bypassSecurityTrustHtml` like article content: Angular's sanitizer would strip Quill's
+`data-list`, so lists would lose their markers; the server sanitizes the HTML. The app has no
+image library / image delete UI, so the new 409 is only translated. Create navigates to the view
+page. `ng build` (no warnings) and `ng test` (124) pass; the screens were not checked in a
+browser (no admin session was available to the agent).
+
+---
+
 ## 2026-10-06 — Article card: category chip on narrow cards
 
 **Task:** "Category › Subcategory" chips were cut off on narrow article cards; find a better

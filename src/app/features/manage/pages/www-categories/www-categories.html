@@ -1,0 +1,154 @@
+<div class="toolbar">
+  <a class="back" [routerLink]="packagesUrl">
+    <app-icon name="chevron-left" [size]="16" />
+    ყველა პაკეტი
+  </a>
+  @if (!creatingOpen()) {
+    <button appButton type="button" variant="accent" (click)="openCreate()">
+      <app-icon btnIconStart name="plus" [size]="18" />
+      ახალი კატეგორია
+    </button>
+  }
+</div>
+
+@if (creatingOpen()) {
+  <section class="panel" aria-labelledby="www-new-category-title">
+    <h2 id="www-new-category-title" class="panel__title">ახალი კატეგორია</h2>
+    <app-www-category-form
+      #createForm
+      [pending]="pendingId() === 'new'"
+      (submitted)="create($event, createForm)"
+      (cancelled)="closeForm()"
+    />
+  </section>
+}
+
+<div class="alerts" aria-live="polite">
+  @if (successMessage()) {
+    <app-alert variant="success">{{ successMessage() }}</app-alert>
+  }
+  @if (actionErrors().length > 0) {
+    <app-alert variant="error">
+      @for (message of actionErrors(); track message) {
+        <p>{{ message }}</p>
+      }
+    </app-alert>
+  }
+  @if (deleteConflict(); as conflict) {
+    <app-alert variant="error">
+      @for (message of conflict.messages; track message) {
+        <p>{{ message }}</p>
+      }
+      <p class="conflict-action">
+        <a
+          appButton
+          variant="outline"
+          size="sm"
+          [routerLink]="packagesUrl"
+          [queryParams]="{ categoryId: conflict.category.id }"
+        >
+          პაკეტების ნახვა
+        </a>
+      </p>
+    </app-alert>
+  }
+</div>
+
+@if (categories.isLoading() && !categories.hasValue()) {
+  <div class="state"><app-spinner size="lg" /></div>
+} @else if (loadErrors().length > 0) {
+  <div class="state www-categories__error">
+    <app-alert variant="error">
+      @for (message of loadErrors(); track message) {
+        <p>{{ message }}</p>
+      }
+    </app-alert>
+    <button appButton type="button" variant="outline" (click)="retry()">სცადეთ თავიდან</button>
+  </div>
+} @else if (items().length === 0) {
+  <app-empty-state
+    icon="plus"
+    title="კატეგორიები ჯერ არ არის."
+    description="შექმენით კატეგორია (მაგ.: „შემოდგომის თასი 2026“) და აირჩიეთ ის პაკეტის რედაქტირებისას."
+  >
+    @if (!creatingOpen()) {
+      <button appButton type="button" variant="accent" (click)="openCreate()">
+        <app-icon btnIconStart name="plus" [size]="18" />
+        ახალი კატეგორია
+      </button>
+    }
+  </app-empty-state>
+} @else {
+  <ul
+    class="list"
+    role="list"
+    aria-label="კატეგორიები"
+    [class.list--loading]="categories.isLoading()"
+  >
+    @for (category of items(); track category.id) {
+      <li>
+        @if (editingId() === category.id) {
+          <div class="editing">
+            <app-www-category-form
+              #editForm
+              [category]="category"
+              [pending]="pendingId() === category.id"
+              (submitted)="update(category, $event, editForm)"
+              (cancelled)="closeForm()"
+            />
+          </div>
+        } @else {
+          <div class="www-category" [attr.aria-busy]="pendingId() === category.id || null">
+            <div class="www-category__info">
+              <p class="www-category__name">{{ category.name }}</p>
+              <p class="www-category__description">{{ category.description || '—' }}</p>
+            </div>
+            <a
+              class="www-category__count"
+              [routerLink]="packagesUrl"
+              [queryParams]="{ categoryId: category.id }"
+              [attr.aria-label]="category.name + ': ' + category.packageCount + ' პაკეტი'"
+              >{{ category.packageCount }} პაკეტი</a
+            >
+            <div class="www-category__actions">
+              <button
+                appButton
+                type="button"
+                variant="ghost"
+                size="sm"
+                [disabled]="pendingId() !== null"
+                [attr.aria-label]="'რედაქტირება: ' + category.name"
+                (click)="startEdit(category)"
+              >
+                <app-icon btnIconStart name="edit" [size]="16" />
+                რედაქტირება
+              </button>
+              <button
+                appButton
+                type="button"
+                variant="danger-ghost"
+                size="sm"
+                [disabled]="pendingId() !== null"
+                [loading]="pendingId() === category.id"
+                [attr.aria-label]="'წაშლა: ' + category.name"
+                (click)="askDelete(category)"
+              >
+                <app-icon btnIconStart name="trash" [size]="16" />
+                წაშლა
+              </button>
+            </div>
+          </div>
+        }
+      </li>
+    }
+  </ul>
+}
+
+<app-confirm-dialog
+  #deleteDialog
+  title="წავშალოთ კატეგორია?"
+  [message]="deleteMessage()"
+  confirmLabel="წაშლა"
+  danger
+  (confirmed)="confirmDelete()"
+/>

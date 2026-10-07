@@ -24,6 +24,7 @@ export class SiteHeader {
 
   protected readonly user = this.auth.currentUser;
   protected readonly canWriteArticles = this.auth.canWriteArticles;
+  protected readonly isAdmin = this.auth.isAdmin;
   protected readonly categories = inject(CategoriesStore).categories;
   protected readonly menuOpen = signal(false);
 

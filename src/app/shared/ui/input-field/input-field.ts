@@ -16,7 +16,7 @@ import {
 import { ControlState } from '../form-control/control-state';
 import { Icon } from '../icon/icon';
 
-export type InputFieldType = 'text' | 'email' | 'password' | 'search' | 'tel' | 'url';
+export type InputFieldType = 'text' | 'email' | 'password' | 'search' | 'tel' | 'url' | 'date';
 
 let nextId = 0;
 

@@ -43,6 +43,48 @@ export const MANAGE_ROUTES: Routes = [
         canActivate: [roleGuard('admin')],
         loadComponent: () => import('./pages/manage-users/manage-users').then((m) => m.ManageUsers),
       },
+      {
+        path: 'what-where-when',
+        canActivate: [roleGuard('admin')],
+        children: [
+          {
+            path: '',
+            title: 'რა? სად? როდის? — Epoch',
+            loadComponent: () =>
+              import('./pages/www-packages/www-packages').then((m) => m.WwwPackages),
+          },
+          {
+            path: 'new',
+            title: 'ახალი პაკეტი — Epoch',
+            canDeactivate: [unsavedChangesGuard],
+            loadComponent: () =>
+              import('./pages/www-package-editor/www-package-editor').then(
+                (m) => m.WwwPackageEditor,
+              ),
+          },
+          {
+            path: 'categories',
+            title: 'რა? სად? როდის? — კატეგორიები — Epoch',
+            loadComponent: () =>
+              import('./pages/www-categories/www-categories').then((m) => m.WwwCategories),
+          },
+          {
+            path: ':id',
+            title: 'რა? სად? როდის? — პაკეტი — Epoch',
+            loadComponent: () =>
+              import('./pages/www-package-view/www-package-view').then((m) => m.WwwPackageView),
+          },
+          {
+            path: ':id/edit',
+            title: 'პაკეტის რედაქტირება — Epoch',
+            canDeactivate: [unsavedChangesGuard],
+            loadComponent: () =>
+              import('./pages/www-package-editor/www-package-editor').then(
+                (m) => m.WwwPackageEditor,
+              ),
+          },
+        ],
+      },
     ],
   },
 ];

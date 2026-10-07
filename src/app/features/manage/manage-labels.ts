@@ -26,6 +26,17 @@ export const ROLE_BADGES: Record<Role, BadgeVariant> = {
 /** Navigation state flag set by the editor after deleting, so the list can confirm it. */
 export const ARTICLE_DELETED_STATE_KEY = 'articleDeleted';
 
+/** Navigation state flags for "What? Where? When?" packages (set after create / delete). */
+export const WWW_PACKAGE_CREATED_STATE_KEY = 'wwwPackageCreated';
+export const WWW_PACKAGE_DELETED_STATE_KEY = 'wwwPackageDeleted';
+
+export const WWW_PACKAGES_URL = '/manage/what-where-when';
+export const WWW_CATEGORIES_URL = '/manage/what-where-when/categories';
+
+/** Confirm-dialog text for deleting a package (list and view pages). */
+export function wwwPackageDeleteMessage(name: string): string {
+  return `„${name}“ სამუდამოდ წაიშლება. ამ მოქმედების გაუქმება შეუძლებელია. მასში გამოყენებული სურათები დარჩება.`;
+}
 /** Same parsing as the public feed: invalid / missing → page 1. */
 export function toPage(value: string | number | undefined): number {
   const page = Number(value);

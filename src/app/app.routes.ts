@@ -43,6 +43,13 @@ export const routes: Routes = [
         loadChildren: () => import('./features/search/search.routes').then((m) => m.SEARCH_ROUTES),
       },
       {
+        path: '',
+        loadChildren: () =>
+          import('./features/what-where-when/what-where-when.routes').then(
+            (m) => m.WHAT_WHERE_WHEN_ROUTES,
+          ),
+      },
+      {
         path: '**',
         title: 'გვერდი ვერ მოიძებნა — Epoch',
         loadComponent: () =>

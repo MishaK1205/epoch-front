@@ -1,0 +1,85 @@
+@if (pkg.isLoading() && !pkg.hasValue()) {
+  <div class="feed-state"><app-spinner size="lg" /></div>
+} @else if (notFound()) {
+  <div class="feed-state">
+    <app-empty-state
+      icon="search"
+      title="პაკეტი ვერ მოიძებნა"
+      description="ასეთი პაკეტი არ არსებობს ან წაშლილია."
+    >
+      <a appButton variant="outline" routerLink="/what-where-when">
+        <app-icon btnIconStart name="chevron-left" [size]="18" />
+        ყველა პაკეტი
+      </a>
+    </app-empty-state>
+  </div>
+} @else if (loadErrors().length > 0) {
+  <div class="feed-state questions-page__error">
+    <app-alert variant="error">
+      @for (message of loadErrors(); track message) {
+        <p>{{ message }}</p>
+      }
+    </app-alert>
+    <button appButton type="button" variant="outline" (click)="retry()">სცადეთ თავიდან</button>
+  </div>
+} @else if (pkg.hasValue()) {
+  @let item = pkg.value();
+  <header class="page-heading">
+    <a class="back" routerLink="/what-where-when">
+      <app-icon name="chevron-left" [size]="16" />
+      ყველა პაკეტი
+    </a>
+    <p class="page-heading__kicker">რა? სად? როდის?</p>
+    <h1 class="page-heading__title">{{ item.name }}</h1>
+    <dl class="meta">
+      <div>
+        <dt>თარიღი</dt>
+        <dd>
+          <time [attr.datetime]="item.date">{{ item.date | calendarDate }}</time>
+        </dd>
+      </div>
+      @if (item.category; as category) {
+        <div>
+          <dt>კატეგორია</dt>
+          <dd>
+            <a
+              class="meta__link"
+              routerLink="/what-where-when"
+              [queryParams]="{ categoryId: category.id }"
+              >{{ category.name }}</a
+            >
+          </dd>
+        </div>
+      }
+      @if (authors()) {
+        <div>
+          <dt>ავტორები</dt>
+          <dd>{{ authors() }}</dd>
+        </div>
+      }
+      <div>
+        <dt>კითხვები</dt>
+        <dd>{{ item.questionCount }}</dd>
+      </div>
+    </dl>
+    <a
+      class="edit"
+      appButton
+      variant="ghost"
+      size="sm"
+      [routerLink]="['/manage/what-where-when', item.id, 'edit']"
+    >
+      <app-icon btnIconStart name="edit" [size]="16" />
+      რედაქტირება
+    </a>
+  </header>
+
+  <section class="questions-page" aria-labelledby="www-questions-title">
+    <h2 class="visually-hidden" id="www-questions-title">კითხვები</h2>
+    @if (item.questions.length === 0) {
+      <p class="questions-page__empty">ამ პაკეტში კითხვები ჯერ არ არის.</p>
+    } @else {
+      <app-www-question-list [questions]="item.questions" />
+    }
+  </section>
+}

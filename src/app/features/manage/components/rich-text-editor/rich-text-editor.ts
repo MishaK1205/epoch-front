@@ -1,6 +1,7 @@
 import {
   afterNextRender,
   AfterContentInit,
+  booleanAttribute,
   ChangeDetectionStrategy,
   Component,
   computed,
@@ -76,11 +77,14 @@ export class RichTextEditor implements ControlValueAccessor, AfterContentInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly controlState = new ControlState();
   private readonly editorEl = viewChild.required<ElementRef<HTMLElement>>('editor');
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   readonly label = input.required<string>();
   readonly placeholder = input('');
   readonly hint = input('');
   readonly errorMessages = input<ValidationMessageOverrides>({});
+  /** Focuses the editor and scrolls it into view as soon as Quill has loaded. */
+  readonly focusOnInit = input(false, { transform: booleanAttribute });
 
   protected readonly id = `app-rich-text-editor-${nextId++}`;
   protected readonly labelId = `${this.id}-label`;
@@ -214,6 +218,10 @@ export class RichTextEditor implements ControlValueAccessor, AfterContentInit {
     this.setContent(quill, this.pendingValue);
     quill.enable(!this.disabled());
     this.ready.set(true);
+    if (this.focusOnInit()) {
+      quill.focus();
+      this.host.nativeElement.scrollIntoView({ block: 'center' });
+    }
   }
 
   /** Doesn't use `dangerouslyPasteHTML`, which moves focus into the editor. */

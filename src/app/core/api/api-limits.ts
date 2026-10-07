@@ -18,4 +18,16 @@ export const API_LIMITS = {
   tagsQuery: { defaultLimit: 50, maxLimit: 100 },
   /** `q` of GET /articles and GET /articles/search (after trimming). */
   search: { max: 100 },
+  /** "What? Where? When?" packages. Text lengths are after trimming. */
+  whatWhereWhen: {
+    name: { min: 1, max: 200 },
+    authors: { maxCount: 20, minLength: 1, maxLength: 100 },
+    date: { pattern: /^\d{4}-\d{2}-\d{2}$/ },
+    questions: { maxCount: 100 },
+    question: { max: 100_000 },
+    answer: { min: 1, max: 1000 },
+    comment: { max: 5000 },
+    categoryName: { min: 1, max: 100 },
+    categoryDescription: { max: 500 },
+  },
 } as const;

@@ -7,6 +7,10 @@ describe('parseTags', () => {
   it('splits on commas, trims, lowercases and drops empty parts', () => {
     expect(parseTags('  History, ROME ,, ანტიკური  ')).toEqual(['history', 'rome', 'ანტიკური']);
   });
+
+  it('keeps the case when lowercase is off', () => {
+    expect(parseTags(' Giorgi , Nino', false)).toEqual(['Giorgi', 'Nino']);
+  });
 });
 
 describe('mergeTags', () => {
@@ -16,6 +20,10 @@ describe('mergeTags', () => {
 
   it('stops at the max count', () => {
     expect(mergeTags(['a', 'b'], 'c, d, e', 3)).toEqual(['a', 'b', 'c']);
+  });
+
+  it('ignores exact duplicates when lowercase is off', () => {
+    expect(mergeTags(['Nino'], 'Nino, nino', 20, false)).toEqual(['Nino', 'nino']);
   });
 });
 

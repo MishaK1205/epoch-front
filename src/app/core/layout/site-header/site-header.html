@@ -96,6 +96,18 @@
     </ul>
   }
 
+  @if (isAdmin()) {
+    <p class="drawer__title">თამაშები</p>
+    <ul class="drawer__list drawer__list--spaced" role="list">
+      <li>
+        <a class="drawer__link drawer__link--icon" routerLink="/what-where-when">
+          <app-icon name="help-circle" [size]="18" />
+          რა? სად? როდის?
+        </a>
+      </li>
+    </ul>
+  }
+
   <p class="drawer__title">კატეგორიები</p>
   <app-drawer-categories [categories]="categories()" />
 </aside>

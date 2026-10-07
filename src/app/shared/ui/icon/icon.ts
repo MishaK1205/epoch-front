@@ -22,7 +22,8 @@ export type IconName =
   | 'settings'
   | 'search'
   | 'bookmark'
-  | 'book-open';
+  | 'book-open'
+  | 'help-circle';
 
 /** Inline SVG icon. Inherits `color` from its parent. Decorative (aria-hidden). */
 @Component({

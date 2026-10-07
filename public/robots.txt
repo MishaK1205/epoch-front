@@ -4,5 +4,6 @@ Disallow: /me
 Disallow: /login
 Disallow: /register
 Disallow: /search
+Disallow: /what-where-when
 
 Sitemap: https://www.epoch.ge/sitemap.xml

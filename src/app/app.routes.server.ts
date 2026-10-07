@@ -15,5 +15,7 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'manage/**', renderMode: RenderMode.Client },
   { path: 'me', renderMode: RenderMode.Client },
   { path: 'me/**', renderMode: RenderMode.Client },
+  { path: 'what-where-when', renderMode: RenderMode.Client },
+  { path: 'what-where-when/**', renderMode: RenderMode.Client },
   { path: '**', renderMode: RenderMode.Server, status: 404 },
 ];

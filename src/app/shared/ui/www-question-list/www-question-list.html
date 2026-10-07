@@ -1,0 +1,55 @@
+@if (items().length > 0) {
+  <div class="toolbar">
+    <button
+      appButton
+      type="button"
+      size="sm"
+      variant="outline"
+      [attr.aria-pressed]="allOpen()"
+      (click)="toggleAll()"
+    >
+      <app-icon btnIconStart [name]="allOpen() ? 'eye-off' : 'eye'" [size]="16" />
+      {{ allOpen() ? 'ყველა პასუხის დამალვა' : 'ყველა პასუხის ჩვენება' }}
+    </button>
+  </div>
+}
+
+@let open = openAnswers();
+<ol class="questions" role="list">
+  @for (question of items(); track question.number) {
+    @let isOpen = open.has(question.number);
+    <li class="question" [attr.aria-labelledby]="idPrefix + question.number">
+      <h3 class="question__title" [id]="idPrefix + question.number">
+        კითხვა {{ question.number }}
+      </h3>
+      <div class="ql-editor question__body" [innerHTML]="question.html"></div>
+      <button
+        class="question__toggle"
+        type="button"
+        [attr.aria-expanded]="isOpen"
+        [attr.aria-controls]="idPrefix + question.number + '-answer'"
+        (click)="toggle(question.number)"
+      >
+        <app-icon
+          class="question__chevron"
+          name="chevron-down"
+          [size]="16"
+          [class.question__chevron--open]="isOpen"
+        />
+        {{ isOpen ? 'პასუხის დამალვა' : 'პასუხის ჩვენება' }}
+      </button>
+      <dl class="question__answer" [id]="idPrefix + question.number + '-answer'" [hidden]="!isOpen">
+        <div>
+          <dt>პასუხი</dt>
+          <dd class="question__text">{{ question.answer }}</dd>
+        </div>
+        @if (question.comment) {
+          <div>
+            <dt>კომენტარი</dt>
+            <dd class="question__text">{{ question.comment }}</dd>
+          </div>
+        }
+      </dl>
+    </li>
+  }
+</ol>

@@ -143,7 +143,10 @@ something only one component needs — use a `computed()` signal in that compone
 
 - Import from the barrel `core/api` (`import { ArticlesApi, Article } from '../core/api'`).
 - API classes: `AuthApi`, `UsersApi`, `CategoriesApi`, `ImagesApi`, `ArticlesApi`, `TagsApi`,
-  `ReadingListApi` (the user's saved / read lists under `/me/...`).
+  `ReadingListApi` (the user's saved / read lists under `/me/...`), `WhatWhereWhenApi`
+  (admin-only "რა? სად? როდის?" quiz packages), `WhatWhereWhenCategoriesApi` (their flat
+  categories at `/what-where-when-categories` — unrelated to the article `CategoriesApi`; never
+  mix the two).
 - Saved / read toggles: use `ReadingListStore` (`core/services/reading-list-store.ts`), not
   `ReadingListApi` directly. It holds `savedIds` / `readIds` signals (filled on login, cleared on
   logout, instantiated eagerly in `app.config.ts`) and `toggleSaved(id)` / `toggleRead(id)`, which
@@ -176,8 +179,8 @@ something only one component needs — use a `computed()` signal in that compone
 
 - The app is server-rendered with `@angular/ssr` (`outputMode: "server"`) so search engines get
   the full HTML. Render modes per route live in `app.routes.server.ts`: public pages (home,
-  `category/:slug`, `articles/:slug`, `search`, 404) are `RenderMode.Server`; login, register, `/manage` and
-  `/me` are `RenderMode.Client`. Add every new route there.
+  `category/:slug`, `articles/:slug`, `search`, 404) are `RenderMode.Server`; login, register, `/manage`,
+  `/me` and `/what-where-when` are `RenderMode.Client`. Add every new route there.
 - Code runs on the server too: never touch `window`, `document`, `localStorage`, `navigator` or
   timers that matter only in the browser at construction time. Guard with
   `isPlatformBrowser(inject(PLATFORM_ID))`, or run DOM code in `afterNextRender`. `AuthService`
@@ -374,7 +377,7 @@ component (in `shared/ui/` if generic, else in the feature) that uses the design
 | Component       | Usage                                                                                                                                                                                                                      |
 | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Button`        | `<button appButton variant="primary\|accent\|outline\|ghost\|inverse\|danger\|danger-ghost" size="sm\|md\|lg" fullWidth pill [loading]>` — also on `<a appButton>`; icons via `<app-icon btnIconStart … />` / `btnIconEnd` |
-| `InputField`    | `<app-input-field formControlName="x" label="…" type="text\|email\|password…" hint="…" [errorMessages]="{…}" />`                                                                                                           |
+| `InputField`    | `<app-input-field formControlName="x" label="…" type="text\|email\|password\|date…" hint="…" [errorMessages]="{…}" />` (`date` value is `YYYY-MM-DD`)                                                                     |
 | `TextareaField` | `<app-textarea-field formControlName="x" label="…" [rows]="4" [maxlength]="500" showCount hint="…" [errorMessages]="{…}" />`                                                                                               |
 | `Select`        | `<app-select formControlName="x" label="…" [options]="[{ value, label } \| { group, options }]" placeholder="…" emptyLabel="…" hideLabel hint="…" (selectionChange)="…" />` — `emptyLabel` = selectable `''` option ("None"); `selectionChange` fires on user picks only |
 | `Checkbox`      | `<app-checkbox formControlName="x">label content</app-checkbox>`                                                                                                                                                           |
@@ -386,6 +389,7 @@ component (in `shared/ui/` if generic, else in the feature) that uses the design
 | `Pagination`    | `<app-pagination [page] [totalPages] (pageChange) />`                                                                                                                                                                      |
 | `Icon`          | `<app-icon name="menu" [size]="20" />` — add new icons to `icon.html` + `IconName`                                                                                                                                         |
 | `HighlightText` | `<app-highlight-text [text]="title" [query]="q" />` — marks the search words with `<mark>`                                                                                                                                |
+| `WwwQuestionList` | `<app-www-question-list [questions]="pkg.questions" />` — "რა? სად? როდის?" questions with collapsible answers (collapsed by default)                                                                                    |
 
 Auth-only components live in `features/auth/components/`: `AuthCard` (split-screen page shell),
 `AuthBrand` (dark brand panel), `PasswordStrength` (`<app-password-strength [password] />`).
@@ -418,6 +422,44 @@ Auth-only components live in `features/auth/components/`: `AuthCard` (split-scre
 - `/articles/:slug` (`ArticleDetail`) renders content with `bypassSecurityTrustHtml` because
   Angular's sanitizer strips `data-list` (needed by Quill lists); the backend sanitizes the HTML.
   It feeds `Seo` (excerpt, cover image, article tags, JSON-LD) and returns 404 for missing slugs.
+- `/manage/what-where-when` (admin only, `roleGuard('admin')` + admin-only tab): `WwwPackages`
+  (list, `?page=`), `WwwPackageEditor` (`new` and `:id/edit`), `WwwPackageView` (`:id`, read-only
+  preview). Each question is a `WwwQuestionCard` with the shared
+  `RichTextEditor` (same toolbar / image upload / inline-image protection as articles; editor
+  height via `--question-editor-min-height`). Form helpers live in `www-package-form.ts`.
+  `questions` in PATCH replaces the whole list, so the editor always sends every question and
+  resets the form with the returned package. Question HTML is rendered like article content
+  (`ql-editor` + `bypassSecurityTrustHtml`); answers / comments are plain text
+  (`white-space: pre-line`). Backend errors that point at a question (`Question N cannot be
+  empty`, 1-based; `questions.N.…`, 0-based) are set as a `server` error on that question.
+- Question import: `WwwQuestionImport` (panel above the questions) reads a `.docx` with
+  `readDocx` (`shared/utils/docx.ts`, on the dependency-free `openZip`), splits it with
+  `splitQuestions` (`www-question-import.ts`), uploads question images and appends the questions.
+  Labels: `პასუხი:`, `ჩათვლა:` / `არ ჩაითვლება:` (kept in the answer), `კომენტარი:`; `წყარო:` /
+  `ავტორი:` / "შესვენება" end a question. Pages / `.doc` are not parsed (ask for a Word export).
+- Package categories: `WwwCategories` (`/manage/what-where-when/categories`, declared before
+  `:id`) with the inline `WwwCategoryForm`. A package has `category: { id, name } | null` and
+  requests send `categoryId` (the editor always sends it; `null` = none / remove). The package
+  list filters with `?categoryId=` (an unknown id is kept as an option with a "clear filter"
+  action) and "New package" passes it on so the editor preselects it. Every page loads
+  `WhatWhereWhenCategoriesApi.list()` itself (no store). Categories with `packageCount > 0` are
+  never sent to DELETE; the page links to their packages instead.
+- Questions are shown read-only with `WwwQuestionList` (`shared/ui/www-question-list`,
+  `<app-www-question-list [questions] />`), used by `WwwPackageView` and `PackageQuestions`. Each
+  answer (with its comment) is a toggle button (`aria-expanded`), collapsed by default, plus a
+  "show / hide all answers" button; a new question list collapses them again. Don't re-render
+  questions by hand.
+- `/what-where-when` (`features/what-where-when`, `roleGuard('admin')`, client-rendered,
+  `Disallow`ed in `robots.txt`) is the browsing area outside `/manage`: `PackageList` (cards,
+  `?page=`, `?categoryId=` chips for categories that have packages) and `PackageQuestions`
+  (`:id`, the package's questions + a link to the manage editor). The drawer shows its link
+  ("თამაშები" section) only when `AuthService.isAdmin()`.
+- `TagsInput` is the chip input for any `string[]` list: authors use it with `prefix=""`,
+  `[lowercase]="false"`, their own `maxCount` / `maxLength` and accessible labels.
+- Calendar dates (`YYYY-MM-DD`, no time) are parsed and formatted in local time with
+  `shared/utils/local-date.ts` and shown with the `calendarDate` pipe — never `new Date('…')`
+  or `toISOString()`, which are UTC and can shift the day. `realDate` / `notBlank` validators
+  live in `shared/validators/`.
 
 Form controls (`InputField`, `Checkbox`) inject `NgControl` themselves and mirror the control
 state into signals via `ControlState` (`shared/ui/form-control/control-state.ts`) — follow that

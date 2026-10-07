@@ -2,15 +2,15 @@
   <label class="field__label" [for]="id">{{ label() }}</label>
 
   <div class="tags" (click)="inputEl.focus()">
-    <ul class="tags__list" role="list" aria-label="დამატებული თეგები">
+    <ul class="tags__list" role="list" [attr.aria-label]="listLabel()">
       @for (tag of tags(); track tag) {
         <li class="tags__chip">
-          <span>#{{ tag }}</span>
+          <span>{{ prefix() }}{{ tag }}</span>
           <button
             type="button"
             class="tags__remove"
             [disabled]="disabled()"
-            [attr.aria-label]="'თეგის წაშლა: ' + tag"
+            [attr.aria-label]="removeLabel() + ': ' + tag"
             (click)="remove(tag); $event.stopPropagation()"
           >
             <app-icon name="close" [size]="14" />
@@ -27,7 +27,7 @@
       [id]="id"
       [placeholder]="full() ? '' : placeholder()"
       [disabled]="disabled()"
-      [attr.maxlength]="limits.maxLength"
+      [attr.maxlength]="maxLength()"
       [attr.aria-invalid]="errorMessage() ? true : null"
       [attr.aria-describedby]="describedBy()"
       (input)="onInput(inputEl)"
@@ -46,8 +46,8 @@
       <p class="field__message" [id]="hintId">{{ hint() }}</p>
     }
     <p class="field__count" [id]="countId">
-      <span class="visually-hidden">თეგები:</span>
-      {{ tags().length }} / {{ limits.maxCount }}
+      <span class="visually-hidden">{{ countLabel() }}:</span>
+      {{ tags().length }} / {{ maxCount() }}
     </p>
   </div>
 </div>

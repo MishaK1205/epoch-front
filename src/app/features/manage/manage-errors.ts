@@ -23,6 +23,19 @@ const TRANSLATIONS: Partial<Record<string, string>> = {
   'Cover image does not exist': 'მთავარი სურათი აღარ არსებობს. ატვირთეთ ხელახლა.',
   'Image is used by an article; remove it from the article first':
     'სურათი გამოიყენება სტატიაში. ჯერ მოაშორეთ ის სტატიას.',
+  'Image is used by a What? Where? When? package; remove it from the package first':
+    'სურათი გამოიყენება „რა? სად? როდის?“ პაკეტში. ჯერ მოაშორეთ ის პაკეტს.',
+  'What? Where? When? package not found': 'პაკეტი ვერ მოიძებნა.',
+  'What? Where? When? category not found': 'კატეგორია ვერ მოიძებნა.',
+  'A What? Where? When? category with this name already exists':
+    'ამ სახელით კატეგორია უკვე არსებობს (დიდ და პატარა ასოებს არ აქვს მნიშვნელობა).',
+  'categoryId must be a mongodb id': 'კატეგორიის მნიშვნელობა არასწორია.',
+  'name must be shorter than or equal to 100 characters': 'სახელი უნდა იყოს მაქსიმუმ 100 სიმბოლო.',
+  'description must be shorter than or equal to 500 characters':
+    'აღწერა უნდა იყოს მაქსიმუმ 500 სიმბოლო.',
+  'date must be YYYY-MM-DD': 'თარიღი უნდა იყოს ფორმატით წწწწ-თთ-დდ.',
+  'date must be a valid date': 'ასეთი თარიღი არ არსებობს.',
+  'name must be longer than or equal to 1 characters': 'სახელი სავალდებულოა.',
   'You cannot change your own role': 'საკუთარი როლის შეცვლა შეუძლებელია.',
   'You can only modify your own content': 'მხოლოდ საკუთარი სტატიების შეცვლა შეგიძლიათ.',
   'Insufficient permissions': FORBIDDEN_MESSAGE,
@@ -41,8 +54,13 @@ const TRANSLATIONS: Partial<Record<string, string>> = {
 
 const SUBCATEGORIES_CONFLICT = /^Category has (\d+) subcategory\(ies\)/;
 const ARTICLES_CONFLICT = /^Category is used by (\d+) article\(s\)/;
+const PACKAGES_CONFLICT = /^Category is used by (\d+) package\(s\)/;
 
 const PATTERNS: readonly (readonly [RegExp, (match: RegExpMatchArray) => string])[] = [
+  [
+    PACKAGES_CONFLICT,
+    (match) => `კატეგორიაში ${match[1]} პაკეტია. ჯერ გადაიტანეთ ისინი სხვა კატეგორიაში.`,
+  ],
   [
     ARTICLES_CONFLICT,
     (match) => `კატეგორია გამოიყენება ${match[1]} სტატიაში. ჯერ გადაიტანეთ ან წაშალეთ ისინი.`,
@@ -52,6 +70,16 @@ const PATTERNS: readonly (readonly [RegExp, (match: RegExpMatchArray) => string]
     (match) => `კატეგორიას აქვს ${match[1]} ქვეკატეგორია. ჯერ ისინი წაშალეთ.`,
   ],
   [/^Content references images that do not exist/, () => 'ტექსტში ჩასმული სურათი აღარ არსებობს.'],
+  [
+    /^Questions reference images that do not exist/,
+    () => 'კითხვაში ჩასმული სურათი აღარ არსებობს. წაშალეთ ის და ატვირთეთ ხელახლა.',
+  ],
+  [/^Question (\d+) cannot be empty$/, (match) => `კითხვა ${match[1]} ცარიელია.`],
+  [
+    /^questions\.(\d+)\.answer must be longer than or equal to/,
+    (match) => `კითხვა ${Number(match[1]) + 1}: პასუხი სავალდებულოა.`,
+  ],
+  [/^questions\.(\d+)\.(.+)$/, (match) => `კითხვა ${Number(match[1]) + 1}: ${match[2]}`],
 ];
 
 /** API error → Georgian messages for the management pages (unknown messages are shown as-is). */
@@ -71,7 +99,7 @@ export function applyManageErrors<F extends string>(
   const status = err instanceof HttpErrorResponse ? err.status : null;
   const rest: string[] = [];
   for (const message of getApiErrorMessages(err)) {
-    const translated = translate(message, status);
+    const translated = translateManageError(message, status);
     const field = fieldsByMessage[message];
     const control = field ? controls[field] : undefined;
     if (control) {
@@ -96,7 +124,8 @@ export function getCategoryDeleteConflict(err: unknown): 'subcategories' | 'arti
   return messages.some((message) => ARTICLES_CONFLICT.test(message)) ? 'articles' : null;
 }
 
-function translate(message: string, status: number | null): string {
+/** One backend message → the Georgian text shown in the management area. */
+export function translateManageError(message: string, status: number | null): string {
   const known = TRANSLATIONS[message];
   if (known) {
     return known;

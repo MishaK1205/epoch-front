@@ -22,3 +22,6 @@ export * from './tags/tags-api';
 export * from './tags/tags.models';
 export * from './users/users-api';
 export * from './users/users.models';
+export * from './what-where-when/what-where-when-api';
+export * from './what-where-when/what-where-when-categories-api';
+export * from './what-where-when/what-where-when.models';

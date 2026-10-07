@@ -1,0 +1,118 @@
+@if (pkg.isLoading() && !pkg.hasValue()) {
+  <div class="state"><app-spinner size="lg" /></div>
+} @else if (notFound()) {
+  <div class="state">
+    <app-empty-state
+      icon="search"
+      title="პაკეტი ვერ მოიძებნა"
+      description="ასეთი პაკეტი არ არსებობს ან წაშლილია."
+    >
+      <a appButton variant="outline" [routerLink]="listUrl">
+        <app-icon btnIconStart name="chevron-left" [size]="18" />
+        პაკეტების სიაში დაბრუნება
+      </a>
+    </app-empty-state>
+  </div>
+} @else if (loadErrors().length > 0) {
+  <div class="state">
+    <app-alert variant="error">
+      @for (message of loadErrors(); track message) {
+        <p>{{ message }}</p>
+      }
+    </app-alert>
+    <button appButton type="button" variant="outline" (click)="retry()">სცადეთ თავიდან</button>
+  </div>
+} @else if (pkg.hasValue()) {
+  @let item = pkg.value();
+  <article class="view">
+    <a class="view__back" [routerLink]="listUrl">
+      <app-icon name="chevron-left" [size]="16" />
+      ყველა პაკეტი
+    </a>
+
+    <div class="alerts" aria-live="polite">
+      @if (successMessage()) {
+        <app-alert variant="success">{{ successMessage() }}</app-alert>
+      }
+      @if (actionErrors().length > 0) {
+        <app-alert variant="error">
+          @for (message of actionErrors(); track message) {
+            <p>{{ message }}</p>
+          }
+        </app-alert>
+      }
+    </div>
+
+    <header class="view__head">
+      <h2 class="view__title">{{ item.name }}</h2>
+      <dl class="view__meta">
+        <div>
+          <dt>თარიღი</dt>
+          <dd>
+            <time [attr.datetime]="item.date">{{ item.date | calendarDate }}</time>
+          </dd>
+        </div>
+        @if (item.category; as category) {
+          <div>
+            <dt>კატეგორია</dt>
+            <dd>
+              <a
+                class="view__category"
+                [routerLink]="listUrl"
+                [queryParams]="{ categoryId: category.id }"
+                >{{ category.name }}</a
+              >
+            </dd>
+          </div>
+        }
+        <div>
+          <dt>ავტორები</dt>
+          <dd>{{ authors() || '—' }}</dd>
+        </div>
+        <div>
+          <dt>კითხვები</dt>
+          <dd>{{ item.questionCount }}</dd>
+        </div>
+        <div>
+          <dt>განახლდა</dt>
+          <dd>
+            <time [attr.datetime]="item.updatedAt">{{ item.updatedAt | timeAgo }}</time>
+          </dd>
+        </div>
+      </dl>
+      <div class="view__actions">
+        <a appButton size="sm" [routerLink]="[listUrl, item.id, 'edit']">
+          <app-icon btnIconStart name="edit" [size]="16" />
+          რედაქტირება
+        </a>
+        <button
+          appButton
+          type="button"
+          size="sm"
+          variant="danger-ghost"
+          [loading]="deleting()"
+          [disabled]="deleting()"
+          (click)="askDelete()"
+        >
+          <app-icon btnIconStart name="trash" [size]="16" />
+          წაშლა
+        </button>
+      </div>
+    </header>
+
+    @if (item.questions.length === 0) {
+      <p class="view__empty">ამ პაკეტში კითხვები ჯერ არ არის.</p>
+    } @else {
+      <app-www-question-list [questions]="item.questions" />
+    }
+  </article>
+}
+
+<app-confirm-dialog
+  #deleteDialog
+  title="წავშალოთ პაკეტი?"
+  [message]="deleteMessage()"
+  confirmLabel="წაშლა"
+  danger
+  (confirmed)="confirmDelete()"
+/>

@@ -1,5 +1,6 @@
 import {
   AfterContentInit,
+  booleanAttribute,
   ChangeDetectionStrategy,
   Component,
   computed,
@@ -24,11 +25,11 @@ const DEFAULT_MESSAGES: ValidationMessageOverrides = {
   tagLength: `თეგი უნდა იყოს ${LIMITS.minLength}–${LIMITS.maxLength} სიმბოლო.`,
 };
 
-/** Splits raw input on commas; trims, lowercases and drops empty parts. */
-export function parseTags(raw: string): string[] {
+/** Splits raw input on commas; trims, lowercases (unless `lowercase` is off), drops empty parts. */
+export function parseTags(raw: string, lowercase = true): string[] {
   return raw
     .split(',')
-    .map((tag) => tag.trim().toLowerCase())
+    .map((tag) => (lowercase ? tag.trim().toLowerCase() : tag.trim()))
     .filter((tag) => tag.length > 0);
 }
 
@@ -37,9 +38,10 @@ export function mergeTags(
   current: readonly string[],
   raw: string,
   maxCount: number = LIMITS.maxCount,
+  lowercase = true,
 ): string[] {
   const merged = [...current];
-  for (const tag of parseTags(raw)) {
+  for (const tag of parseTags(raw, lowercase)) {
     if (merged.length >= maxCount) {
       break;
     }
@@ -52,7 +54,11 @@ export function mergeTags(
 
 let nextId = 0;
 
-/** Chips input for a `string[]` control: Enter or comma adds, Backspace on empty removes. */
+/**
+ * Chips input for a `string[]` control: Enter or comma adds, Backspace on empty removes.
+ * Defaults are for article tags; other lists (e.g. authors) set the limits, `[lowercase]="false"`,
+ * `prefix=""` and the accessible labels.
+ */
 @Component({
   selector: 'app-tags-input',
   imports: [Icon],
@@ -69,16 +75,23 @@ export class TagsInput implements ControlValueAccessor, AfterContentInit {
   readonly placeholder = input('დაწერეთ და დააჭირეთ Enter-ს');
   readonly hint = input('');
   readonly errorMessages = input<ValidationMessageOverrides>({});
+  readonly maxCount = input<number>(LIMITS.maxCount);
+  readonly maxLength = input<number>(LIMITS.maxLength);
+  readonly lowercase = input(true, { transform: booleanAttribute });
+  /** Shown before each chip's text. */
+  readonly prefix = input('#');
+  readonly listLabel = input('დამატებული თეგები');
+  readonly removeLabel = input('თეგის წაშლა');
+  readonly countLabel = input('თეგები');
 
   protected readonly id = `app-tags-input-${nextId++}`;
   protected readonly hintId = `${this.id}-hint`;
   protected readonly errorId = `${this.id}-error`;
   protected readonly countId = `${this.id}-count`;
-  protected readonly limits = LIMITS;
 
   protected readonly tags = signal<string[]>([]);
   protected readonly disabled = signal(false);
-  protected readonly full = computed(() => this.tags().length >= LIMITS.maxCount);
+  protected readonly full = computed(() => this.tags().length >= this.maxCount());
 
   protected readonly errorMessage = computed(() =>
     this.controlState.touched()
@@ -157,7 +170,7 @@ export class TagsInput implements ControlValueAccessor, AfterContentInit {
   }
 
   private commit(raw: string): void {
-    const next = mergeTags(this.tags(), raw);
+    const next = mergeTags(this.tags(), raw, this.maxCount(), this.lowercase());
     if (next.length !== this.tags().length) {
       this.update(next);
     }

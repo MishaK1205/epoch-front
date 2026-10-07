@@ -1,0 +1,85 @@
+<header class="page-heading">
+  <p class="page-heading__kicker">თამაში</p>
+  <h1 class="page-heading__title">რა? სად? როდის?</h1>
+  <p class="page-heading__description">აირჩიეთ პაკეტი, რომ მისი კითხვები ნახოთ.</p>
+</header>
+
+<section class="packages" aria-label="პაკეტები">
+  @if (categoryChips().length > 0) {
+    <nav class="chips" aria-label="კატეგორიები">
+      <a
+        class="chip"
+        routerLink="."
+        [queryParams]="{ categoryId: null, page: null }"
+        [class.chip--active]="!categoryId()"
+        [attr.aria-current]="!categoryId() ? 'page' : null"
+        >ყველა</a
+      >
+      @for (category of categoryChips(); track category.id) {
+        <a
+          class="chip"
+          routerLink="."
+          [queryParams]="{ categoryId: category.id, page: null }"
+          [class.chip--active]="categoryId() === category.id"
+          [attr.aria-current]="categoryId() === category.id ? 'page' : null"
+          >{{ category.name }}</a
+        >
+      }
+    </nav>
+  }
+
+  @if (packages.isLoading() && !packages.hasValue()) {
+    <div class="feed-state"><app-spinner size="lg" /></div>
+  } @else if (loadErrors().length > 0) {
+    <div class="feed-state packages__error">
+      <app-alert variant="error">
+        @for (message of loadErrors(); track message) {
+          <p>{{ message }}</p>
+        }
+      </app-alert>
+      <button appButton type="button" variant="outline" (click)="retry()">სცადეთ თავიდან</button>
+    </div>
+  } @else if (items().length === 0) {
+    <app-empty-state
+      icon="help-circle"
+      title="პაკეტები არ არის."
+      [description]="
+        categoryId() ? 'ამ კატეგორიაში პაკეტები არ არის.' : 'პაკეტები ჯერ არ დამატებულა.'
+      "
+    >
+      @if (categoryId()) {
+        <a appButton variant="outline" routerLink="." [queryParams]="{ categoryId: null }">
+          ყველა პაკეტი
+        </a>
+      }
+    </app-empty-state>
+  } @else {
+    <ul class="grid" role="list" [class.grid--loading]="packages.isLoading()">
+      @for (row of items(); track row.item.id) {
+        @let item = row.item;
+        <li>
+          <a class="card" [routerLink]="['/what-where-when', item.id]">
+            <span class="card__top">
+              <time class="card__date" [attr.datetime]="item.date">{{
+                item.date | calendarDate
+              }}</time>
+              @if (item.category; as category) {
+                <span class="card__category">{{ category.name }}</span>
+              }
+            </span>
+            <span class="card__title">{{ item.name }}</span>
+            <span class="card__meta">
+              <span>{{ item.questionCount }} კითხვა</span>
+              @if (row.authors) {
+                <span>{{ row.authors }}</span>
+              }
+            </span>
+          </a>
+        </li>
+      }
+    </ul>
+    @if (totalPages() > 1) {
+      <app-pagination [page]="page()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
+    }
+  }
+</section>

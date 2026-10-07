@@ -1,0 +1,67 @@
+@use 'mixins' as *;
+
+:host {
+  display: block;
+  scroll-margin-block: var(--header-height);
+}
+
+.card {
+  // Question editors are shorter than the article editor.
+  --editor-min-height: var(--question-editor-min-height);
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xs);
+  transition: border-color var(--duration-fast) var(--easing-standard);
+
+  @include up(md) {
+    padding: var(--space-6);
+  }
+}
+
+.card--invalid {
+  border-color: var(--color-danger-border);
+  box-shadow: inset var(--border-width-strong) 0 0 var(--color-danger);
+}
+
+.card__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card__title {
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-ink);
+}
+
+.card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.card__up {
+  transform: rotate(180deg);
+}
+
+.card__error {
+  display: flex;
+  gap: var(--space-1);
+  align-items: flex-start;
+  font-size: var(--text-sm);
+  color: var(--color-danger);
+
+  app-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+}

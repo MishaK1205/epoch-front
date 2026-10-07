@@ -1,0 +1,55 @@
+<div class="import">
+  <app-icon class="import__icon" name="upload" [size]="24" />
+  <div class="import__text">
+    <p class="import__title">კითხვების იმპორტი Word-ის ფაილიდან</p>
+    <p class="import__hint">
+      ჩააგდეთ .docx ფაილი აქ ან აირჩიეთ. დაემატება კითხვები, პასუხები, ჩათვლები, კომენტარები და
+      კითხვების სურათები; დანარჩენი ველები შეავსეთ ხელით. Pages-ის ფაილი ჯერ გადაიტანეთ Word-ში
+      (File → Export To → Word…).
+    </p>
+  </div>
+  <button
+    appButton
+    type="button"
+    variant="outline"
+    [loading]="busy()"
+    [disabled]="busy()"
+    (click)="fileInput.click()"
+  >
+    ფაილის არჩევა
+  </button>
+  <input
+    #fileInput
+    class="visually-hidden"
+    type="file"
+    tabindex="-1"
+    aria-hidden="true"
+    [accept]="accept"
+    (change)="onFileSelected(fileInput)"
+  />
+</div>
+
+<div class="import__messages" aria-live="polite">
+  @if (progress()) {
+    <p class="import__progress">{{ progress() }}</p>
+  }
+  @if (errors().length > 0) {
+    <app-alert variant="error">
+      @for (message of errors(); track message) {
+        <p>{{ message }}</p>
+      }
+    </app-alert>
+  }
+  @if (result(); as done) {
+    <app-alert variant="success">
+      <p>„{{ done.fileName }}“: დაემატა {{ done.count }} კითხვა. შეამოწმეთ და შეინახეთ პაკეტი.</p>
+    </app-alert>
+    @if (done.warnings.length > 0) {
+      <app-alert variant="info">
+        @for (warning of done.warnings; track warning) {
+          <p>{{ warning }}</p>
+        }
+      </app-alert>
+    }
+  }
+</div>

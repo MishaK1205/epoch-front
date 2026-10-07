@@ -1,0 +1,39 @@
+<form
+  class="www-category-form"
+  [formGroup]="form"
+  (ngSubmit)="submit()"
+  (keydown.escape)="cancelled.emit()"
+  novalidate
+>
+  <app-input-field
+    formControlName="name"
+    label="სახელი"
+    placeholder="მაგ.: შემოდგომის თასი 2026"
+    [maxlength]="limits.categoryName.max"
+  />
+  <app-textarea-field
+    formControlName="description"
+    label="აღწერა"
+    hint="არასავალდებულო."
+    [rows]="3"
+    [maxlength]="limits.categoryDescription.max"
+    showCount
+  />
+  <div class="www-category-form__actions">
+    <button appButton type="submit" [loading]="pending()" [disabled]="pending()">
+      @if (!editing()) {
+        <app-icon btnIconStart name="plus" [size]="18" />
+      }
+      {{ editing() ? 'შენახვა' : 'დამატება' }}
+    </button>
+    <button
+      appButton
+      type="button"
+      variant="ghost"
+      [disabled]="pending()"
+      (click)="cancelled.emit()"
+    >
+      გაუქმება
+    </button>
+  </div>
+</form>

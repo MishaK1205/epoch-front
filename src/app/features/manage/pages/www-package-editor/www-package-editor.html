@@ -1,0 +1,181 @@
+@if (loading()) {
+  <div class="editor__state"><app-spinner size="lg" /></div>
+} @else if (notFound()) {
+  <div class="editor__state">
+    <app-empty-state
+      icon="search"
+      title="პაკეტი ვერ მოიძებნა"
+      description="ასეთი პაკეტი არ არსებობს ან წაშლილია."
+    >
+      <a appButton variant="outline" [routerLink]="listUrl">
+        <app-icon btnIconStart name="chevron-left" [size]="18" />
+        პაკეტების სიაში დაბრუნება
+      </a>
+    </app-empty-state>
+  </div>
+} @else if (loadErrors().length > 0) {
+  <div class="editor__state">
+    <app-alert variant="error">
+      @for (message of loadErrors(); track message) {
+        <p>{{ message }}</p>
+      }
+    </app-alert>
+    <button appButton type="button" variant="outline" (click)="retryLoad()">სცადეთ თავიდან</button>
+  </div>
+} @else if (showForm()) {
+  <form class="editor" [formGroup]="form" (ngSubmit)="save()" novalidate>
+    <div class="editor__head">
+      <a class="editor__back" [routerLink]="backLink()">
+        <app-icon name="chevron-left" [size]="16" />
+        @if (isNew()) {
+          ყველა პაკეტი
+        } @else {
+          პაკეტის ნახვა
+        }
+      </a>
+      @if (pkg(); as current) {
+        <span class="editor__updated">
+          ბოლო ცვლილება
+          <time [attr.datetime]="current.updatedAt">{{ current.updatedAt | timeAgo }}</time>
+        </span>
+      }
+    </div>
+
+    <div class="editor__alerts" aria-live="polite">
+      @if (successMessage()) {
+        <app-alert variant="success">{{ successMessage() }}</app-alert>
+      }
+      @if (packageGone()) {
+        <app-alert variant="error">
+          <p>ეს პაკეტი წაიშალა. ცვლილებები ვერ შეინახება.</p>
+          <a class="editor__link" [routerLink]="listUrl">პაკეტების სიაში დაბრუნება</a>
+        </app-alert>
+      }
+      @if (serverErrors().length > 0) {
+        <app-alert variant="error">
+          @for (message of serverErrors(); track message) {
+            <p>{{ message }}</p>
+          }
+        </app-alert>
+      }
+    </div>
+
+    <div class="editor__meta">
+      <app-input-field
+        class="editor__name"
+        formControlName="name"
+        label="სახელი"
+        placeholder="მაგ.: შემოდგომის თასი, ტური 1"
+        [maxlength]="limits.name.max"
+      />
+      <app-input-field
+        formControlName="date"
+        label="თარიღი"
+        type="date"
+        [errorMessages]="{ pattern: 'თარიღი უნდა იყოს ფორმატით წწწწ-თთ-დდ.' }"
+      />
+      <div class="editor__category">
+        <app-select
+          formControlName="categoryId"
+          label="კატეგორია"
+          emptyLabel="კატეგორიის გარეშე"
+          [options]="categoryOptions()"
+        />
+        <p class="editor__category-note">
+          @if (categories.error()) {
+            კატეგორიები ვერ ჩაიტვირთა.
+            <button type="button" class="editor__link" (click)="categories.reload()">
+              სცადეთ თავიდან
+            </button>
+          } @else if (noCategories()) {
+            კატეგორიები ჯერ არ არის — პაკეტი კატეგორიის გარეშეც შეინახება.
+            <a class="editor__link" [routerLink]="categoriesUrl">კატეგორიის შექმნა</a>
+          } @else {
+            <a class="editor__link" [routerLink]="categoriesUrl">კატეგორიების მართვა</a>
+          }
+        </p>
+      </div>
+      <app-tags-input
+        class="editor__authors"
+        formControlName="authors"
+        label="ავტორები"
+        placeholder="დაწერეთ სახელი და დააჭირეთ Enter-ს"
+        hint="Enter ან მძიმე ამატებს ავტორს."
+        prefix=""
+        listLabel="დამატებული ავტორები"
+        removeLabel="ავტორის წაშლა"
+        countLabel="ავტორები"
+        [lowercase]="false"
+        [maxCount]="limits.authors.maxCount"
+        [maxLength]="limits.authors.maxLength"
+        [errorMessages]="{
+          maxTags: 'მაქსიმუმ ' + limits.authors.maxCount + ' ავტორი.',
+          tagLength: 'სახელი უნდა იყოს 1–' + limits.authors.maxLength + ' სიმბოლო.',
+        }"
+      />
+    </div>
+
+    <section class="questions" aria-labelledby="www-questions-heading">
+      <h2 class="questions__title" id="www-questions-heading">კითხვები</h2>
+      <app-www-question-import [capacity]="importCapacity()" (imported)="importQuestions($event)" />
+      @for (question of questions(); track question; let index = $index, count = $count) {
+        <app-www-question-card
+          [group]="question"
+          [index]="index"
+          [total]="count"
+          [focusEditor]="question === focusTarget()"
+          [canDuplicate]="!full()"
+          (moveUp)="moveQuestion(index, -1)"
+          (moveDown)="moveQuestion(index, 1)"
+          (duplicate)="duplicateQuestion(index)"
+          (remove)="removeQuestion(index)"
+        />
+      } @empty {
+        <p class="questions__empty">კითხვები ჯერ არ არის.</p>
+      }
+      <div class="questions__add">
+        <button
+          appButton
+          type="button"
+          variant="outline"
+          [disabled]="full()"
+          [attr.aria-describedby]="full() ? 'www-questions-full' : null"
+          (click)="addQuestion()"
+        >
+          <app-icon btnIconStart name="plus" [size]="18" />
+          კითხვის დამატება
+        </button>
+        @if (full()) {
+          <p class="questions__hint" id="www-questions-full">
+            პაკეტში მაქსიმუმ {{ limits.questions.maxCount }} კითხვა შეიძლება.
+          </p>
+        }
+      </div>
+    </section>
+
+    <div class="editor__actions">
+      <button appButton type="submit" [loading]="saving()" [disabled]="saving()">შენახვა</button>
+      <span class="editor__count" aria-live="polite">{{ questionCount() }} კითხვა</span>
+    </div>
+  </form>
+}
+
+<app-confirm-dialog
+  #removeDialog
+  title="წავშალოთ კითხვა?"
+  message="კითხვის ტექსტი, პასუხი და კომენტარი წაიშლება. ცვლილება ძალაში შევა შენახვის შემდეგ."
+  confirmLabel="წაშლა"
+  danger
+  (confirmed)="confirmRemove()"
+  (cancelled)="cancelRemove()"
+/>
+<app-confirm-dialog
+  #leaveDialog
+  title="შეუნახავი ცვლილებები"
+  message="ცვლილებები არ არის შენახული. დატოვებთ გვერდს მათი შენახვის გარეშე?"
+  confirmLabel="გასვლა"
+  cancelLabel="დარჩენა"
+  danger
+  (confirmed)="resolveLeave(true)"
+  (cancelled)="resolveLeave(false)"
+/>

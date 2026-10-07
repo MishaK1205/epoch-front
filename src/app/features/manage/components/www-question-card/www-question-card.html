@@ -1,0 +1,87 @@
+<section
+  class="card"
+  [class.card--invalid]="invalid()"
+  [formGroup]="group()"
+  [attr.aria-labelledby]="headingId"
+>
+  <header class="card__head">
+    <h3 class="card__title" [id]="headingId">კითხვა {{ number() }}</h3>
+    <div class="card__actions">
+      <button
+        appButton
+        type="button"
+        variant="ghost"
+        size="sm"
+        [disabled]="first()"
+        [attr.aria-label]="'კითხვა ' + number() + ': ზემოთ აწევა'"
+        (click)="moveUp.emit()"
+      >
+        <app-icon class="card__up" name="chevron-down" [size]="16" />
+      </button>
+      <button
+        appButton
+        type="button"
+        variant="ghost"
+        size="sm"
+        [disabled]="last()"
+        [attr.aria-label]="'კითხვა ' + number() + ': ქვემოთ ჩამოწევა'"
+        (click)="moveDown.emit()"
+      >
+        <app-icon name="chevron-down" [size]="16" />
+      </button>
+      <button
+        appButton
+        type="button"
+        variant="ghost"
+        size="sm"
+        [disabled]="!canDuplicate()"
+        [attr.aria-label]="'კითხვა ' + number() + ': დუბლირება'"
+        (click)="duplicate.emit()"
+      >
+        <app-icon btnIconStart name="plus" [size]="16" />
+        დუბლირება
+      </button>
+      <button
+        appButton
+        type="button"
+        variant="danger-ghost"
+        size="sm"
+        [attr.aria-label]="'კითხვა ' + number() + ': წაშლა'"
+        (click)="remove.emit()"
+      >
+        <app-icon btnIconStart name="trash" [size]="16" />
+        წაშლა
+      </button>
+    </div>
+  </header>
+
+  @if (serverError()) {
+    <p class="card__error">
+      <app-icon name="alert-circle" [size]="16" />
+      <span>{{ serverError() }}</span>
+    </p>
+  }
+
+  <app-rich-text-editor
+    formControlName="question"
+    label="კითხვა"
+    placeholder="კითხვის ტექსტი…"
+    [focusOnInit]="focusEditor()"
+    [errorMessages]="{ maxlength: 'კითხვა ძალიან გრძელია.' }"
+  />
+  <app-textarea-field
+    formControlName="answer"
+    label="პასუხი"
+    showCount
+    [rows]="2"
+    [maxlength]="limits.answer.max"
+  />
+  <app-textarea-field
+    formControlName="comment"
+    label="კომენტარი"
+    hint="არასავალდებულო."
+    showCount
+    [rows]="3"
+    [maxlength]="limits.comment.max"
+  />
+</section>

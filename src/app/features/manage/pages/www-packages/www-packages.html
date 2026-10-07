@@ -1,0 +1,174 @@
+<div class="toolbar">
+  <div class="filters">
+    <app-select
+      class="filters__select"
+      label="კატეგორიის ფილტრი"
+      hideLabel
+      emptyLabel="ყველა კატეგორია"
+      [formControl]="categoryFilter"
+      [options]="categoryOptions()"
+      (selectionChange)="filterByCategory($event)"
+    />
+    <a appButton variant="ghost" size="sm" [routerLink]="categoriesUrl">კატეგორიების მართვა</a>
+  </div>
+  <a
+    appButton
+    variant="accent"
+    routerLink="/manage/what-where-when/new"
+    [queryParams]="newPackageParams()"
+  >
+    <app-icon btnIconStart name="plus" [size]="18" />
+    ახალი პაკეტი
+  </a>
+</div>
+<p class="www__intro">„რა? სად? როდის?“ თამაშების პაკეტები, ახლიდან ძველისკენ.</p>
+
+<div class="alerts" aria-live="polite">
+  @if (unknownCategory()) {
+    <app-alert variant="info">
+      <p>ეს კატეგორია აღარ არსებობს ან ბმული არასწორია.</p>
+      <p class="www__alert-action">
+        <button appButton type="button" variant="outline" size="sm" (click)="filterByCategory('')">
+          ფილტრის მოხსნა
+        </button>
+      </p>
+    </app-alert>
+  }
+  @if (successMessage()) {
+    <app-alert variant="success">{{ successMessage() }}</app-alert>
+  }
+  @if (actionErrors().length > 0) {
+    <app-alert variant="error">
+      @for (message of actionErrors(); track message) {
+        <p>{{ message }}</p>
+      }
+    </app-alert>
+  }
+</div>
+
+@if (packages.isLoading() && !packages.hasValue()) {
+  <div class="state"><app-spinner size="lg" /></div>
+} @else if (loadErrors().length > 0) {
+  <div class="state www__error">
+    <app-alert variant="error">
+      @for (message of loadErrors(); track message) {
+        <p>{{ message }}</p>
+      }
+    </app-alert>
+    <div class="www__error-actions">
+      <button appButton type="button" variant="outline" (click)="retry()">სცადეთ თავიდან</button>
+      @if (categoryId()) {
+        <button appButton type="button" variant="ghost" (click)="filterByCategory('')">
+          ფილტრის მოხსნა
+        </button>
+      }
+    </div>
+  </div>
+} @else if (items().length === 0) {
+  @if (categoryId()) {
+    <app-empty-state
+      icon="search"
+      title="ამ კატეგორიაში პაკეტები არ არის."
+      description="აირჩიეთ სხვა კატეგორია ან შექმენით პაკეტი ამ კატეგორიაში."
+    >
+      <button appButton type="button" variant="outline" (click)="filterByCategory('')">
+        ფილტრის მოხსნა
+      </button>
+    </app-empty-state>
+  } @else {
+    <app-empty-state
+      icon="edit"
+      title="პაკეტები ჯერ არ არის."
+      description="შექმენით პირველი პაკეტი: სახელი, თარიღი, ავტორები და კითხვები."
+    >
+      <a appButton variant="accent" routerLink="/manage/what-where-when/new">
+        <app-icon btnIconStart name="plus" [size]="18" />
+        ახალი პაკეტი
+      </a>
+    </app-empty-state>
+  }
+} @else {
+  <ul class="list" role="list" [class.list--loading]="packages.isLoading()">
+    @for (row of rows(); track row.item.id) {
+      @let item = row.item;
+      <li
+        class="www-row"
+        [class.www-row--pending]="pendingId() === item.id"
+        [attr.aria-busy]="pendingId() === item.id || null"
+      >
+        <div class="www-row__body">
+          <a class="www-row__title" [routerLink]="['/manage/what-where-when', item.id]">{{
+            item.name
+          }}</a>
+          <p class="www-row__meta">
+            <time class="www-row__date" [attr.datetime]="item.date">{{
+              item.date | calendarDate
+            }}</time>
+            @if (item.category; as category) {
+              <a
+                class="www-row__category"
+                routerLink="."
+                queryParamsHandling="merge"
+                [queryParams]="{ categoryId: category.id, page: null }"
+                [attr.aria-label]="'კატეგორიის ფილტრი: ' + category.name"
+                >{{ category.name }}</a
+              >
+            } @else {
+              <span class="www-row__no-category" title="კატეგორიის გარეშე">—</span>
+            }
+            <span>{{ item.questionCount }} კითხვა</span>
+            <span>{{ row.authors }}</span>
+            <span>
+              განახლდა
+              <time [attr.datetime]="item.updatedAt">{{ item.updatedAt | timeAgo }}</time>
+            </span>
+          </p>
+        </div>
+        <div class="www-row__actions">
+          <a
+            appButton
+            variant="ghost"
+            size="sm"
+            [routerLink]="['/manage/what-where-when', item.id]"
+          >
+            ნახვა
+          </a>
+          <a
+            appButton
+            variant="ghost"
+            size="sm"
+            [routerLink]="['/manage/what-where-when', item.id, 'edit']"
+          >
+            <app-icon btnIconStart name="edit" [size]="16" />
+            რედაქტირება
+          </a>
+          <button
+            appButton
+            type="button"
+            variant="danger-ghost"
+            size="sm"
+            [disabled]="pendingId() !== null"
+            [attr.aria-label]="'წაშლა: ' + item.name"
+            (click)="askDelete(item)"
+          >
+            <app-icon btnIconStart name="trash" [size]="16" />
+            წაშლა
+          </button>
+        </div>
+      </li>
+    }
+  </ul>
+}
+
+@if (totalPages() > 1) {
+  <app-pagination [page]="page()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
+}
+
+<app-confirm-dialog
+  #deleteDialog
+  title="წავშალოთ პაკეტი?"
+  [message]="deleteMessage()"
+  confirmLabel="წაშლა"
+  danger
+  (confirmed)="confirmDelete()"
+/>

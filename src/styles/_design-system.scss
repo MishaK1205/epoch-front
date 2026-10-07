@@ -274,6 +274,7 @@ $breakpoints: (
     --search-box-width: 28rem; // header search field (≥1024px)
     --search-thumb-size: 48px; // search suggestion thumbnails
     --editor-min-height: 320px; // rich text editor content area
+    --question-editor-min-height: 140px; // "What? Where? When?" question editors
     --editor-picker-width: 8.5rem; // Quill heading picker (fits Georgian labels)
     --radius-control: var(--radius-lg); // buttons + inputs share one radius
     --radius-card: var(--radius-xl); // article teaser cards

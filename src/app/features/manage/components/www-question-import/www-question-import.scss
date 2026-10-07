@@ -1,0 +1,62 @@
+@use 'mixins' as *;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.import {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: var(--border-width-strong) dashed var(--color-border);
+  border-radius: var(--radius-xl);
+  transition: border-color var(--duration-fast) var(--easing-standard);
+
+  :host(.dragging) & {
+    border-color: var(--color-accent);
+    background: var(--color-accent-soft);
+  }
+
+  @include up(md) {
+    flex-wrap: nowrap;
+    padding: var(--space-5) var(--space-6);
+  }
+}
+
+.import__icon {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.import__text {
+  display: flex;
+  flex: 1 1 16rem;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.import__title {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-ink);
+}
+
+.import__hint,
+.import__progress {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.import__messages {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+
+  &:empty {
+    display: none;
+  }
+}

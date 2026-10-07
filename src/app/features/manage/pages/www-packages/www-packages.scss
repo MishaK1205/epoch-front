@@ -1,0 +1,115 @@
+@use 'mixins' as *;
+
+.www__intro {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.www__error {
+  gap: var(--space-4);
+}
+
+.www__error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: center;
+}
+
+.www__alert-action {
+  margin-top: var(--space-2);
+}
+
+.www-row {
+  display: grid;
+  gap: var(--space-3) var(--space-4);
+  align-items: center;
+  min-height: var(--table-row-min-height);
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  transition:
+    background-color var(--duration-fast) var(--easing-standard),
+    opacity var(--duration-fast) var(--easing-standard);
+
+  &:hover {
+    background: var(--color-surface-hover);
+  }
+
+  @include up(lg) {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+
+.www-row--pending {
+  opacity: 0.6;
+}
+
+.www-row__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.www-row__title {
+  @include line-clamp(2);
+
+  font-size: var(--text-base);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-snug);
+  color: var(--color-ink);
+  border-radius: var(--radius-sm);
+
+  &:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+  }
+
+  @include up(md) {
+    font-size: var(--text-lg);
+  }
+}
+
+.www-row__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  align-items: center;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.www-row__date {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-accent-text);
+}
+
+.www-row__category {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-2);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-accent-text);
+  background: var(--color-accent-soft);
+  border-radius: var(--radius-full);
+
+  &:hover {
+    color: var(--color-accent);
+    text-decoration: underline;
+  }
+}
+
+.www-row__no-category {
+  color: var(--color-text-subtle);
+}
+
+.www-row__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+
+  @include up(lg) {
+    justify-content: flex-end;
+  }
+}

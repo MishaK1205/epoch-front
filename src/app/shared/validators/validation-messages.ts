@@ -25,7 +25,10 @@ export function getValidationMessage(
   const details: unknown = errors[key];
   switch (key) {
     case 'required':
+    case 'blank':
       return 'ველი სავალდებულოა.';
+    case 'realDate':
+      return 'ასეთი თარიღი არ არსებობს.';
     case 'email':
       return 'შეიყვანეთ სწორი ელ-ფოსტა.';
     case 'minlength':

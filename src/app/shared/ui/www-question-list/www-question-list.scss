@@ -1,0 +1,101 @@
+@use 'mixins' as *;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.questions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.question {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+
+  & + & {
+    padding-top: var(--space-8);
+    border-top: var(--border-width) solid var(--color-border);
+  }
+}
+
+.question__title {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-accent-text);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+// Reset Quill's editor box (height, padding, scroll) for read-only content.
+.question__body {
+  height: auto;
+  padding: 0;
+  overflow: visible;
+}
+
+.question__toggle {
+  @include reset-button;
+
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: center;
+  align-self: flex-start;
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-accent-text);
+  border-radius: var(--radius-sm);
+
+  &:hover {
+    color: var(--color-accent);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.question__chevron {
+  @include motion-ok {
+    transition: transform var(--duration-fast) var(--easing-standard);
+  }
+}
+
+.question__chevron--open {
+  transform: rotate(180deg);
+}
+
+.question__answer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-lg);
+
+  &[hidden] {
+    display: none;
+  }
+
+  dt {
+    font-size: var(--text-xs);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-subtle);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wide);
+  }
+}
+
+.question__text {
+  color: var(--color-text);
+  white-space: pre-line;
+}
