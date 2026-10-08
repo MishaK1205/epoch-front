@@ -32,13 +32,29 @@
             <app-icon name="bookmark" [size]="20" />
           </a>
           @if (canWriteArticles()) {
-            <a appButton variant="outline" size="sm" routerLink="/manage">
+            <a
+              class="header__action"
+              appButton
+              variant="outline"
+              size="sm"
+              routerLink="/manage"
+              aria-label="მართვა"
+            >
               <app-icon btnIconStart name="settings" [size]="16" />
-              მართვა
+              <span>მართვა</span>
             </a>
           }
-          <button appButton type="button" variant="outline" size="sm" (click)="logout()">
-            გასვლა
+          <button
+            class="header__action"
+            appButton
+            type="button"
+            variant="outline"
+            size="sm"
+            aria-label="გასვლა"
+            (click)="logout()"
+          >
+            <app-icon btnIconStart class="header__action-icon" name="log-out" [size]="16" />
+            <span>გასვლა</span>
           </button>
         } @else {
           <nav class="header__auth" aria-label="ანგარიში">

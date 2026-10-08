@@ -22,6 +22,29 @@ After finishing every task, **add a new entry at the top** using the template be
 
 ---
 
+## 2026-10-08 — Header fits phones when logged in
+
+**Task:** On an iPhone 16 the header looked broken: the logged-in buttons pushed the bar past
+the screen, the logo ran into the search icon and the page scrolled sideways.
+
+**Changes:**
+
+- Modified `core/layout/site-header/site-header.html` — "მართვა" and "გასვლა" get
+  `header__action`, an `aria-label` and their label in a `<span>`; "გასვლა" gets a `log-out`
+  icon (shown only below `md`).
+- Modified `core/layout/site-header/site-header.scss` — below `md` those buttons are 36 px
+  square icons (label hidden); the logo and the actions don't shrink; the bar gap is
+  `--space-2` below `sm`.
+- Modified `docs/PROJECT_GUIDELINES.md` — the mobile header rule.
+
+**Notes:** Measured at 393 × 852 with the logged-in buttons added to the page: the bar ends at
+377 px (16 px padding), the logo and search icon no longer overlap, and `scrollWidth` equals
+the viewport. The header styles stay under the 4 kB budget, which is why the label is hidden
+with `display: none` + `aria-label` instead of the `visually-hidden` mixin. `ng build` (no
+warnings) and `ng test` (157) pass.
+
+---
+
 ## 2026-10-07 — "რა? სად? როდის?" browsing page + collapsible answers
 
 **Task:** A new route listing every package; clicking one opens its questions page. Link it from

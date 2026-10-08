@@ -354,7 +354,9 @@ export class UserCard {
   (`--color-footer-*`) with a centered logo. Controls share `--radius-control`.
   Guest header auth is not buttons: small navy text links (`შესვლა | რეგისტრაცია`,
   `--color-accent`, `--text-sm`) with no filled background. Registration hides below the `sm`
-  breakpoint.
+  breakpoint. Logged-in header buttons ("მართვა", "გასვლა", class `header__action`) become
+  square icon buttons below `md` (label hidden, name via `aria-label`), so the bar fits a phone;
+  the logo never shrinks. Check new header items at 375–393 px width while logged in.
 - Static accent text and **text** hover/focus on light backgrounds (article titles, drawer links,
   kickers) use `--color-accent-text` (navy-700, `#1d5a87`, ~7.3:1 on white). Solid fills — the header
   strip, accent buttons, selection — use `--color-accent` (`#071824`). `#071824` is too close to black
