@@ -22,6 +22,37 @@ After finishing every task, **add a new entry at the top** using the template be
 
 ---
 
+## 2026-10-13 — Tables in article content
+
+**Task:** A Markdown table pasted into the article editor (Quill) was not saved as a table.
+
+**Changes:**
+
+- Added `shared/utils/markdown-table.ts` (+ spec) — `markdownTablesToHtml`: plain text with
+  Markdown tables → HTML tables (header row bold, `**bold**` / `*italic*` kept, other lines as
+  paragraphs, HTML escaped); `null` when there is no table.
+- Added `core/editor/quill-tables.ts` — `enableTablePaste(quill)`: a `th` clipboard matcher (bold
+  cell + line break, so a header row isn't merged into one cell) and a capture-phase paste
+  listener that pastes Markdown tables as real tables.
+- Modified `features/manage/components/rich-text-editor/rich-text-editor.ts` — enables Quill's
+  `table` module and calls `enableTablePaste`.
+- Modified `src/styles/_quill.scss` — table styles for the editor and the article page (borders,
+  padding, muted first row, sideways scroll when the columns don't fit).
+- Modified `src/styles/_design-system.scss` — `--content-table-cell-min-width`.
+- Modified `docs/PROJECT_GUIDELINES.md` — the table rule.
+- Backend (`epoch-back`): `ArticleContentService` allows `table`, `tbody`, `tr`, `td` (`data-row`)
+  and puts a space after each cell in the plain text; new spec case; `PROJECT_CONTEXT.md` updated.
+
+**Notes:** Two causes: Quill without the `table` module flattened tables into lines, and the
+backend sanitizer removed table tags. Quill 2 tables are basic: no `<th>` / `<thead>`, no merged
+cells, no lists inside cells; Tab moves between cells. Applies to "რა? სად? როდის?" questions
+too (same editor and sanitizer). Checked in jsdom with the real editor setup: pasting the
+Markdown table and an HTML table with `<th>` both give tables that survive a reload. `ng build`
+(no warnings), `ng test` (161), and backend build / lint / tests (99) pass. The backend has to be
+deployed before production saves keep tables.
+
+---
+
 ## 2026-10-08 — Header fits phones when logged in
 
 **Task:** On an iPhone 16 the header looked broken: the logged-in buttons pushed the bar past

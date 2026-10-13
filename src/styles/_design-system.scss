@@ -276,6 +276,7 @@ $breakpoints: (
     --editor-min-height: 320px; // rich text editor content area
     --question-editor-min-height: 140px; // "What? Where? When?" question editors
     --editor-picker-width: 8.5rem; // Quill heading picker (fits Georgian labels)
+    --content-table-cell-min-width: 8rem; // tables in article content (scroll on phones)
     --radius-control: var(--radius-lg); // buttons + inputs share one radius
     --radius-card: var(--radius-xl); // article teaser cards
     // Article cards: hairline-soft resting shadow, lifted on hover

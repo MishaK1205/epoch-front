@@ -23,6 +23,7 @@ import {
   preventInlineImages,
   QuillDelta,
 } from '../../../../core/editor/quill-image-handler';
+import { enableTablePaste } from '../../../../core/editor/quill-tables';
 import { Alert } from '../../../../shared/ui/alert/alert';
 import { ControlState } from '../../../../shared/ui/form-control/control-state';
 import { Icon } from '../../../../shared/ui/icon/icon';
@@ -189,9 +190,11 @@ export class RichTextEditor implements ControlValueAccessor, AfterContentInit {
           mimetypes: [...API_LIMITS.image.types],
           handler: createQuillUploaderHandler(this.imagesApi, { onError }),
         },
+        table: true,
       },
     });
     preventInlineImages(quill);
+    enableTablePaste(quill);
 
     const root = quill.root;
     root.setAttribute('role', 'textbox');

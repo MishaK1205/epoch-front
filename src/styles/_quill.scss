@@ -264,4 +264,32 @@
     height: auto;
     border-radius: var(--radius-lg);
   }
+
+  // Quill tables have no `<thead>` / `<th>`: the first row is the header (bold text).
+  // The table scrolls sideways when its columns don't fit; `tbody` keeps the table layout.
+  table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    font-size: var(--text-base);
+    line-height: var(--line-height-normal);
+    table-layout: auto;
+    border-collapse: collapse;
+  }
+
+  tbody {
+    display: table;
+    width: 100%;
+  }
+
+  td {
+    min-width: var(--content-table-cell-min-width);
+    padding: var(--space-2) var(--space-3);
+    vertical-align: top;
+    border: var(--border-width) solid var(--color-border-strong);
+  }
+
+  tr:first-child td {
+    background: var(--color-surface-muted);
+  }
 }

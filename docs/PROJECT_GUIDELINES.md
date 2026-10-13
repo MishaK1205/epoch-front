@@ -174,6 +174,12 @@ something only one component needs — use a `computed()` signal in that compone
   only `import type Quill` at the top level). Quill's CSS is global (`angular.json` styles), and
   overrides live in `src/styles/_quill.scss` (not in component styles). Render stored article HTML
   inside `<div class="ql-editor">` so lists and content typography match the editor.
+- Tables: the editor enables Quill's `table` module and `enableTablePaste(quill)`
+  (`core/editor/quill-tables.ts`): pasted HTML tables keep `<th>` headers as bold cells, and
+  pasted Markdown tables are converted with `markdownTablesToHtml` (`shared/utils/markdown-table.ts`).
+  Quill only stores `table > tbody > tr > td[data-row]` (no `<th>`), so the content styles treat
+  the first row as the header. The backend allowlist must keep those tags. There is no
+  toolbar button for inserting or editing tables.
 
 ### Server-side rendering (SSR) and SEO
 
