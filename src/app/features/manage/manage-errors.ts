@@ -29,6 +29,37 @@ const TRANSLATIONS: Partial<Record<string, string>> = {
   'What? Where? When? category not found': 'კატეგორია ვერ მოიძებნა.',
   'A What? Where? When? category with this name already exists':
     'ამ სახელით კატეგორია უკვე არსებობს (დიდ და პატარა ასოებს არ აქვს მნიშვნელობა).',
+  'A flashcard category with this name already exists':
+    'ამ სახელით ფლეშბარათის კატეგორია უკვე არსებობს (დიდ და პატარა ასოებს არ აქვს მნიშვნელობა).',
+  'Flashcard category name must contain letters or numbers': 'სახელი უნდა შეიცავდეს ასოს ან ციფრს.',
+  'Parent flashcard category does not exist': 'მთავარი კატეგორია აღარ არსებობს. სია განახლდა.',
+  'Flashcard category does not exist': 'არჩეული კატეგორია აღარ არსებობს.',
+  'categoryId must be a top-level flashcard category; send the subcategory as subcategoryId':
+    'აირჩიეთ მთავარი კატეგორია (ქვეკატეგორია ცალკე ველშია).',
+  'Flashcard subcategory does not exist': 'არჩეული ქვეკატეგორია აღარ არსებობს.',
+  'Subcategory does not belong to the selected flashcard category':
+    'ქვეკატეგორია არჩეულ კატეგორიას არ ეკუთვნის.',
+  'Flashcard category not found': 'ფლეშბარათის კატეგორია ვერ მოიძებნა.',
+  'Flashcard not found': 'ფლეშბარათი ვერ მოიძებნა.',
+  'property parentId should not exist': 'მშობელი კატეგორიის შეცვლა შეუძლებელია.',
+  'front must be longer than or equal to 1 characters': 'წინა მხარე სავალდებულოა.',
+  'back must be longer than or equal to 1 characters': 'ფაქტი სავალდებულოა.',
+  'front must be shorter than or equal to 500 characters':
+    'წინა მხარე უნდა იყოს მაქსიმუმ 500 სიმბოლო.',
+  'back must be shorter than or equal to 2000 characters': 'ფაქტი უნდა იყოს მაქსიმუმ 2000 სიმბოლო.',
+  'note must be shorter than or equal to 2000 characters':
+    'შენიშვნა უნდა იყოს მაქსიმუმ 2000 სიმბოლო.',
+  'name must be longer than or equal to 2 characters': 'სახელი უნდა იყოს მინიმუმ 2 სიმბოლო.',
+  'name must be shorter than or equal to 50 characters': 'სახელი უნდა იყოს მაქსიმუმ 50 სიმბოლო.',
+  'direct requires category or categoryId of a top-level flashcard category':
+    'პირდაპირი ფილტრი მხოლოდ მთავარ კატეგორიასთან მუშაობს.',
+  'direct only applies to a top-level flashcard category':
+    'პირდაპირი ფილტრი ქვეკატეგორიაზე არ ვრცელდება.',
+  'direct cannot be combined with subcategoryId':
+    'პირდაპირი ფილტრი და ქვეკატეგორია ერთად ვერ გამოიყენება.',
+  'position must be an integer number': 'რიგითობა მთელი რიცხვი უნდა იყოს.',
+  'position must not be less than 0': 'რიგითობა მინიმუმ 0 უნდა იყოს.',
+  'position must not be greater than 1000000': 'რიგითობა მაქსიმუმ 1 000 000 უნდა იყოს.',
   'categoryId must be a mongodb id': 'კატეგორიის მნიშვნელობა არასწორია.',
   'name must be shorter than or equal to 100 characters': 'სახელი უნდა იყოს მაქსიმუმ 100 სიმბოლო.',
   'description must be shorter than or equal to 500 characters':
@@ -55,6 +86,10 @@ const TRANSLATIONS: Partial<Record<string, string>> = {
 const SUBCATEGORIES_CONFLICT = /^Category has (\d+) subcategory\(ies\)/;
 const ARTICLES_CONFLICT = /^Category is used by (\d+) article\(s\)/;
 const PACKAGES_CONFLICT = /^Category is used by (\d+) package\(s\)/;
+const FLASHCARD_SUBCATEGORIES_CONFLICT =
+  /^Flashcard category has (\d+) subcategory\(ies\); delete them first$/;
+const FLASHCARD_CARDS_CONFLICT =
+  /^Flashcard category is used by (\d+) flashcard\(s\); move or delete them first$/;
 
 const PATTERNS: readonly (readonly [RegExp, (match: RegExpMatchArray) => string])[] = [
   [
@@ -68,6 +103,14 @@ const PATTERNS: readonly (readonly [RegExp, (match: RegExpMatchArray) => string]
   [
     SUBCATEGORIES_CONFLICT,
     (match) => `კატეგორიას აქვს ${match[1]} ქვეკატეგორია. ჯერ ისინი წაშალეთ.`,
+  ],
+  [
+    FLASHCARD_SUBCATEGORIES_CONFLICT,
+    (match) => `კატეგორიას აქვს ${match[1]} ქვეკატეგორია. ჯერ ისინი წაშალეთ.`,
+  ],
+  [
+    FLASHCARD_CARDS_CONFLICT,
+    (match) => `კატეგორია გამოიყენება ${match[1]} ფლეშბარათში. ჯერ გადაიტანეთ ან წაშალეთ ისინი.`,
   ],
   [/^Content references images that do not exist/, () => 'ტექსტში ჩასმული სურათი აღარ არსებობს.'],
   [

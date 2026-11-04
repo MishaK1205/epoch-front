@@ -81,4 +81,22 @@ describe('getManageErrorMessages', () => {
   it('uses the generic message for non-HTTP errors', () => {
     expect(getManageErrorMessages(new Error('boom'))).toEqual([GENERIC_ERROR_MESSAGE]);
   });
+
+  it('translates flashcard category conflicts and the name clash', () => {
+    expect(
+      getManageErrorMessages(
+        httpError(409, 'Flashcard category has 2 subcategory(ies); delete them first'),
+      ),
+    ).toEqual(['კატეგორიას აქვს 2 ქვეკატეგორია. ჯერ ისინი წაშალეთ.']);
+    expect(
+      getManageErrorMessages(
+        httpError(409, 'Flashcard category is used by 4 flashcard(s); move or delete them first'),
+      ),
+    ).toEqual(['კატეგორია გამოიყენება 4 ფლეშბარათში. ჯერ გადაიტანეთ ან წაშალეთ ისინი.']);
+    expect(
+      getManageErrorMessages(httpError(409, 'A flashcard category with this name already exists')),
+    ).toEqual([
+      'ამ სახელით ფლეშბარათის კატეგორია უკვე არსებობს (დიდ და პატარა ასოებს არ აქვს მნიშვნელობა).',
+    ]);
+  });
 });

@@ -1,0 +1,121 @@
+<div class="toolbar">
+  <p class="decks__intro">დასტები კატეგორიების მიხედვით. ცნობილი / სულ — მხოლოდ თქვენი ანგარიში.</p>
+  <button
+    appButton
+    type="button"
+    variant="outline"
+    [disabled]="pending() || groups().length === 0"
+    [loading]="pending()"
+    (click)="askResetAll()"
+  >
+    ყველას განულება
+  </button>
+</div>
+
+<div class="alerts" aria-live="polite">
+  @if (successMessage()) {
+    <app-alert variant="success">{{ successMessage() }}</app-alert>
+  }
+  @if (actionErrors().length > 0) {
+    <app-alert variant="error">
+      @for (message of actionErrors(); track message) {
+        <p>{{ message }}</p>
+      }
+    </app-alert>
+  }
+</div>
+
+@if (categories.isLoading() && !categories.hasValue()) {
+  <div class="state"><app-spinner size="lg" /></div>
+} @else if (loadErrors().length > 0) {
+  <div class="state decks__error">
+    <app-alert variant="error">
+      @for (message of loadErrors(); track message) {
+        <p>{{ message }}</p>
+      }
+    </app-alert>
+    <button appButton type="button" variant="outline" (click)="retry()">სცადეთ თავიდან</button>
+  </div>
+} @else if (groups().length === 0) {
+  <app-empty-state
+    icon="book-open"
+    title="ფლეშბარათის კატეგორიები ჯერ არ არის."
+    description="ჯერ შექმენით კატეგორია, შემდეგ დაამატეთ ბარათები."
+  >
+    <a appButton variant="accent" [routerLink]="categoriesUrl">კატეგორიების გვერდი</a>
+  </app-empty-state>
+} @else {
+  <div class="decks" [class.list--loading]="categories.isLoading()">
+    @for (group of groups(); track group.category.id) {
+      <section class="deck-group" [attr.aria-labelledby]="'deck-' + group.category.id">
+        <header class="deck-group__head">
+          <div class="deck-group__titles">
+            <h2 class="deck-group__name" [id]="'deck-' + group.category.id">
+              {{ group.category.name }}
+            </h2>
+            @if (group.category.description) {
+              <p class="plain">{{ group.category.description }}</p>
+            }
+            <p class="deck-group__count">{{ group.known }} / {{ group.total }} ცნობილი</p>
+          </div>
+          <div class="deck-group__actions">
+            <a
+              appButton
+              variant="accent"
+              size="sm"
+              [routerLink]="newCardUrl"
+              [queryParams]="group.newCardParams"
+            >
+              <app-icon btnIconStart name="plus" [size]="16" />
+              ახალი ბარათი
+            </a>
+            <a appButton variant="ghost" size="sm" [routerLink]="categoriesUrl">რედაქტირება</a>
+          </div>
+        </header>
+        <ul class="deck-rows">
+          @for (row of group.rows; track row.id) {
+            <li class="deck-row">
+              <a class="deck-row__link" [routerLink]="studyUrl" [queryParams]="row.studyParams">
+                <span class="deck-row__name">
+                  @switch (row.kind) {
+                    @case ('direct') {
+                      ბარათები ამ კატეგორიაში
+                    }
+                    @case ('subcategory') {
+                      {{ row.name }}
+                    }
+                    @case ('all') {
+                      ყველას შესწავლა
+                    }
+                  }
+                </span>
+                <span class="deck-row__count">{{ row.known }} / {{ row.total }} ცნობილი</span>
+              </a>
+              @if (row.newCardParams; as params) {
+                <a
+                  appButton
+                  variant="ghost"
+                  size="sm"
+                  [routerLink]="newCardUrl"
+                  [queryParams]="params"
+                  [attr.aria-label]="'ახალი ბარათი: ' + row.name"
+                >
+                  <app-icon btnIconStart name="plus" [size]="16" />
+                  ახალი ბარათი
+                </a>
+              }
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  </div>
+}
+
+<app-confirm-dialog
+  #resetDialog
+  title="განულდეს ყველა პროგრესი?"
+  message="ყველა ფლეშბარათი თქვენთვის უცნობი გახდება. ბარათები არ იშლება."
+  confirmLabel="განულება"
+  (confirmed)="confirmResetAll()"
+/>

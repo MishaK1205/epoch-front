@@ -146,7 +146,8 @@ something only one component needs — use a `computed()` signal in that compone
   `ReadingListApi` (the user's saved / read lists under `/me/...`), `WhatWhereWhenApi`
   (admin-only "რა? სად? როდის?" quiz packages), `WhatWhereWhenCategoriesApi` (their flat
   categories at `/what-where-when-categories` — unrelated to the article `CategoriesApi`; never
-  mix the two).
+  mix the two), `FlashcardsApi` and `FlashcardCategoriesApi` (admin-only flashcards at
+  `/flashcards` and `/flashcard-categories` — unrelated to both; never mix them).
 - Saved / read toggles: use `ReadingListStore` (`core/services/reading-list-store.ts`), not
   `ReadingListApi` directly. It holds `savedIds` / `readIds` signals (filled on login, cleared on
   logout, instantiated eagerly in `app.config.ts`) and `toggleSaved(id)` / `toggleRead(id)`, which
@@ -445,6 +446,18 @@ Auth-only components live in `features/auth/components/`: `AuthCard` (split-scre
   `splitQuestions` (`www-question-import.ts`), uploads question images and appends the questions.
   Labels: `პასუხი:`, `ჩათვლა:` / `არ ჩაითვლება:` (kept in the answer), `კომენტარი:`; `წყარო:` /
   `ავტორი:` / "შესვენება" end a question. Pages / `.doc` are not parsed (ask for a Word export).
+- Flashcards (`/manage/flashcards`, admin only, `roleGuard('admin')`, tab "ფლეშბარათები"):
+  `FlashcardSection` links დასტები / ბარათები / კატეგორიები. Pages: `FlashcardDecks`,
+  `FlashcardCategories`, `FlashcardCards`, `FlashcardEditor` (`new` and `:id/edit`, static paths
+  before `:id`). `/manage/flashcards/study` redirects to `/flashcards`. Plain text only
+  (`front`, `back`, `note`): textareas, `{{ }}`, `white-space: pre-line` — never Quill or
+  `[innerHTML]`. A category has one level of subcategories; the parent is chosen only on create
+  and edit never sends `parentId`. Counts: a parent's `total*` already includes subcategories;
+  don't add them again. `direct` is sent only when `true`. `FlashcardsApi.progress()` calls
+  `GET /flashcards/progress` and never sends `page`, `limit` or `status`. Known/unknown is the
+  current admin only. There is no direct-only reset: that button says it resets the whole
+  category and sends `{ categoryId }`. Success messages use `app-alert` (there is no toast
+  service). `manage/**` is already client-rendered, so no new server route.
 - Package categories: `WwwCategories` (`/manage/what-where-when/categories`, declared before
   `:id`) with the inline `WwwCategoryForm`. A package has `category: { id, name } | null` and
   requests send `categoryId` (the editor always sends it; `null` = none / remove). The package
@@ -462,6 +475,13 @@ Auth-only components live in `features/auth/components/`: `AuthCard` (split-scre
   `?page=`, `?categoryId=` chips for categories that have packages) and `PackageQuestions`
   (`:id`, the package's questions + a link to the manage editor). The drawer shows its link
   ("თამაშები" section) only when `AuthService.isAdmin()`.
+- `/flashcards` (`features/flashcards`, same guard, client-rendered, `Disallow`ed in
+  `robots.txt`) is the flashcard page outside `/manage`. `FlashcardPlay` lists every category
+  in a side column (the category itself, then "ამ კატეგორიაში" and each subcategory when
+  there are children) and shows `FlashcardStudy` for the one you pick. The deck rows and the
+  study screen stay in the manage feature so the rules are not copied; this page imports
+  them. The drawer link is next to „რა? სად? როდის?“, admin only. Creating and editing stays
+  at `/manage/flashcards`.
 - `TagsInput` is the chip input for any `string[]` list: authors use it with `prefix=""`,
   `[lowercase]="false"`, their own `maxCount` / `maxLength` and accessible labels.
 - Calendar dates (`YYYY-MM-DD`, no time) are parsed and formatted in local time with

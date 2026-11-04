@@ -1,0 +1,99 @@
+.study__error {
+  gap: var(--space-4);
+}
+
+.study__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.study__back {
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: center;
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  border-radius: var(--radius-sm);
+
+  &:hover {
+    color: var(--color-accent-text);
+  }
+}
+
+.study__kicker {
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-accent-text);
+}
+
+.study__title {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.study__progress {
+  margin-top: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.study-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: var(--container-narrow);
+  padding: var(--space-6);
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+.study-card__meta {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+}
+
+.study-card__front,
+.study-card__back,
+.study-card__note {
+  margin: 0;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.study-card__front,
+.study-card__back {
+  font-family: var(--font-serif);
+  font-size: var(--text-xl);
+  line-height: var(--line-height-relaxed);
+}
+
+.study-card__back {
+  padding-top: var(--space-4);
+  border-top: var(--border-width) solid var(--color-border);
+}
+
+.study-card__note {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.study-card__actions,
+.study-card__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.study-card__hint {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-subtle);
+}

@@ -1,0 +1,27 @@
+<nav class="chips" aria-label="ფლეშბარათები">
+  <a
+    class="chip"
+    [routerLink]="decksUrl"
+    routerLinkActive="is-active"
+    [routerLinkActiveOptions]="{ exact: true }"
+    ariaCurrentWhenActive="page"
+    >დასტები</a
+  >
+  <a
+    class="chip"
+    [routerLink]="cardsUrl"
+    routerLinkActive="is-active"
+    [routerLinkActiveOptions]="{ exact: true }"
+    ariaCurrentWhenActive="page"
+    >ბარათები</a
+  >
+  <a
+    class="chip"
+    [routerLink]="categoriesUrl"
+    routerLinkActive="is-active"
+    [routerLinkActiveOptions]="{ exact: true }"
+    ariaCurrentWhenActive="page"
+    >კატეგორიები</a
+  >
+</nav>
+<router-outlet />

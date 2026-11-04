@@ -1,0 +1,193 @@
+@if (loading()) {
+  <div class="state"><app-spinner size="lg" /></div>
+} @else if (loadErrors().length > 0) {
+  <div class="state study__error">
+    <app-alert variant="error">
+      @for (message of loadErrors(); track message) {
+        <p>{{ message }}</p>
+      }
+    </app-alert>
+    <button appButton type="button" variant="outline" (click)="retry()">სცადეთ თავიდან</button>
+  </div>
+} @else if (deckMissing()) {
+  <app-empty-state
+    icon="book-open"
+    title="ეს დასტა არ არსებობს."
+    description="დაბრუნდით დასტების სიაში."
+  >
+    <a appButton variant="outline" [routerLink]="homeUrl()">
+      <app-icon btnIconStart name="chevron-left" [size]="18" />
+      {{ embedded() ? 'კატეგორიები' : 'დასტები' }}
+    </a>
+  </app-empty-state>
+} @else if (deck(); as deck) {
+  <header class="study__head">
+    <div>
+      @if (!embedded()) {
+        <a class="study__back" [routerLink]="homeUrl()">
+          <app-icon name="chevron-left" [size]="16" />
+          დასტები
+        </a>
+      }
+      <p class="study__kicker">{{ deck.kicker }}</p>
+      <h2 class="study__title">{{ deck.title }}</h2>
+      @if (progressValue(); as progress) {
+        <p class="study__progress">
+          {{ progress.known }} ცნობილი · {{ progress.unknown }} უცნობი · {{ progress.total }} სულ
+        </p>
+      }
+    </div>
+    @if ((progressValue()?.total ?? 0) > 0) {
+      <button
+        appButton
+        type="button"
+        variant="outline"
+        size="sm"
+        [disabled]="pending() !== null"
+        [loading]="pending() === 'reset'"
+        (click)="askReset()"
+      >
+        {{ deck.resetLabel }}
+      </button>
+    }
+  </header>
+
+  <nav class="chips" aria-label="რიგი">
+    @for (item of queues; track item.value) {
+      <a
+        class="chip"
+        routerLink="."
+        [class.is-active]="queue() === item.value"
+        [attr.aria-current]="queue() === item.value ? 'page' : null"
+        [queryParams]="{ queue: item.value === 'unknown' ? null : item.value, page: null }"
+        queryParamsHandling="merge"
+        >{{ item.label }}</a
+      >
+    }
+  </nav>
+
+  <div class="alerts" aria-live="polite">
+    @if (successMessage()) {
+      <app-alert variant="success">{{ successMessage() }}</app-alert>
+    }
+    @if (actionErrors().length > 0) {
+      <app-alert variant="error">
+        @for (message of actionErrors(); track message) {
+          <p>{{ message }}</p>
+        }
+      </app-alert>
+    }
+  </div>
+
+  @if (emptyDeck()) {
+    <app-empty-state
+      icon="book-open"
+      title="ამ დასტაში ბარათები ჯერ არ არის."
+      description="შექმენით პირველი ბარათი ამ კატეგორიაში."
+    >
+      <a appButton variant="accent" [routerLink]="newCardUrl" [queryParams]="deck.newCardParams">
+        <app-icon btnIconStart name="plus" [size]="18" />
+        ახალი ბარათი
+      </a>
+    </app-empty-state>
+  } @else if (finishedUnknown()) {
+    <app-empty-state
+      icon="check-circle"
+      title="ამ დასტის ყველა ბარათი იცით."
+      [description]="deck.resetConfirm"
+    >
+      <button
+        appButton
+        type="button"
+        variant="accent"
+        [disabled]="pending() !== null"
+        [loading]="pending() === 'reset'"
+        (click)="askReset()"
+      >
+        {{ deck.resetLabel }}
+      </button>
+    </app-empty-state>
+  } @else if (!card()) {
+    <app-empty-state icon="search" [title]="emptyQueueMessage()" />
+  } @else if (card(); as card) {
+    <article class="study-card" aria-live="polite">
+      <p class="study-card__meta">ბარათი {{ queuePosition() }} / {{ queueTotal() }}</p>
+      <p class="study-card__front">{{ card.front }}</p>
+      @if (revealed()) {
+        <p class="study-card__back">{{ card.back }}</p>
+        @if (card.note) {
+          <p class="study-card__note">{{ card.note }}</p>
+        }
+        <div class="study-card__actions">
+          <button
+            appButton
+            type="button"
+            variant="accent"
+            [disabled]="pending() !== null"
+            [loading]="pending() === 'known'"
+            (click)="know()"
+          >
+            <app-icon btnIconStart name="check" [size]="18" />
+            ვიცი
+          </button>
+          <button
+            appButton
+            type="button"
+            variant="outline"
+            [disabled]="pending() !== null"
+            [loading]="pending() === 'unknown'"
+            (click)="stillLearning()"
+          >
+            ჯერ ვსწავლობ
+          </button>
+        </div>
+      } @else {
+        <button appButton type="button" variant="accent" (click)="reveal()">პასუხის ჩვენება</button>
+      }
+      <p class="study-card__hint">Space ან Enter აჩვენებს პასუხს. ისრები გადაადგილებს.</p>
+    </article>
+    <div class="study-card__nav">
+      <button appButton type="button" variant="ghost" size="sm" (click)="previous()">
+        <app-icon btnIconStart name="chevron-left" [size]="16" />
+        წინა
+      </button>
+      <button appButton type="button" variant="ghost" size="sm" (click)="next()">
+        შემდეგი
+        <app-icon btnIconEnd name="chevron-right" [size]="16" />
+      </button>
+      <a appButton variant="ghost" size="sm" [routerLink]="['/manage/flashcards', card.id, 'edit']">
+        <app-icon btnIconStart name="edit" [size]="16" />
+        რედაქტირება
+      </a>
+      <button
+        appButton
+        type="button"
+        variant="danger-ghost"
+        size="sm"
+        [disabled]="pending() !== null"
+        [loading]="pending() === 'delete'"
+        (click)="askDelete(card)"
+      >
+        <app-icon btnIconStart name="trash" [size]="16" />
+        წაშლა
+      </button>
+    </div>
+    <app-pagination [page]="page()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
+  }
+}
+
+<app-confirm-dialog
+  #resetDialog
+  title="განულდეს ეს დასტა?"
+  [message]="deck()?.resetConfirm ?? ''"
+  confirmLabel="განულება"
+  (confirmed)="confirmReset()"
+/>
+<app-confirm-dialog
+  #deleteDialog
+  title="წავშალოთ ფლეშბარათი?"
+  [message]="deleteMessage()"
+  confirmLabel="წაშლა"
+  danger
+  (confirmed)="confirmDelete()"
+/>

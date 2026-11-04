@@ -16,7 +16,8 @@ import {
 import { ControlState } from '../form-control/control-state';
 import { Icon } from '../icon/icon';
 
-export type InputFieldType = 'text' | 'email' | 'password' | 'search' | 'tel' | 'url' | 'date';
+export type InputFieldType =
+  'text' | 'email' | 'password' | 'search' | 'tel' | 'url' | 'date' | 'number';
 
 let nextId = 0;
 
@@ -43,6 +44,10 @@ export class InputField implements ControlValueAccessor, AfterContentInit {
   readonly autocomplete = input('off');
   readonly hint = input('');
   readonly maxlength = input<number | null>(null);
+  /** `type="number"` bounds. The control value stays a string (the input's value). */
+  readonly min = input<number | null>(null);
+  readonly max = input<number | null>(null);
+  readonly step = input<number | null>(null);
   readonly errorMessages = input<ValidationMessageOverrides>({});
 
   protected readonly id = `app-input-field-${nextId++}`;

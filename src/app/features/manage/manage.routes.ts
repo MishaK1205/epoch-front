@@ -1,7 +1,13 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { CanActivateFn, Router, Routes } from '@angular/router';
 import { roleGuard } from '../../core/auth/role-guard';
+import { FlashcardSection } from './components/flashcard-section/flashcard-section';
 import { ManageShell } from './components/manage-shell/manage-shell';
 import { unsavedChangesGuard } from './unsaved-changes-guard';
+
+/** The study screen lives at `/flashcards`. Keep the old manage URL working. */
+const redirectToFlashcardPlay: CanActivateFn = (route) =>
+  inject(Router).createUrlTree(['/flashcards'], { queryParams: route.queryParams });
 
 export const MANAGE_ROUTES: Routes = [
   {
@@ -82,6 +88,53 @@ export const MANAGE_ROUTES: Routes = [
               import('./pages/www-package-editor/www-package-editor').then(
                 (m) => m.WwwPackageEditor,
               ),
+          },
+        ],
+      },
+      {
+        path: 'flashcards',
+        canActivate: [roleGuard('admin')],
+        component: FlashcardSection,
+        children: [
+          {
+            path: '',
+            title: 'ფლეშბარათები — Epoch',
+            loadComponent: () =>
+              import('./pages/flashcard-decks/flashcard-decks').then((m) => m.FlashcardDecks),
+          },
+          {
+            path: 'categories',
+            title: 'ფლეშბარათის კატეგორიები — Epoch',
+            loadComponent: () =>
+              import('./pages/flashcard-categories/flashcard-categories').then(
+                (m) => m.FlashcardCategories,
+              ),
+          },
+          {
+            path: 'cards',
+            title: 'ფლეშბარათები — ბარათები — Epoch',
+            loadComponent: () =>
+              import('./pages/flashcard-cards/flashcard-cards').then((m) => m.FlashcardCards),
+          },
+          {
+            path: 'new',
+            title: 'ახალი ფლეშბარათი — Epoch',
+            canDeactivate: [unsavedChangesGuard],
+            loadComponent: () =>
+              import('./pages/flashcard-editor/flashcard-editor').then((m) => m.FlashcardEditor),
+          },
+          {
+            path: 'study',
+            canActivate: [redirectToFlashcardPlay],
+            loadComponent: () =>
+              import('./pages/flashcard-study/flashcard-study').then((m) => m.FlashcardStudy),
+          },
+          {
+            path: ':id/edit',
+            title: 'ფლეშბარათის რედაქტირება — Epoch',
+            canDeactivate: [unsavedChangesGuard],
+            loadComponent: () =>
+              import('./pages/flashcard-editor/flashcard-editor').then((m) => m.FlashcardEditor),
           },
         ],
       },

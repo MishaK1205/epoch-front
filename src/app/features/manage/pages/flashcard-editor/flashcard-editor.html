@@ -1,0 +1,132 @@
+@if (loading()) {
+  <div class="editor__state"><app-spinner size="lg" /></div>
+} @else if (deleted()) {
+  <div class="editor__state">
+    <app-alert variant="error">{{ deletedMessage }}</app-alert>
+    <a appButton variant="outline" [routerLink]="cardsUrl">
+      <app-icon btnIconStart name="chevron-left" [size]="18" />
+      ბარათების სიაში დაბრუნება
+    </a>
+  </div>
+} @else if (cardErrors().length > 0) {
+  <div class="editor__state">
+    <app-alert variant="error">
+      @for (message of cardErrors(); track message) {
+        <p>{{ message }}</p>
+      }
+    </app-alert>
+    <a appButton variant="outline" [routerLink]="cardsUrl">
+      <app-icon btnIconStart name="chevron-left" [size]="18" />
+      ბარათების სიაში დაბრუნება
+    </a>
+  </div>
+} @else {
+  <form class="editor" [formGroup]="form" (ngSubmit)="save()" novalidate>
+    <a class="editor__back" [routerLink]="cardsUrl">
+      <app-icon name="chevron-left" [size]="16" />
+      ყველა ბარათი
+    </a>
+
+    <div class="alerts" aria-live="polite">
+      @if (successMessage()) {
+        <app-alert variant="success">{{ successMessage() }}</app-alert>
+      }
+      @if (serverErrors().length > 0) {
+        <app-alert variant="error">
+          @for (message of serverErrors(); track message) {
+            <p>{{ message }}</p>
+          }
+        </app-alert>
+      }
+      @if (categoryErrors().length > 0) {
+        <app-alert variant="error">
+          @for (message of categoryErrors(); track message) {
+            <p>{{ message }}</p>
+          }
+          <p class="editor__retry">
+            <button appButton type="button" variant="outline" size="sm" (click)="retryCategories()">
+              სცადეთ თავიდან
+            </button>
+          </p>
+        </app-alert>
+      }
+    </div>
+
+    <app-textarea-field
+      formControlName="front"
+      label="წინა მხარე"
+      hint="კითხვა, რომელიც ჯერ ჩანს."
+      [rows]="3"
+      [maxlength]="limits.front.max"
+      showCount
+    />
+    <app-textarea-field
+      formControlName="back"
+      label="ფაქტი"
+      hint="პასუხი, რომელიც გადაბრუნებისას ჩანს."
+      [rows]="4"
+      [maxlength]="limits.back.max"
+      showCount
+    />
+    <app-textarea-field
+      formControlName="note"
+      label="შენიშვნა"
+      hint="არასავალდებულო. ფაქტთან ერთად ჩანს."
+      [rows]="3"
+      [maxlength]="limits.note.max"
+      showCount
+    />
+
+    <app-select
+      formControlName="categoryId"
+      label="კატეგორია"
+      placeholder="აირჩიეთ კატეგორია"
+      [options]="categoryOptions()"
+      (selectionChange)="onCategoryPicked($event)"
+    />
+    @if (categoryOptions().length === 0 && categoryErrors().length === 0) {
+      <p class="editor__hint">
+        ჯერ შექმენით კატეგორია.
+        <a class="editor__link" [routerLink]="categoriesUrl">კატეგორიების მართვა</a>
+      </p>
+    }
+    @if (subcategoryOptions().length > 0) {
+      <app-select
+        formControlName="subcategoryId"
+        label="ქვეკატეგორია"
+        emptyLabel="არცერთი"
+        hint="არასავალდებულო. ცარიელი ნიშნავს, რომ ბარათი პირდაპირ კატეგორიაშია."
+        [options]="subcategoryOptions()"
+        [errorMessages]="{ subcategory: 'ქვეკატეგორია არჩეულ კატეგორიას არ ეკუთვნის.' }"
+      />
+    }
+    @if (!isNew()) {
+      <app-input-field
+        formControlName="position"
+        type="number"
+        label="რიგითობა"
+        hint="პატარა რიცხვი ამ კატეგორიაში წინ დგას. სხვა ბარათების რიგითობა არ იცვლება."
+        [min]="limits.position.min"
+        [max]="limits.position.max"
+        [step]="1"
+        [errorMessages]="positionErrors"
+      />
+    }
+
+    <div class="editor__actions">
+      <button appButton type="submit" [loading]="busy()" [disabled]="busy()">შენახვა</button>
+      <a appButton variant="ghost" [routerLink]="cardsUrl">გაუქმება</a>
+    </div>
+  </form>
+}
+
+<app-confirm-dialog
+  #leaveDialog
+  title="შეუნახავი ცვლილებები"
+  message="ცვლილებები არ არის შენახული. დატოვებთ გვერდს მათი შენახვის გარეშე?"
+  confirmLabel="გასვლა"
+  cancelLabel="დარჩენა"
+  danger
+  (confirmed)="resolveLeave(true)"
+  (cancelled)="resolveLeave(false)"
+/>

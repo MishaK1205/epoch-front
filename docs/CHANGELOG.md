@@ -22,6 +22,88 @@ After finishing every task, **add a new entry at the top** using the template be
 
 ---
 
+## 2026-11-04 — Flashcards page outside manage
+
+**Task:** Add a flashcards page that is not the admin screen, with the categories listed so
+one can be chosen and studied.
+
+**Changes:**
+
+- Added `features/flashcards/flashcards.routes.ts` — `/flashcards`, `roleGuard('admin')`.
+- Added `features/flashcards/pages/flashcard-play/` — category list beside the deck. The
+  category opens every card in it; children are listed under it.
+- Modified `features/manage/pages/flashcard-study/` — can sit inside that page (`embedded`)
+  and tells the list to refresh counts after a mark, reset or delete.
+- Modified `features/manage/manage.routes.ts` — `/manage/flashcards/study` redirects to
+  `/flashcards` and keeps the query.
+- Modified `features/manage/pages/flashcard-decks/flashcard-decks.ts` — study links go to
+  `/flashcards`.
+- Modified `app.routes.ts`, `app.routes.server.ts`, `public/robots.txt` — register the page,
+  render it in the browser, disallow it for crawlers.
+- Modified `core/layout/site-header/site-header.html` — drawer link „ფლეშბარათები“ under
+  თამაშები, admin only.
+- Modified `docs/PROJECT_GUIDELINES.md` — `/flashcards` is the browsing page; manage stays
+  for creating and editing.
+
+**Notes:** The page reuses `FlashcardStudy` and the deck-row helper from the manage feature
+so those rules are not copied. Creating and editing stays at `/manage/flashcards`.
+
+---
+
+## 2026-11-04 — Admin flashcards
+
+**Task:** Add the admin-only flashcards area: typed models, two API clients, and pages to
+manage the category tree, edit cards, and study a deck.
+
+**Changes:**
+
+- Added `core/api/flashcards/flashcards.models.ts` — request and response types matching the
+  flashcards JSON (`Flashcard`, `FlashcardCategory`, progress, reset).
+- Added `core/api/flashcards/flashcard-categories-api.ts` (+ spec) — `FlashcardCategoriesApi`
+  for `/flashcard-categories` (list, getBySlug with an encoded slug, create, update, delete).
+- Added `core/api/flashcards/flashcards-api.ts` (+ spec) — `FlashcardsApi` for `/flashcards`.
+  `progress()` calls `/flashcards/progress` and drops `page`, `limit` and `status`. `direct` is
+  sent only when it is `true`.
+- Modified `core/api/api-limits.ts` — `API_LIMITS.flashcard`.
+- Modified `core/api/index.ts` — exports the new API and models.
+- Modified `shared/ui/input-field/` — `type="number"` plus `min` / `max` / `step` (the control
+  value stays a string). Used for a card's position.
+- Added `features/manage/components/flashcard-section/` — admin sub-nav: დასტები, ბარათები,
+  კატეგორიები.
+- Added `features/manage/components/flashcard-category-form/` (+ request spec) — create a
+  category, create a subcategory under a top-level parent, or edit name/description only.
+- Added `features/manage/pages/flashcard-decks/` (+ row spec) — nested decks. Direct / subcategory
+  / study-all counts come from the matching fields and are not added together. Reset all sends `{}`.
+- Added `features/manage/pages/flashcard-categories/` — tree, create, edit, delete blocked while
+  subcategories or cards remain; name conflicts shown on the name field.
+- Added `features/manage/pages/flashcard-cards/` — filters, pagination (20), delete.
+- Added `features/manage/pages/flashcard-editor/` (+ form spec) — plain-text create/edit, dependent
+  subcategory, no `position` on create, `subcategoryId: null` clears it, unsaved-changes guard.
+- Added `features/manage/pages/flashcard-study/` (+ deck spec) — front, reveal, „ვიცი“ /
+  „ჯერ ვსწავლობ“, unknown/known/all queues, progress header, reset with the deck's body.
+- Modified `features/manage/manage.routes.ts` — `/manage/flashcards` behind `roleGuard('admin')`;
+  `categories`, `cards`, `new` and `study` before `:id/edit`. Study without a deck id returns to
+  the deck list.
+- Modified `features/manage/components/manage-shell/` — admin-only „ფლეშბარათები“ tab.
+- Modified `features/manage/manage-errors.ts` (+ spec) — Georgian messages for flashcard errors,
+  including the 409 delete conflicts.
+- Modified `features/manage/manage-labels.ts` — URLs, the created-card navigation flag, reset and
+  delete copy.
+- Modified `docs/PROJECT_GUIDELINES.md` — flashcards are a separate resource from article
+  categories and from „რა? სად? როდის?“.
+
+**Notes:** Routes are `/manage/flashcards`, not `/admin/flashcards`, and the clients are
+`FlashcardCategoriesApi` / `FlashcardsApi` (the project's `*Api` names). UI copy is Georgian.
+There is no toast service, so success text is an `app-alert`, including „განულდა N ბარათი.“
+and „ფლეშბარათი შეიქმნა.“ `manage/**` was already client-rendered and disallowed in
+`robots.txt`, so those files were left as they are. `ng build` passes and `ng test` is 193.
+Checked in the browser on a logged-in admin: decks, category create, subcategory under a
+top-level parent, card create, study (reveal, „ვიცი“, subcategory reset), delete blocked
+while cards or subcategories remain, then the temporary category was removed. A missing
+deck id shows „ეს დასტა არ არსებობს.“ Study without a deck id returns to the deck list.
+
+---
+
 ## 2026-10-13 — Tables in article content
 
 **Task:** A Markdown table pasted into the article editor (Quill) was not saved as a table.

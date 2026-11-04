@@ -33,6 +33,24 @@ export const WWW_PACKAGE_DELETED_STATE_KEY = 'wwwPackageDeleted';
 export const WWW_PACKAGES_URL = '/manage/what-where-when';
 export const WWW_CATEGORIES_URL = '/manage/what-where-when/categories';
 
+export const FLASHCARD_DECKS_URL = '/manage/flashcards';
+export const FLASHCARD_CARDS_URL = '/manage/flashcards/cards';
+export const FLASHCARD_CATEGORIES_URL = '/manage/flashcards/categories';
+
+/** Navigation state flag set after creating a card, so the list can confirm it. */
+export const FLASHCARD_CREATED_STATE_KEY = 'flashcardCreated';
+
+/** Success text for `POST /flashcards/reset`. `0` is a successful no-op. */
+export function flashcardsResetMessage(count: number): string {
+  return `განულდა ${count} ბარათი.`;
+}
+
+/** Confirm-dialog text for deleting a card (it is removed for every admin). */
+export function flashcardDeleteMessage(front: string): string {
+  const preview = front.length > 80 ? `${front.slice(0, 80)}…` : front;
+  return `„${preview}“ სამუდამოდ წაიშლება ყველა ადმინისთვის. ამ მოქმედების გაუქმება შეუძლებელია.`;
+}
+
 /** Confirm-dialog text for deleting a package (list and view pages). */
 export function wwwPackageDeleteMessage(name: string): string {
   return `„${name}“ სამუდამოდ წაიშლება. ამ მოქმედების გაუქმება შეუძლებელია. მასში გამოყენებული სურათები დარჩება.`;

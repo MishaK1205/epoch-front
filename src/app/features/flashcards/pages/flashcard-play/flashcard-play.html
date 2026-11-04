@@ -1,0 +1,98 @@
+<header class="page-heading">
+  <p class="page-heading__kicker">თამაში</p>
+  <h1 class="page-heading__title">ფლეშბარათები</h1>
+  <p class="page-heading__description">
+    აირჩიეთ კატეგორია. ცნობილი / სულ — მხოლოდ თქვენი ანგარიში.
+  </p>
+  <a class="play__manage" appButton variant="ghost" size="sm" routerLink="/manage/flashcards">
+    <app-icon btnIconStart name="settings" [size]="16" />
+    მართვა
+  </a>
+</header>
+
+<div class="play">
+  @if (categories.isLoading() && !categories.hasValue()) {
+    <div class="feed-state"><app-spinner size="lg" /></div>
+  } @else if (loadErrors().length > 0) {
+    <div class="feed-state play__error">
+      <app-alert variant="error">
+        @for (message of loadErrors(); track message) {
+          <p>{{ message }}</p>
+        }
+      </app-alert>
+      <button appButton type="button" variant="outline" (click)="retry()">სცადეთ თავიდან</button>
+    </div>
+  } @else if (groups().length === 0) {
+    <app-empty-state
+      icon="book-open"
+      title="ფლეშბარათის კატეგორიები ჯერ არ არის."
+      description="ჯერ შექმენით კატეგორია მართვის გვერდზე."
+    >
+      <a appButton variant="accent" routerLink="/manage/flashcards/categories"
+        >კატეგორიების გვერდი</a
+      >
+    </app-empty-state>
+  } @else {
+    <div class="play__layout" [class.play__layout--loading]="categories.isLoading()">
+      <nav class="play__nav" aria-label="კატეგორიები">
+        @for (group of groups(); track group.category.id) {
+          <section class="play__group">
+            <a
+              class="play__category"
+              routerLink="/flashcards"
+              [queryParams]="{ categoryId: group.category.id }"
+              [class.is-active]="currentRowId() === group.category.id + ':all'"
+              [attr.aria-current]="currentRowId() === group.category.id + ':all' ? 'page' : null"
+            >
+              <span class="play__name">{{ group.category.name }}</span>
+              <span class="play__count">{{ group.known }} / {{ group.total }}</span>
+            </a>
+            @if (group.category.description) {
+              <p class="play__description">{{ group.category.description }}</p>
+            }
+            @if (nestedRows(group); as rows) {
+              @if (rows.length > 0 && group.category.subcategories.length > 0) {
+                <ul class="play__rows">
+                  @for (row of rows; track row.id) {
+                    <li>
+                      <a
+                        class="play__row"
+                        routerLink="/flashcards"
+                        [queryParams]="row.studyParams"
+                        [class.is-active]="currentRowId() === row.id"
+                        [attr.aria-current]="currentRowId() === row.id ? 'page' : null"
+                      >
+                        <span class="play__name">{{ rowLabel(row) }}</span>
+                        <span class="play__count">{{ row.known }} / {{ row.total }}</span>
+                      </a>
+                    </li>
+                  }
+                </ul>
+              }
+            }
+          </section>
+        }
+      </nav>
+
+      <div class="play__main">
+        @if (deckSelected()) {
+          <app-flashcard-study
+            [embedded]="true"
+            [categoryId]="categoryId()"
+            [subcategoryId]="subcategoryId()"
+            [direct]="direct()"
+            [page]="page()"
+            [queue]="queue()"
+            (deckChanged)="categories.reload()"
+          />
+        } @else {
+          <app-empty-state
+            icon="book-open"
+            title="აირჩიეთ კატეგორია."
+            description="სიიდან აირჩიეთ დასტა, რომ ბარათები ნახოთ."
+          />
+        }
+      </div>
+    </div>
+  }
+</div>

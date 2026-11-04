@@ -17,5 +17,6 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'me/**', renderMode: RenderMode.Client },
   { path: 'what-where-when', renderMode: RenderMode.Client },
   { path: 'what-where-when/**', renderMode: RenderMode.Client },
+  { path: 'flashcards', renderMode: RenderMode.Client },
   { path: '**', renderMode: RenderMode.Server, status: 404 },
 ];

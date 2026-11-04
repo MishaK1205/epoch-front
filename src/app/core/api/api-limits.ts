@@ -30,4 +30,13 @@ export const API_LIMITS = {
     categoryName: { min: 1, max: 100 },
     categoryDescription: { max: 500 },
   },
+  /** Admin flashcards. Text lengths are after trimming. */
+  flashcard: {
+    front: { min: 1, max: 500 },
+    back: { min: 1, max: 2000 },
+    note: { max: 2000 },
+    position: { min: 0, max: 1_000_000 },
+    categoryName: { min: 2, max: 50 },
+    categoryDescription: { max: 500 },
+  },
 } as const;

@@ -1,0 +1,57 @@
+<form
+  class="category-form"
+  [formGroup]="form"
+  (ngSubmit)="submit()"
+  (keydown.escape)="cancelled.emit()"
+  novalidate
+>
+  @if (category(); as current) {
+    <p class="category-form__parent">
+      @if (current.parent; as parent) {
+        ქვეკატეგორია. მთავარი კატეგორია: <strong>{{ parent.name }}</strong> (ვერ შეიცვლება)
+      } @else {
+        ზედა დონის კატეგორია
+      }
+    </p>
+  } @else if (requireParent()) {
+    <app-select
+      formControlName="parentId"
+      label="მთავარი კატეგორია"
+      placeholder="აირჩიეთ კატეგორია"
+      hint="ქვეკატეგორიის მშობელი მხოლოდ ახლა ირჩევა და მერე ვეღარ შეიცვლება."
+      [options]="parentOptions()"
+    />
+  }
+
+  <app-input-field
+    formControlName="name"
+    label="სახელი"
+    placeholder="მაგ.: ისტორია"
+    [maxlength]="limits.categoryName.max"
+  />
+  <app-textarea-field
+    formControlName="description"
+    label="აღწერა"
+    hint="არასავალდებულო."
+    [rows]="3"
+    [maxlength]="limits.categoryDescription.max"
+    showCount
+  />
+  <div class="category-form__actions">
+    <button appButton type="submit" [loading]="pending()" [disabled]="pending()">
+      @if (!editing()) {
+        <app-icon btnIconStart name="plus" [size]="18" />
+      }
+      {{ editing() ? 'შენახვა' : requireParent() ? 'ქვეკატეგორიის დამატება' : 'დამატება' }}
+    </button>
+    <button
+      appButton
+      type="button"
+      variant="ghost"
+      [disabled]="pending()"
+      (click)="cancelled.emit()"
+    >
+      გაუქმება
+    </button>
+  </div>
+</form>

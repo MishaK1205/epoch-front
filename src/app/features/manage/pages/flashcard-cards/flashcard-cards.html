@@ -1,0 +1,169 @@
+<div class="toolbar">
+  <div class="filters">
+    <app-select
+      class="filters__select"
+      label="კატეგორია"
+      hideLabel
+      emptyLabel="ყველა კატეგორია"
+      [formControl]="categoryFilter"
+      [options]="categoryOptions()"
+      (selectionChange)="filterByCategory($event)"
+    />
+    @if (effectiveCategoryId() || subcategoryOptions().length > 0) {
+      <app-select
+        class="filters__select"
+        label="ქვეკატეგორია"
+        hideLabel
+        emptyLabel="ყველა ქვეკატეგორია"
+        [formControl]="subcategoryFilter"
+        [options]="subcategoryOptions()"
+        (selectionChange)="filterBySubcategory($event)"
+      />
+    }
+  </div>
+  <a appButton variant="accent" [routerLink]="newCardUrl" [queryParams]="newCardParams()">
+    <app-icon btnIconStart name="plus" [size]="18" />
+    ახალი ბარათი
+  </a>
+</div>
+
+<nav class="chips" aria-label="სტატუსის ფილტრი">
+  @for (filter of statusFilters; track filter.value) {
+    <a
+      class="chip"
+      routerLink="."
+      [class.is-active]="status() === filter.value"
+      [attr.aria-current]="status() === filter.value ? 'page' : null"
+      [queryParams]="{ status: filter.value === 'all' ? null : filter.value, page: null }"
+      queryParamsHandling="merge"
+      >{{ filter.label }}</a
+    >
+  }
+</nav>
+
+<div class="alerts" aria-live="polite">
+  @if (unknownCategory()) {
+    <app-alert variant="info">
+      <p>ეს კატეგორია აღარ არსებობს ან ბმული არასწორია.</p>
+      <p class="conflict-action">
+        <button appButton type="button" variant="outline" size="sm" (click)="filterByCategory('')">
+          ფილტრის მოხსნა
+        </button>
+      </p>
+    </app-alert>
+  }
+  @if (successMessage()) {
+    <app-alert variant="success">{{ successMessage() }}</app-alert>
+  }
+  @if (actionErrors().length > 0) {
+    <app-alert variant="error">
+      @for (message of actionErrors(); track message) {
+        <p>{{ message }}</p>
+      }
+    </app-alert>
+  }
+</div>
+
+@if (cards.isLoading() && !cards.hasValue()) {
+  <div class="state"><app-spinner size="lg" /></div>
+} @else if (loadErrors().length > 0) {
+  <div class="state cards__error">
+    <app-alert variant="error">
+      @for (message of loadErrors(); track message) {
+        <p>{{ message }}</p>
+      }
+    </app-alert>
+    <button appButton type="button" variant="outline" (click)="retry()">სცადეთ თავიდან</button>
+  </div>
+} @else if (items().length === 0) {
+  @if (filtered()) {
+    <app-empty-state icon="search" title="ამ ფილტრს ბარათი არ შეესაბამება.">
+      <button appButton type="button" variant="outline" (click)="clearFilters()">
+        ფილტრის მოხსნა
+      </button>
+    </app-empty-state>
+  } @else {
+    <app-empty-state
+      icon="book-open"
+      title="ფლეშბარათები ჯერ არ არის."
+      description="შექმენით პირველი ბარათი."
+    >
+      <a appButton variant="accent" [routerLink]="newCardUrl">
+        <app-icon btnIconStart name="plus" [size]="18" />
+        ახალი ბარათი
+      </a>
+    </app-empty-state>
+  }
+} @else {
+  <div class="table-wrap">
+    <table class="table" [class.list--loading]="cards.isLoading()">
+      <caption class="visually-hidden">
+        ფლეშბარათები
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">წინა მხარე</th>
+          <th scope="col">ფაქტი</th>
+          <th scope="col">კატეგორია</th>
+          <th scope="col">ქვეკატეგორია</th>
+          <th scope="col">ცნობილი</th>
+          <th scope="col">რიგითობა</th>
+          <th scope="col">მოქმედება</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (card of items(); track card.id) {
+          <tr [attr.aria-busy]="pendingId() === card.id || null">
+            <th scope="row" class="plain">{{ card.front }}</th>
+            <td class="plain clamp">{{ card.back }}</td>
+            <td>{{ card.category?.name ?? '—' }}</td>
+            <td>{{ card.subcategory?.name ?? '—' }}</td>
+            <td>
+              @if (card.known) {
+                <app-badge variant="success">კი</app-badge>
+              } @else {
+                <app-badge variant="neutral">არა</app-badge>
+              }
+            </td>
+            <td class="table__muted">{{ card.position }}</td>
+            <td class="table__actions">
+              <a
+                appButton
+                variant="ghost"
+                size="sm"
+                [routerLink]="['/manage/flashcards', card.id, 'edit']"
+                [attr.aria-label]="'რედაქტირება: ' + card.front"
+              >
+                <app-icon btnIconStart name="edit" [size]="16" />
+                რედაქტირება
+              </a>
+              <button
+                appButton
+                type="button"
+                variant="danger-ghost"
+                size="sm"
+                [disabled]="pendingId() !== null"
+                [loading]="pendingId() === card.id"
+                [attr.aria-label]="'წაშლა: ' + card.front"
+                (click)="askDelete(card)"
+              >
+                <app-icon btnIconStart name="trash" [size]="16" />
+                წაშლა
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <app-pagination [page]="page()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
+}
+
+<app-confirm-dialog
+  #deleteDialog
+  title="წავშალოთ ფლეშბარათი?"
+  [message]="deleteMessage()"
+  confirmLabel="წაშლა"
+  danger
+  (confirmed)="confirmDelete()"
+/>

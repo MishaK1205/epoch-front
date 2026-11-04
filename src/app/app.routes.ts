@@ -50,6 +50,11 @@ export const routes: Routes = [
           ),
       },
       {
+        path: '',
+        loadChildren: () =>
+          import('./features/flashcards/flashcards.routes').then((m) => m.FLASHCARD_ROUTES),
+      },
+      {
         path: '**',
         title: 'გვერდი ვერ მოიძებნა — Epoch',
         loadComponent: () =>
