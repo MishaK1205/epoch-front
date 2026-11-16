@@ -22,6 +22,59 @@ After finishing every task, **add a new entry at the top** using the template be
 
 ---
 
+## 2026-11-16 — Show the gap between pasted paragraphs
+
+**Task:** Pasted article text still had no space between paragraphs.
+
+**Changes:**
+
+- Modified `styles/_quill.scss` — paragraph, list, and heading gaps use a selector that beats
+  Quill's `.ql-editor p { margin: 0 }`, so one Enter (and a paste that becomes one paragraph
+  break) shows `--space-4`.
+- Modified `docs/PROJECT_GUIDELINES.md` — the gap selector has to name the block tag.
+
+**Notes:** Headings and quotes still use their larger margins. A blank line already stored in
+an article stays, and now also has this gap above it.
+
+## 2026-11-16 — Single paragraph spacing when pasting into the editor
+
+**Task:** Pasting text into the article editor doubled the space between paragraphs.
+
+**Changes:**
+
+- Added `core/editor/quill-paragraphs.ts` — `enableParagraphPaste` drops blank paragraphs that
+  paste inserts (`<p><br></p>`, `&nbsp;`, or a blank line in plain text) so the gap matches one
+  Enter in the editor. Blank list items and table cells stay.
+- Added `core/editor/quill-paragraphs.spec.ts` — covers those gaps, headings, lists, and tables.
+- Modified `features/manage/components/rich-text-editor/rich-text-editor.ts` — turns the paste
+  fix on for articles and quiz questions.
+- Modified `docs/PROJECT_GUIDELINES.md` — documents paragraph paste.
+
+**Notes:** An article already saved with blank lines is left as stored. A blank line in the
+pasted source is removed; press Enter in the editor to add one.
+
+## 2026-11-16 — Collapsible sidebar and tablet cards
+
+**Task:** Make the sidebar hideable on desktop and tablet, hidden by default. Fix tablet
+buttons and cards, and stop the flashcard banner illustration from covering the text on a phone.
+
+**Changes:**
+
+- Modified `core/layout/reading-shell/` — the sidebar starts closed on every width. The top bar
+  button opens and closes it. From `md` up it pushes the page and stays open across navigation;
+  below `md` it covers the page and closes after a link. The wordmark stays in the top bar while
+  the sidebar is closed.
+- Modified `features/home/pages/home/` — article cards are two columns below `lg`, topic tiles are
+  four columns below `xl`, hero buttons keep a readable size and wrap, and the flashcard banner
+  keeps its illustration inside its own box.
+- Modified `features/articles/pages/article-list/` — the same card grid and flashcard banner.
+- Modified `features/articles/pages/article-detail/article-detail.scss` — related articles are two
+  columns below `lg`.
+- Modified `docs/PROJECT_GUIDELINES.md` — the sidebar is collapsible and hidden by default.
+
+**Notes:** Below `sm` the banner button sits on its own row so the stacked-card icon cannot cover
+the title.
+
 ## 2026-11-16 — Open What, Where, When again without a stack overflow
 
 **Task:** Clicking „რა? სად? როდის?“ in the sidebar, after leaving that page, threw

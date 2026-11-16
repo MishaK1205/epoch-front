@@ -1,7 +1,12 @@
 <a class="skip-link" href="#main">შინაარსზე გადასვლა</a>
 
-<aside class="sidebar" [class.open]="menuOpen()" id="sidebar">
-  <a class="logo" routerLink="/" (click)="closeMenu()">epoch</a>
+<aside
+  class="sidebar"
+  [class.open]="sidebarOpen()"
+  [attr.inert]="sidebarOpen() ? null : ''"
+  id="sidebar"
+>
+  <a class="logo" routerLink="/" (click)="closeIfNarrow()">epoch</a>
 
   <nav class="nav-group" aria-label="მთავარი">
     <a
@@ -68,20 +73,28 @@
   </div>
 </aside>
 
-@if (menuOpen()) {
+@if (sidebarOpen()) {
   <button
     type="button"
     class="mobile-overlay show"
     aria-label="მენიუს დახურვა"
-    (click)="closeMenu()"
+    (click)="closeSidebar()"
   ></button>
 }
 
 <div class="workspace">
   <header class="topbar">
-    <button type="button" class="mobile-menu" aria-label="მენიუ" (click)="toggleMenu()">
-      <app-icon name="menu" [size]="21" />
+    <button
+      type="button"
+      class="menu-toggle"
+      aria-controls="sidebar"
+      [attr.aria-expanded]="sidebarOpen()"
+      [attr.aria-label]="sidebarOpen() ? 'მენიუს დახურვა' : 'მენიუ'"
+      (click)="toggleSidebar()"
+    >
+      <app-icon [name]="sidebarOpen() ? 'close' : 'menu'" [size]="21" />
     </button>
+    <a class="top-logo" routerLink="/" (click)="closeIfNarrow()">epoch</a>
     <div class="top-actions">
       @if (user()) {
         <app-search-box />

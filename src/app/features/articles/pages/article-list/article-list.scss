@@ -175,7 +175,7 @@
 
 .flash-banner {
   display: grid;
-  grid-template-columns: 130px 1fr auto;
+  grid-template-columns: 120px minmax(0, 1fr) auto;
   gap: 25px;
   align-items: center;
   padding: 25px 34px;
@@ -201,6 +201,10 @@
   }
 }
 
+.flash-copy {
+  min-width: 0;
+}
+
 .btn {
   display: inline-flex;
   gap: 10px;
@@ -209,6 +213,7 @@
   font-size: 12px;
   font-weight: var(--font-weight-medium);
   color: var(--color-text-inverse);
+  white-space: nowrap;
   background: var(--color-accent);
   border-radius: 5px;
 
@@ -223,11 +228,14 @@
 
 .card-illustration {
   position: relative;
-  height: 93px;
+  width: 112px;
+  height: 108px;
+  overflow: hidden;
 }
 
 .mini-card {
   position: absolute;
+  top: 8px;
   display: grid;
   place-items: center;
   width: 66px;
@@ -238,18 +246,18 @@
   border-radius: 7px;
 
   &:first-child {
-    left: 0;
+    left: 14px;
     background: var(--palette-olive-100);
     transform: rotate(-17deg);
   }
 
   &:nth-child(2) {
-    left: 28px;
+    left: 36px;
     transform: rotate(8deg);
   }
 
   &:last-child {
-    left: 18px;
+    left: 24px;
     transform: rotate(-3deg);
   }
 }
@@ -267,13 +275,28 @@
   }
 
   .article-grid {
-    gap: 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+
+  .filter-toolbar {
+    flex-wrap: wrap;
+    gap: 12px;
   }
 
   .flash-banner {
-    grid-template-columns: 85px 1fr auto;
-    gap: 15px;
+    grid-template-columns: 112px minmax(0, 1fr);
+    gap: 8px 20px;
     padding: 23px;
+
+    h2 {
+      font-size: 24px;
+    }
+
+    .btn {
+      grid-column: 2;
+      justify-self: start;
+    }
   }
 }
 
@@ -293,13 +316,7 @@
   }
 
   .flash-banner {
-    grid-template-columns: 70px 1fr;
     padding: 22px;
-
-    .btn {
-      grid-column: 2;
-      justify-self: start;
-    }
   }
 }
 
@@ -326,6 +343,19 @@
   .article-grid {
     grid-template-columns: 1fr;
     gap: 25px;
+  }
+
+  .flash-banner {
+    gap: 12px;
+    padding: 20px 16px;
+
+    h2 {
+      font-size: 22px;
+    }
+
+    .btn {
+      grid-column: 1 / -1;
+    }
   }
 }
 

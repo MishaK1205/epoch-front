@@ -223,6 +223,22 @@
     margin-top: var(--space-4);
   }
 
+  // Quill snow sets `.ql-editor p { margin: 0 }` (class + element), which beats the
+  // rule above. Naming the block tag keeps one paragraph gap in the editor and on the page.
+  > * + p,
+  > * + ol,
+  > * + ul,
+  > * + pre,
+  > * + blockquote,
+  > * + h1,
+  > * + h2,
+  > * + h3,
+  > * + h4,
+  > * + h5,
+  > * + h6 {
+    margin-top: var(--space-4);
+  }
+
   h2,
   h3 {
     font-family: var(--font-sans);

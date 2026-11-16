@@ -61,6 +61,12 @@
   overflow-y: auto;
   background: var(--palette-paper-sidebar);
   border-right: 1px solid var(--color-border);
+  transform: translateX(-100%);
+  transition: transform var(--duration-normal) var(--easing-standard);
+
+  &.open {
+    transform: translateX(0);
+  }
 }
 
 .sidebar > .logo {
@@ -149,7 +155,18 @@
 }
 
 .workspace {
-  margin-left: var(--sidebar-width);
+  margin-left: 0;
+  transition: margin-left var(--duration-normal) var(--easing-standard);
+}
+
+@include up(md) {
+  :host.sidebar-open .workspace {
+    margin-left: var(--sidebar-width);
+  }
+
+  :host.sidebar-open .top-logo {
+    display: none;
+  }
 }
 
 .topbar {
@@ -198,7 +215,39 @@
   border-radius: var(--radius-full);
 }
 
-.mobile-menu,
+.top-logo {
+  flex: none;
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+  letter-spacing: -1px;
+  color: var(--color-accent);
+}
+
+.menu-toggle {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  color: var(--color-ink);
+  cursor: pointer;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-md);
+
+  &:hover {
+    background: var(--palette-olive-100);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
 .mobile-overlay {
   display: none;
 }
@@ -258,22 +307,8 @@
 }
 
 @include down(md) {
-  :host {
-    --sidebar-width: 0px;
-  }
-
   .sidebar {
     width: 235px;
-    transform: translateX(-100%);
-    transition: transform var(--duration-normal) var(--easing-standard);
-
-    &.open {
-      transform: translateX(0);
-    }
-  }
-
-  .workspace {
-    margin-left: 0;
   }
 
   .mobile-overlay.show {
@@ -281,12 +316,9 @@
     inset: 0;
     z-index: 29;
     display: block;
+    cursor: pointer;
     background: rgb(24 33 17 / 40%);
     border: 0;
-  }
-
-  .mobile-menu {
-    display: inline-flex;
   }
 
   .topbar {
@@ -304,7 +336,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sidebar {
+  .sidebar,
+  .workspace {
     transition: none;
   }
 }

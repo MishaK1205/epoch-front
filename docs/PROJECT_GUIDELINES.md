@@ -212,6 +212,13 @@ back does not call the API again and does not flash a spinner.
   Quill only stores `table > tbody > tr > td[data-row]` (no `<th>`), so the content styles treat
   the first row as the header. The backend allowlist must keep those tags. There is no
   toolbar button for inserting or editing tables.
+- Paragraph paste: `enableParagraphPaste(quill)` (`core/editor/quill-paragraphs.ts`) drops the
+  blank paragraph paste inserts between blocks (`<p><br></p>`, `&nbsp;`, or a blank line in
+  plain text), so the gap matches one Enter in the editor. A blank list item or table cell is
+  kept. Loading saved HTML does not run this. The visible gap is `--space-4` on
+  `.ql-editor > * + p` (and the other block tags) in `styles/_quill.scss`. Quill's
+  `.ql-editor p { margin: 0 }` beats a bare `> * + *`, so the tag has to be in the selector.
+  Headings and quotes keep their larger margins, set later in that file.
 
 ### Server-side rendering (SSR) and SEO
 
@@ -521,7 +528,10 @@ pattern for new form controls. Validation messages come from
 ### Layout
 
 - `core/layout/main-layout` wraps every page. Every route except `/login` renders `ReadingShell`:
-  a fixed sidebar and top bar in the editorial palette. That includes home, articles, search,
+  a collapsible sidebar and top bar in the editorial palette. The sidebar starts hidden. The top
+  bar button shows or hides it on every viewport. Below `md` it covers the page and closes after
+  navigation; from `md` up it sits beside the page and stays open until the user hides it. The
+  top bar keeps the wordmark while the sidebar is closed. That includes home, articles, search,
   library, flashcards, „რა? სად? როდის?“, `/manage`, and not-found. `/login` is the same palette
   on its own page, without the sidebar.
   The shell remaps the semantic color tokens (`--color-bg`, `--color-accent`, radii, button

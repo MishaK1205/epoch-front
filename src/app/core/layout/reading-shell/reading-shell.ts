@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  afterNextRender,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
@@ -18,19 +26,25 @@ import { ReadingListStore } from '../../services/reading-list-store';
   templateUrl: './reading-shell.html',
   styleUrl: './reading-shell.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { '(document:keydown.escape)': 'closeMenu()' },
+  host: {
+    '[class.sidebar-open]': 'sidebarOpen()',
+    '(document:keydown.escape)': 'closeSidebar()',
+  },
 })
 export class ReadingShell {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly readingList = inject(ReadingListStore);
   private readonly path = signal(this.router.url);
+  private readonly narrow = signal(false);
 
   protected readonly user = this.auth.currentUser;
   protected readonly categories = inject(CategoriesStore).categories;
   protected readonly savedCount = computed(() => this.readingList.savedIds().size);
-  protected readonly menuOpen = signal(false);
+  /** Hidden on every viewport until the top-bar button opens it. */
+  protected readonly sidebarOpen = signal(false);
   protected readonly articlesActive = computed(() => {
     const path = this.path().split(/[?#]/)[0];
     return path === '/articles' || path.startsWith('/articles/') || path.startsWith('/category/');
@@ -46,6 +60,14 @@ export class ReadingShell {
   });
 
   constructor() {
+    afterNextRender(() => {
+      const media = window.matchMedia('(max-width: 767.98px)');
+      const sync = () => this.narrow.set(media.matches);
+      sync();
+      media.addEventListener('change', sync);
+      this.destroyRef.onDestroy(() => media.removeEventListener('change', sync));
+    });
+
     this.router.events
       .pipe(
         filter((event) => event instanceof NavigationEnd),
@@ -53,21 +75,25 @@ export class ReadingShell {
       )
       .subscribe(() => {
         this.path.set(this.router.url);
-        this.closeMenu();
+        if (this.narrow()) this.closeSidebar();
       });
   }
 
-  protected toggleMenu(): void {
-    this.menuOpen.update((open) => !open);
+  protected toggleSidebar(): void {
+    this.sidebarOpen.update((open) => !open);
   }
 
-  protected closeMenu(): void {
-    this.menuOpen.set(false);
+  protected closeSidebar(): void {
+    this.sidebarOpen.set(false);
+  }
+
+  protected closeIfNarrow(): void {
+    if (this.narrow()) this.closeSidebar();
   }
 
   protected logout(): void {
     this.auth.logout();
-    this.closeMenu();
+    this.closeSidebar();
     void this.router.navigateByUrl('/');
   }
 }
