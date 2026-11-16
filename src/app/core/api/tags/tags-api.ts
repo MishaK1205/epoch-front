@@ -10,7 +10,7 @@ export class TagsApi {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/tags`;
 
-  /** Public. Plain array, most used first; counts published articles only. */
+  /** Admin only. Plain array, most used first; counts published articles only. */
   list(query: ListTagsQuery = {}): Observable<Tag[]> {
     return this.http.get<Tag[]>(this.baseUrl, { params: toHttpParams(query) });
   }

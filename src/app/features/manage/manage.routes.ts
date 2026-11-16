@@ -12,7 +12,7 @@ const redirectToFlashcardPlay: CanActivateFn = (route) =>
 export const MANAGE_ROUTES: Routes = [
   {
     path: 'manage',
-    canActivate: [roleGuard('moderator', 'admin')],
+    canActivate: [roleGuard('admin')],
     component: ManageShell,
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'articles' },

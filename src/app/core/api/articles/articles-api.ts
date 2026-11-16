@@ -23,56 +23,56 @@ export class ArticlesApi {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/articles`;
 
-  /** Public. Published articles only, newest `publishedAt` first. */
+  /** Admin only. Published articles only, newest `publishedAt` first. */
   listPublished(query: ListArticlesQuery = {}): Observable<Paginated<ArticleSummary>> {
     return this.http.get<Paginated<ArticleSummary>>(this.baseUrl, { params: toHttpParams(query) });
   }
 
-  /** Public. Partial, case-insensitive match on title and tags. Published only, newest first. */
+  /** Admin only. Partial, case-insensitive match on title and tags. Published only, newest first. */
   search(query: SearchArticlesQuery): Observable<Paginated<ArticleSummary>> {
     return this.http.get<Paginated<ArticleSummary>>(`${this.baseUrl}/search`, {
       params: toHttpParams(query),
     });
   }
 
-  /** Public. Drafts return 404. */
+  /** Admin only. Drafts return 404. */
   getBySlug(slug: string): Observable<Article> {
     return this.http.get<Article>(`${this.baseUrl}/${encodeURIComponent(slug)}`);
   }
 
-  /** Moderator or admin; moderators only see their own. Newest `updatedAt` first. */
+  /** Admin only. Every article, drafts included. Newest `updatedAt` first. */
   listManaged(query: ManageArticlesQuery = {}): Observable<Paginated<ArticleSummary>> {
     return this.http.get<Paginated<ArticleSummary>>(`${this.baseUrl}/manage`, {
       params: toHttpParams(query),
     });
   }
 
-  /** Owner (moderator) or admin. Loads drafts too — use this for the editor. */
+  /** Admin only. Loads drafts too — use this for the editor. */
   getManaged(id: string): Observable<Article> {
     return this.http.get<Article>(`${this.baseUrl}/manage/${encodeURIComponent(id)}`);
   }
 
-  /** Moderator or admin. Always created as `draft`. */
+  /** Admin only. Always created as `draft`. `coverImageId` may be omitted. */
   create(body: CreateArticleRequest): Observable<Article> {
     return this.http.post<Article>(this.baseUrl, body);
   }
 
-  /** Owner (moderator) or admin. Send only the fields that changed. */
+  /** Admin only. Send only the fields that changed. Omit `coverImageId` to keep the cover. */
   update(id: string, body: UpdateArticleRequest): Observable<Article> {
     return this.http.patch<Article>(`${this.baseUrl}/${encodeURIComponent(id)}`, body);
   }
 
-  /** Owner (moderator) or admin. Does not delete the images. */
+  /** Admin only. Does not delete the images. */
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${encodeURIComponent(id)}`);
   }
 
-  /** Owner (moderator) or admin. Sets `publishedAt` only on the first publish. */
+  /** Admin only. Sets `publishedAt` only on the first publish. */
   publish(id: string): Observable<Article> {
     return this.http.post<Article>(`${this.baseUrl}/${encodeURIComponent(id)}/publish`, null);
   }
 
-  /** Owner (moderator) or admin. Back to `draft`; `publishedAt` is kept. */
+  /** Admin only. Back to `draft`; `publishedAt` is kept. */
   unpublish(id: string): Observable<Article> {
     return this.http.post<Article>(`${this.baseUrl}/${encodeURIComponent(id)}/unpublish`, null);
   }

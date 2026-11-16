@@ -5,7 +5,6 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { of } from 'rxjs';
 import { ArticlesApi } from '../../../../core/api/articles/articles-api';
 import { TagsApi } from '../../../../core/api/tags/tags-api';
-import { AuthService } from '../../../../core/auth/auth-service';
 import { ReadingListStore } from '../../../../core/services/reading-list-store';
 import { Seo } from '../../../../core/services/seo';
 import { SearchResults } from './search-results';
@@ -20,7 +19,6 @@ describe('SearchResults', () => {
         provideRouter([{ path: 'search', component: SearchResults }], withComponentInputBinding()),
         { provide: ArticlesApi, useValue: { search } },
         { provide: TagsApi, useValue: { list: () => of([]) } },
-        { provide: AuthService, useValue: { isLoggedIn: signal(false) } },
         { provide: ReadingListStore, useValue: { readIds: signal(new Set<string>()) } },
         { provide: Seo, useValue: { update: vi.fn() } },
       ],

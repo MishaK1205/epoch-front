@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter, map } from 'rxjs';
-import { AuthService } from '../../../../core/auth/auth-service';
 
 const TITLE_SUFFIX = ' — Epoch';
 
@@ -18,7 +17,6 @@ const TITLE_SUFFIX = ' — Epoch';
 export class ManageShell {
   private readonly router = inject(Router);
 
-  protected readonly isAdmin = inject(AuthService).isAdmin;
   protected readonly heading = toSignal(
     this.router.events.pipe(
       filter((event) => event instanceof NavigationEnd),

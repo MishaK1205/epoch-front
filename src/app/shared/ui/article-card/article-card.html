@@ -4,6 +4,10 @@
     <div class="item__thumb">
       @if (item.coverImage; as cover) {
         <img [ngSrc]="cover.url" [alt]="cover.alt ?? ''" fill />
+      } @else {
+        <span class="item__placeholder" aria-hidden="true">
+          <app-icon name="image" [size]="28" />
+        </span>
       }
     </div>
     <div class="item__body">

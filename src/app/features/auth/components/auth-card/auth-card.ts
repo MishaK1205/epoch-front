@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { AuthBrand } from '../auth-brand/auth-brand';
 
 /**
- * Page shell for the login and register pages: brand panel + centered card.
+ * Page shell for the login page: brand panel + centered card.
  * Split screen on ≥1024px; on smaller screens only the card with a compact brand eyebrow.
  * Content: the form; `[authCardFooter]` slot: links below the card.
  */

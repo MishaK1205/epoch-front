@@ -41,8 +41,11 @@ export interface CreateArticleRequest {
   title: string;
   /** Quill HTML, non-empty, max 1,000,000 chars. */
   content: string;
-  /** Id of an image uploaded via POST /images. */
-  coverImageId: string;
+  /**
+   * Id of an image uploaded via POST /images. Omit or `null` = no cover. Never `''`.
+   * On PATCH: omit = keep, `null` = remove, an id = set.
+   */
+  coverImageId?: string | null;
   /** Id of an existing TOP-LEVEL category. */
   categoryId: string;
   /**
@@ -57,7 +60,7 @@ export interface CreateArticleRequest {
 /** PATCH /articles/:id — send only the fields that changed. */
 export type UpdateArticleRequest = Partial<CreateArticleRequest>;
 
-/** GET /articles (public list) */
+/** GET /articles (published list; admin only) */
 export interface ListArticlesQuery {
   page?: number;
   limit?: number;

@@ -21,6 +21,10 @@ const TRANSLATIONS: Partial<Record<string, string>> = {
     'ქვეკატეგორია არჩეულ კატეგორიას არ ეკუთვნის.',
   'subcategoryId must be a mongodb id': 'ქვეკატეგორიის მნიშვნელობა არასწორია.',
   'Cover image does not exist': 'მთავარი სურათი აღარ არსებობს. ატვირთეთ ხელახლა.',
+  'coverImageId must be a mongodb id': 'მთავარი სურათის მნიშვნელობა არასწორია.',
+  'Username is already taken': 'ეს მომხმარებლის სახელი უკვე დაკავებულია.',
+  'Email is already registered': 'ეს ელ-ფოსტა უკვე დარეგისტრირებულია.',
+  'Username and email are already taken': 'მომხმარებლის სახელი და ელ-ფოსტა უკვე დაკავებულია.',
   'Image is used by an article; remove it from the article first':
     'სურათი გამოიყენება სტატიაში. ჯერ მოაშორეთ ის სტატიას.',
   'Image is used by a What? Where? When? package; remove it from the package first':

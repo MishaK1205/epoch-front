@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, RESPONSE_INIT } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Button } from '../../../../shared/ui/button/button';
 
@@ -14,4 +14,11 @@ import { Button } from '../../../../shared/ui/button/button';
   styleUrl: './not-found.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class NotFound {}
+export class NotFound {
+  constructor() {
+    const responseInit = inject(RESPONSE_INIT, { optional: true });
+    if (responseInit) {
+      responseInit.status = 404;
+    }
+  }
+}

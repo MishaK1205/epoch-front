@@ -14,7 +14,7 @@ export class AuthApi {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/auth`;
 
-  /** Public. */
+  /** Admin only. The created account is role `user`. Callers must not store `accessToken`. */
   register(body: RegisterRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(AUTH_REGISTER_URL, body);
   }
@@ -24,7 +24,7 @@ export class AuthApi {
     return this.http.post<AuthResponse>(AUTH_LOGIN_URL, body);
   }
 
-  /** Any logged-in user. */
+  /** Admin only. */
   me(): Observable<User> {
     return this.http.get<User>(`${this.baseUrl}/me`);
   }

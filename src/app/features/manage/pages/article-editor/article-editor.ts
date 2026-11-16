@@ -23,7 +23,6 @@ import { getApiErrorMessages } from '../../../../core/api/api-error-messages';
 import { API_LIMITS } from '../../../../core/api/api-limits';
 import { ArticlesApi } from '../../../../core/api/articles/articles-api';
 import { Article } from '../../../../core/api/articles/articles.models';
-import { AuthService } from '../../../../core/auth/auth-service';
 import { CategoriesStore } from '../../../../core/services/categories-store';
 import { TimeAgoPipe } from '../../../../shared/pipes/time-ago-pipe';
 import { Alert } from '../../../../shared/ui/alert/alert';
@@ -55,15 +54,17 @@ type EditorAction = 'save' | 'publish' | 'unpublish' | 'delete';
 const CREATED_STATE_KEY = 'articleCreated';
 const INVALID_FORM_MESSAGE = 'შეამოწმეთ მონიშნული ველები.';
 
-type CategoryField = 'categoryId' | 'subcategoryId';
+type ArticleField = 'categoryId' | 'subcategoryId' | 'coverImageId';
 
-/** Backend messages shown on the category pickers instead of the page alert. */
-const FIELD_ERRORS: Partial<Record<string, CategoryField>> = {
+/** Backend messages shown on the pickers instead of the page alert. */
+const FIELD_ERRORS: Partial<Record<string, ArticleField>> = {
   'Category does not exist': 'categoryId',
   'categoryId must be a top-level category; send the subcategory as subcategoryId': 'categoryId',
   'Subcategory does not exist': 'subcategoryId',
   'Subcategory does not belong to the selected category': 'subcategoryId',
   'subcategoryId must be a mongodb id': 'subcategoryId',
+  'Cover image does not exist': 'coverImageId',
+  'coverImageId must be a mongodb id': 'coverImageId',
 };
 /** The picked category / subcategory is gone: reload the category tree. */
 const STALE_CATEGORY_MESSAGES = new Set(['Category does not exist', 'Subcategory does not exist']);
@@ -103,7 +104,6 @@ export class ArticleEditor implements HasUnsavedChanges {
   readonly id = input<string>();
 
   protected readonly limits = API_LIMITS;
-  protected readonly isAdmin = inject(AuthService).isAdmin;
   protected readonly loaded = rxResource({
     params: () => this.id(),
     stream: ({ params: id }) => this.articlesApi.getManaged(id),
@@ -124,7 +124,7 @@ export class ArticleEditor implements HasUnsavedChanges {
     ],
     categoryId: ['', Validators.required],
     subcategoryId: ['', (control: AbstractControl) => this.subcategoryInCategory(control)],
-    coverImageId: ['', Validators.required],
+    coverImageId: [''],
     tags: [[] as string[], tagListValidator(API_LIMITS.tags)],
     content: [
       '',
@@ -321,9 +321,11 @@ export class ArticleEditor implements HasUnsavedChanges {
     if (getApiErrorMessages(err).some((message) => STALE_CATEGORY_MESSAGES.has(message))) {
       this.categoriesStore.reload();
     }
-    const { categoryId, subcategoryId } = this.form.controls;
-    const controls =
-      this.subcategoryOptions().length > 0 ? { categoryId, subcategoryId } : { categoryId };
+    const { categoryId, subcategoryId, coverImageId } = this.form.controls;
+    const controls: Partial<Record<ArticleField, AbstractControl>> = { categoryId, coverImageId };
+    if (this.subcategoryOptions().length > 0) {
+      controls.subcategoryId = subcategoryId;
+    }
     const messages = applyManageErrors(err, FIELD_ERRORS, controls);
     this.serverErrors.set(messages.length > 0 ? messages : [INVALID_FORM_MESSAGE]);
   }

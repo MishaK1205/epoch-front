@@ -4,6 +4,7 @@ import { Observable, of } from 'rxjs';
 import { Paginated } from '../../../shared/models/paginated';
 import { ArticlesApi } from '../../api/articles/articles-api';
 import { ArticleSummary, SearchArticlesQuery } from '../../api/articles/articles.models';
+import { AuthService } from '../../auth/auth-service';
 import { SearchBox } from './search-box';
 
 function article(id: string, title: string, tags: string[] = []): ArticleSummary {
@@ -27,7 +28,9 @@ function article(id: string, title: string, tags: string[] = []): ArticleSummary
 describe('SearchBox', () => {
   let fixture: ComponentFixture<SearchBox>;
   let input: HTMLInputElement;
-  let search: ReturnType<typeof vi.fn<(query: SearchArticlesQuery) => Observable<Paginated<ArticleSummary>>>>;
+  let search: ReturnType<
+    typeof vi.fn<(query: SearchArticlesQuery) => Observable<Paginated<ArticleSummary>>>
+  >;
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -36,7 +39,11 @@ describe('SearchBox', () => {
     );
     TestBed.configureTestingModule({
       imports: [SearchBox],
-      providers: [provideRouter([]), { provide: ArticlesApi, useValue: { search } }],
+      providers: [
+        provideRouter([]),
+        { provide: ArticlesApi, useValue: { search } },
+        { provide: AuthService, useValue: { isLoggedIn: () => true } },
+      ],
     });
     fixture = TestBed.createComponent(SearchBox);
     fixture.detectChanges();

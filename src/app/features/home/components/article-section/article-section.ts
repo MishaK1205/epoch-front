@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ArticleSummary } from '../../../../core/api/articles/articles.models';
-import { AuthService } from '../../../../core/auth/auth-service';
 import { ReadingListToggle } from '../../../../core/reading-list/reading-list-toggle/reading-list-toggle';
 import { ReadingListStore } from '../../../../core/services/reading-list-store';
 import { ArticleCard } from '../../../../shared/ui/article-card/article-card';
@@ -23,7 +22,6 @@ const SIDE_ITEMS = 4;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArticleSection {
-  protected readonly loggedIn = inject(AuthService).isLoggedIn;
   protected readonly readArticleIds = inject(ReadingListStore).readIds;
 
   readonly title = input.required<string>();

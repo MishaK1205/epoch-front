@@ -18,7 +18,7 @@ type ListIdsSignal = WritableSignal<ReadonlySet<string>>;
  * Which article ids the current user has saved / marked as read, so cards and the article page
  * can show toggles (there is no "is this one article saved?" endpoint).
  *
- * Fills itself when a user is logged in (login, register, or session restore on app start) and
+ * Fills itself when an admin is logged in (login or session restore on app start) and
  * empties on logout. Toggles update optimistically and roll back if the request fails.
  */
 @Injectable({ providedIn: 'root' })

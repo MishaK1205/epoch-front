@@ -9,7 +9,12 @@ import {
   viewChild,
 } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormControl,
+  NonNullableFormBuilder,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { API_LIMITS } from '../../../../core/api/api-limits';
@@ -23,8 +28,11 @@ import { Badge } from '../../../../shared/ui/badge/badge';
 import { ConfirmDialog } from '../../../../shared/ui/confirm-dialog/confirm-dialog';
 import { EmptyState } from '../../../../shared/ui/empty-state/empty-state';
 import { Pagination } from '../../../../shared/ui/pagination/pagination';
+import { Button } from '../../../../shared/ui/button/button';
+import { InputField } from '../../../../shared/ui/input-field/input-field';
 import { Select, SelectOption } from '../../../../shared/ui/select/select';
 import { Spinner } from '../../../../shared/ui/spinner/spinner';
+import { ValidationMessageOverrides } from '../../../../shared/validators/validation-messages';
 import { getManageErrorMessages } from '../../manage-errors';
 import { ROLE_BADGES, ROLE_LABELS, toPage } from '../../manage-labels';
 
@@ -52,7 +60,7 @@ function toRole(value: string | undefined): Role | undefined {
   return ROLES.find((role) => role === value);
 }
 
-/** `/manage/users?role=&page=` (admin): list users and change their roles. */
+/** `/manage/users?role=&page=` (admin): create accounts and change roles. */
 @Component({
   selector: 'app-manage-users',
   imports: [
@@ -61,8 +69,10 @@ function toRole(value: string | undefined): Role | undefined {
     TimeAgoPipe,
     Alert,
     Badge,
+    Button,
     ConfirmDialog,
     EmptyState,
+    InputField,
     Pagination,
     Select,
     Spinner,
@@ -73,15 +83,48 @@ function toRole(value: string | undefined): Role | undefined {
 })
 export class ManageUsers {
   private readonly usersApi = inject(UsersApi);
+  private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly currentUser = inject(AuthService).currentUser;
+  private readonly currentUser = this.auth.currentUser;
   private readonly roleDialog = viewChild.required<ConfirmDialog>('roleDialog');
 
   readonly page = input(1, { transform: toPage });
   readonly role = input(undefined, { transform: toRole });
 
+  protected readonly limits = API_LIMITS;
   protected readonly filters = ROLE_FILTERS;
+  protected readonly createForm = inject(NonNullableFormBuilder).group({
+    username: [
+      '',
+      [
+        Validators.required,
+        Validators.minLength(API_LIMITS.username.min),
+        Validators.maxLength(API_LIMITS.username.max),
+        Validators.pattern(API_LIMITS.username.pattern),
+      ],
+    ],
+    email: [
+      '',
+      [Validators.required, Validators.email, Validators.maxLength(API_LIMITS.email.max)],
+    ],
+    password: [
+      '',
+      [
+        Validators.required,
+        Validators.minLength(API_LIMITS.password.min),
+        Validators.maxLength(API_LIMITS.password.max),
+        Validators.pattern(API_LIMITS.password.pattern),
+      ],
+    ],
+  });
+  protected readonly usernameMessages: ValidationMessageOverrides = {
+    pattern: 'გამოიყენეთ მხოლოდ ლათინური ასოები, ციფრები, „_“ და „.“.',
+  };
+  protected readonly passwordMessages: ValidationMessageOverrides = {
+    pattern: 'პაროლი უნდა შეიცავდეს მინიმუმ ერთ ასოს და ერთ ციფრს.',
+  };
+  protected readonly creating = signal(false);
   protected readonly roleLabels = ROLE_LABELS;
   protected readonly roleBadges = ROLE_BADGES;
   protected readonly roleOptions: SelectOption[] = ROLES.map((role) => ({
@@ -129,6 +172,32 @@ export class ManageUsers {
       : '';
   });
 
+  protected createAccount(): void {
+    if (this.createForm.invalid || this.creating()) {
+      this.createForm.markAllAsTouched();
+      return;
+    }
+    this.successMessage.set('');
+    this.actionErrors.set([]);
+    this.creating.set(true);
+    this.auth
+      .createAccount(this.createForm.getRawValue())
+      .pipe(
+        finalize(() => this.creating.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (response) => {
+          this.createForm.reset();
+          this.successMessage.set(
+            `${response.user.username} შეიქმნა როლით „მომხმარებელი“. აპში შესვლას ვერ შეძლებს, სანამ როლს „ადმინზე“ არ შეცვლით.`,
+          );
+          this.showCreatedUser();
+        },
+        error: (err: unknown) => this.actionErrors.set(getManageErrorMessages(err)),
+      });
+  }
+
   protected goToPage(page: number): void {
     void this.router.navigate([], { queryParams: { page }, queryParamsHandling: 'merge' });
   }
@@ -174,5 +243,14 @@ export class ManageUsers {
   protected cancelChange(): void {
     const change = this.change();
     change?.row.control.setValue(change.row.user.role);
+  }
+
+  /** The new account has role `user`, so drop a filter that would hide it and reload the list. */
+  private showCreatedUser(): void {
+    if (this.role() || this.page() !== 1) {
+      void this.router.navigate([], { queryParams: { role: null, page: null } });
+      return;
+    }
+    this.users.reload();
   }
 }

@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-/** Public search results: `/search?q=<text>&page=<n>`. */
+/** Search results: `/search?q=<text>&page=<n>`. Admin only (the parent route). */
 export const SEARCH_ROUTES: Routes = [
   {
     path: 'search',

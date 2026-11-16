@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { Icon } from '../../../../shared/ui/icon/icon';
 
-/** Dark brand panel shown next to the login / register forms on large screens. */
+/** Dark brand panel shown next to the login form on large screens. */
 @Component({
   selector: 'app-auth-brand',
   imports: [Icon],
@@ -14,6 +14,6 @@ export class AuthBrand {
   protected readonly features = [
     'ყოველდღე ახალი სტატიები ისტორიასა და მეცნიერებაზე',
     'კატეგორიები და თეგები — იპოვეთ ის, რაც გაინტერესებთ',
-    'შემოუერთდით მკითხველთა საზოგადოებას',
+    'სარედაქციო სივრცე მხოლოდ ადმინისტრატორის ანგარიშით',
   ];
 }

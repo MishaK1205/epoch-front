@@ -3,7 +3,6 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { getApiErrorMessages } from '../../../../core/api/api-error-messages';
 import { ArticlesApi } from '../../../../core/api/articles/articles-api';
-import { AuthService } from '../../../../core/auth/auth-service';
 import { ReadingListToggle } from '../../../../core/reading-list/reading-list-toggle/reading-list-toggle';
 import { CategoriesStore } from '../../../../core/services/categories-store';
 import { ReadingListStore } from '../../../../core/services/reading-list-store';
@@ -22,7 +21,7 @@ const HOME_SIZE = 6;
 const TAG_PAGE_SIZE = 12;
 
 /**
- * Public front page: hero, the 5 latest articles, then one section per category.
+ * Front page for a signed-in admin: hero, the 5 latest articles, then one section per category.
  * `?tag=<tag>&page=<n>` switches to a paginated tag feed. Categories live at `/category/:slug`.
  */
 @Component({
@@ -45,7 +44,6 @@ export class Home {
   private readonly articlesApi = inject(ArticlesApi);
   private readonly router = inject(Router);
 
-  protected readonly loggedIn = inject(AuthService).isLoggedIn;
   protected readonly readArticleIds = inject(ReadingListStore).readIds;
   protected readonly categories = inject(CategoriesStore).categories;
 

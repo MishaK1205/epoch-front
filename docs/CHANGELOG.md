@@ -22,6 +22,45 @@ After finishing every task, **add a new entry at the top** using the template be
 
 ---
 
+## 2026-11-16 — Admin-only app and optional article cover
+
+**Task:** Lock the site to admins (login stays public) and make an article cover optional.
+
+**Changes:**
+
+- Modified `core/auth/auth-service.ts` — login stores the session only for `admin`; `createAccount`
+  posts `POST /auth/register` without replacing the admin session; `GET /auth/me` `401` and `403`
+  clear the stored token. Removed `isModerator` and `canWriteArticles`.
+- Modified `core/auth/auth-interceptor.ts` — `401` still logs out, including `POST /auth/register`.
+  Login stays the only credentials exception. `403` does not log out.
+- Modified `core/auth/role-guard.ts`, `app.routes.ts`, `manage.routes.ts`, `library.routes.ts` —
+  every route except `/login` requires an admin. `/` redirects to `/login` unless the session is
+  an admin (`adminMatch`). Other routes use `roleGuard('admin')`.
+- Modified `app.routes.server.ts` — `/login` is server-rendered so the form is in the first HTML.
+  The catch-all no longer sets status 404 (that status cannot be used on the login redirect).
+- Modified `features/not-found/pages/not-found/not-found.ts` — sets HTTP 404 when that page renders.
+- Modified `features/auth/components/auth-brand/auth-brand.ts` — the login panel no longer invites
+  people to join.
+- Removed `features/auth/pages/register/` and the `/register` route — nobody can self-register.
+  The users page creates accounts instead.
+- Modified `core/services/categories-store.ts`, `core/layout/site-header/` — categories and the
+  header search box do not call the API before an admin is signed in.
+- Modified `core/api/articles/articles.models.ts`, `article-form.ts`, `article-editor` — cover is
+  optional. Create omits `coverImageId`; edit omits it to keep the cover and sends `null` to
+  remove it. Never sends `''`.
+- Modified article cards — a missing `coverImage` shows a neutral placeholder and does not read
+  `.url`.
+- Modified `server/sitemap.ts`, `public/robots.txt` — the sitemap no longer calls the API.
+- Modified `docs/PROJECT_GUIDELINES.md` — the app is admin-only; cover ids follow the same omit /
+  `null` rule as subcategory ids.
+
+**Notes:** `user` and `moderator` stay in the `Role` union. Login still returns 200 for them; the
+client discards that token and shows „ამ ანგარიშს წვდომა არ აქვს“. A new account is role `user`
+until an admin changes it with `PATCH /users/:id/role`. Image files at `/uploads/<file>` stay
+public. `403` from changing your own role does not log the admin out.
+
+---
+
 ## 2026-11-04 — Flashcards page outside manage
 
 **Task:** Add a flashcards page that is not the admin screen, with the categories listed so
@@ -633,7 +672,7 @@ API.
 **Changes:**
 
 - Added `src/environments/environment.prod-api.ts` — `production: false`, `apiUrl:
-  https://api.epoch.ge`, `siteUrl: http://localhost:4200`.
+https://api.epoch.ge`, `siteUrl: http://localhost:4200`.
 - Modified `angular.json` — `prod-api` configuration for `build` (same settings as
   `development`, but the file replacement points to `environment.prod-api.ts`) and for `serve`.
 - Modified `package.json` — scripts `start:local` (`ng serve --configuration development`) and
@@ -837,7 +876,7 @@ endpoints (models, API service, client-side id store). No UI yet.
 **Changes:**
 
 - Added `core/api/reading-list/reading-list.models.ts` — `ReadingListItem` (`article:
-  ArticleSummary`, `addedAt`) and `ReadingListQuery` (`page`, `limit`).
+ArticleSummary`, `addedAt`) and `ReadingListQuery` (`page`, `limit`).
 - Added `core/api/reading-list/reading-list-api.ts` — `ReadingListApi` with `listSaved`, `save`,
   `unsave`, `listRead`, `markRead`, `markUnread`. PUTs send a `null` body; ids are
   `encodeURIComponent`-ed; list queries go through `toHttpParams`.

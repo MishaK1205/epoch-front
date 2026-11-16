@@ -79,14 +79,12 @@
             [read]="readIds.has(item.article.id)"
             [highlightQuery]="query()"
           >
-            @if (loggedIn()) {
-              <app-reading-list-toggle
-                cardAction
-                appearance="icon"
-                size="sm"
-                [articleId]="item.article.id"
-              />
-            }
+            <app-reading-list-toggle
+              cardAction
+              appearance="icon"
+              size="sm"
+              [articleId]="item.article.id"
+            />
             @if (item.tags.length > 0) {
               <ul cardFooter class="tag-list" role="list" aria-label="დამთხვეული თეგები">
                 @for (tag of item.tags; track tag) {

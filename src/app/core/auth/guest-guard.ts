@@ -3,7 +3,7 @@ import { CanActivateFn, Router } from '@angular/router';
 import { AUTH_CONFIG } from '../tokens/auth-config';
 import { AuthService } from './auth-service';
 
-/** Allows logged-out users only (e.g. login and register pages). */
+/** Allows logged-out users only (the login page). An admin is sent home. */
 export const guestGuard: CanActivateFn = async () => {
   const auth = inject(AuthService);
   const router = inject(Router);

@@ -144,19 +144,6 @@
   }
 }
 
-.header__auth-sep {
-  color: var(--color-accent);
-  font-weight: var(--font-weight-regular);
-  line-height: 1;
-}
-
-.header__auth-sep,
-.header__auth-link--register {
-  @include down(sm) {
-    display: none;
-  }
-}
-
 // Decorative accent strip under the bar (categories live in the drawer / footer)
 .header__band {
   position: relative;

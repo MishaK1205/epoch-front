@@ -36,6 +36,7 @@ import {
 import { API_LIMITS } from '../../api/api-limits';
 import { ArticlesApi } from '../../api/articles/articles-api';
 import { ArticleSummary } from '../../api/articles/articles.models';
+import { AuthService } from '../../auth/auth-service';
 
 /** One Georgian letter matches too many titles to be useful. */
 export const SUGGEST_MIN_LENGTH = 2;
@@ -75,6 +76,7 @@ let nextId = 0;
 })
 export class SearchBox {
   private readonly articlesApi = inject(ArticlesApi);
+  private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly injector = inject(Injector);
@@ -105,11 +107,16 @@ export class SearchBox {
       debounce((q) => timer(q.length < SUGGEST_MIN_LENGTH ? 0 : SUGGEST_DEBOUNCE_MS)),
       distinctUntilChanged(),
       switchMap((q) => {
-        if (q.length < SUGGEST_MIN_LENGTH) {
+        if (q.length < SUGGEST_MIN_LENGTH || !this.auth.isLoggedIn()) {
           return of<SuggestState>({ status: 'idle' });
         }
         return this.articlesApi.search({ q, limit: SUGGEST_LIMIT }).pipe(
-          map((page): SuggestState => ({ status: 'done', q, items: page.items, total: page.total })),
+          map((page): SuggestState => ({
+            status: 'done',
+            q,
+            items: page.items,
+            total: page.total,
+          })),
           startWith<SuggestState>({ status: 'loading', q }),
           catchError(() => of<SuggestState>({ status: 'error', q })),
         );
@@ -149,9 +156,7 @@ export class SearchBox {
   ]);
   protected readonly panelOpen = computed(
     () =>
-      this.open() &&
-      this.query().length >= SUGGEST_MIN_LENGTH &&
-      this.state().status !== 'idle',
+      this.open() && this.query().length >= SUGGEST_MIN_LENGTH && this.state().status !== 'idle',
   );
   protected readonly activeId = computed(() =>
     this.panelOpen() ? (this.optionIds()[this.activeIndex()] ?? null) : null,
@@ -214,7 +219,11 @@ export class SearchBox {
         }
         const current = this.activeIndex();
         const next =
-          event.key === 'ArrowDown' ? (current + 1) % count : current <= 0 ? count - 1 : current - 1;
+          event.key === 'ArrowDown'
+            ? (current + 1) % count
+            : current <= 0
+              ? count - 1
+              : current - 1;
         this.activeIndex.set(next);
         return;
       }

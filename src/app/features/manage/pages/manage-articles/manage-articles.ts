@@ -44,8 +44,8 @@ function toStatus(value: string | undefined): ArticleStatus | undefined {
 }
 
 /**
- * `/manage/articles?status=&categoryId=&page=` — moderators see their own articles, admins see
- * all. `categoryId` may be a category or a subcategory.
+ * `/manage/articles?status=&categoryId=&page=` — every article, drafts included.
+ * `categoryId` may be a category or a subcategory.
  */
 @Component({
   selector: 'app-manage-articles',

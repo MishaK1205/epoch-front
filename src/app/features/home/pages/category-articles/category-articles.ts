@@ -3,7 +3,6 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { getApiErrorMessages } from '../../../../core/api/api-error-messages';
 import { ArticlesApi } from '../../../../core/api/articles/articles-api';
-import { AuthService } from '../../../../core/auth/auth-service';
 import { ReadingListToggle } from '../../../../core/reading-list/reading-list-toggle/reading-list-toggle';
 import { CategoriesStore } from '../../../../core/services/categories-store';
 import { ReadingListStore } from '../../../../core/services/reading-list-store';
@@ -33,7 +32,6 @@ export class CategoryArticles {
   private readonly router = inject(Router);
   private readonly seo = inject(Seo);
 
-  protected readonly loggedIn = inject(AuthService).isLoggedIn;
   protected readonly readArticleIds = inject(ReadingListStore).readIds;
 
   readonly slug = input.required<string>();

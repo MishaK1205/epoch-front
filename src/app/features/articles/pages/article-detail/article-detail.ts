@@ -13,7 +13,6 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
 import { getApiErrorMessages } from '../../../../core/api/api-error-messages';
 import { ArticlesApi } from '../../../../core/api/articles/articles-api';
-import { AuthService } from '../../../../core/auth/auth-service';
 import { ReadingListToggle } from '../../../../core/reading-list/reading-list-toggle/reading-list-toggle';
 import { ReadingListStore } from '../../../../core/services/reading-list-store';
 import { Seo } from '../../../../core/services/seo';
@@ -23,7 +22,7 @@ import { Button } from '../../../../shared/ui/button/button';
 import { EmptyState } from '../../../../shared/ui/empty-state/empty-state';
 import { Spinner } from '../../../../shared/ui/spinner/spinner';
 
-/** Public article page: `/articles/:slug` (drafts → 404). */
+/** Article page: `/articles/:slug` (drafts → 404). Admin only. */
 @Component({
   selector: 'app-article-detail',
   imports: [RouterLink, TimeAgoPipe, Alert, Button, EmptyState, Spinner, ReadingListToggle],
@@ -41,7 +40,6 @@ export class ArticleDetail {
 
   readonly slug = input.required<string>();
 
-  protected readonly loggedIn = inject(AuthService).isLoggedIn;
   protected readonly article = rxResource({
     params: () => this.slug(),
     stream: ({ params: slug }) => this.articlesApi.getBySlug(slug),

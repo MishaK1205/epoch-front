@@ -2,6 +2,7 @@ import { getApiErrorMessages } from '../../core/api/api-error-messages';
 
 const TRANSLATIONS: Partial<Record<string, string>> = {
   'Invalid credentials': 'მომხმარებლის სახელი, ელ-ფოსტა ან პაროლი არასწორია.',
+  'Insufficient permissions': 'ამ ანგარიშს წვდომა არ აქვს',
   'Username is already taken': 'ეს მომხმარებლის სახელი უკვე დაკავებულია.',
   'Email is already registered': 'ეს ელ-ფოსტა უკვე დარეგისტრირებულია.',
   'Username and email are already taken': 'მომხმარებლის სახელი და ელ-ფოსტა უკვე დაკავებულია.',

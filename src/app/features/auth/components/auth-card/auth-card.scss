@@ -95,6 +95,11 @@
   font-size: var(--text-sm);
   color: var(--color-text-muted);
   text-align: center;
+
+  &:empty {
+    display: none;
+    margin-top: 0;
+  }
 }
 
 @keyframes auth-in {

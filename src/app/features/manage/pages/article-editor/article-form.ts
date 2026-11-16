@@ -25,15 +25,17 @@ export function toArticleFormValue(article: Article): ArticleFormValue {
   };
 }
 
-/** Omits `subcategoryId` when none is chosen. */
+/** Omits `coverImageId` and `subcategoryId` when none is chosen. Never sends `''`. */
 export function toCreateRequest(value: ArticleFormValue): CreateArticleRequest {
   const body: CreateArticleRequest = {
     title: value.title.trim(),
     content: value.content,
-    coverImageId: value.coverImageId,
     categoryId: value.categoryId,
     tags: value.tags,
   };
+  if (value.coverImageId) {
+    body.coverImageId = value.coverImageId;
+  }
   if (value.subcategoryId) {
     body.subcategoryId = value.subcategoryId;
   }
@@ -43,7 +45,8 @@ export function toCreateRequest(value: ArticleFormValue): CreateArticleRequest {
 /**
  * Only the fields of `current` that differ from `base` (tags compared order-insensitively).
  * A changed category always comes with `subcategoryId` (the new one or `null`), because the old
- * subcategory doesn't belong to the new category.
+ * subcategory doesn't belong to the new category. An untouched cover is omitted; clearing it
+ * sends `coverImageId: null` (never `''`).
  */
 export function diffArticleForm(
   base: ArticleFormValue,
@@ -61,7 +64,7 @@ export function diffArticleForm(
     diff.subcategoryId = current.subcategoryId || null;
   }
   if (current.coverImageId !== base.coverImageId) {
-    diff.coverImageId = current.coverImageId;
+    diff.coverImageId = current.coverImageId || null;
   }
   if (!sameTags(current.tags, base.tags)) {
     diff.tags = current.tags;

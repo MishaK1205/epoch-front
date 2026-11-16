@@ -44,6 +44,17 @@ describe('diffArticleForm', () => {
     });
   });
 
+  it('sends coverImageId: null (not "") when the cover is removed', () => {
+    expect(diffArticleForm(base, { ...base, coverImageId: '' })).toEqual({ coverImageId: null });
+  });
+
+  it('omits coverImageId when the cover was not touched', () => {
+    expect('coverImageId' in diffArticleForm(base, { ...base, title: 'სხვა' })).toBe(false);
+    expect(diffArticleForm({ ...base, coverImageId: '' }, { ...base, coverImageId: '' })).toEqual(
+      {},
+    );
+  });
+
   it('sends both fields when the category changes', () => {
     expect(diffArticleForm(base, { ...base, categoryId: 'c2', subcategoryId: '' })).toEqual({
       categoryId: 'c2',
@@ -72,5 +83,12 @@ describe('toCreateRequest', () => {
 
   it('sends the chosen subcategory', () => {
     expect(toCreateRequest(base).subcategoryId).toBe('s1');
+  });
+
+  it('omits coverImageId when no cover is chosen', () => {
+    const body = toCreateRequest({ ...base, coverImageId: '' });
+
+    expect(body.coverImageId).toBeUndefined();
+    expect('coverImageId' in body).toBe(false);
   });
 });

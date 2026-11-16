@@ -14,7 +14,9 @@
 
       <app-logo />
 
-      <app-search-box />
+      @if (user()) {
+        <app-search-box />
+      }
 
       <div class="header__actions">
         @if (user(); as user) {
@@ -31,7 +33,7 @@
           >
             <app-icon name="bookmark" [size]="20" />
           </a>
-          @if (canWriteArticles()) {
+          @if (isAdmin()) {
             <a
               class="header__action"
               appButton
@@ -59,10 +61,6 @@
         } @else {
           <nav class="header__auth" aria-label="ანგარიში">
             <a class="header__auth-link" routerLink="/login">შესვლა</a>
-            <span class="header__auth-sep" aria-hidden="true">|</span>
-            <a class="header__auth-link header__auth-link--register" routerLink="/register">
-              რეგისტრაცია
-            </a>
           </nav>
         }
       </div>
@@ -130,6 +128,8 @@
     </ul>
   }
 
-  <p class="drawer__title">კატეგორიები</p>
-  <app-drawer-categories [categories]="categories()" />
+  @if (user()) {
+    <p class="drawer__title">კატეგორიები</p>
+    <app-drawer-categories [categories]="categories()" />
+  }
 </aside>

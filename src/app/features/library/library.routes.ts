@@ -1,11 +1,11 @@
 import { Routes } from '@angular/router';
-import { authGuard } from '../../core/auth/auth-guard';
+import { roleGuard } from '../../core/auth/role-guard';
 
-/** The logged-in user's personal lists: `/me/saved` and `/me/read`. */
+/** The signed-in admin's lists: `/me/saved` and `/me/read`. The user id comes from the token. */
 export const LIBRARY_ROUTES: Routes = [
   {
     path: 'me',
-    canActivate: [authGuard],
+    canActivate: [roleGuard('admin')],
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'saved' },
       {

@@ -10,7 +10,7 @@ export class CategoriesApi {
   private readonly baseUrl = `${environment.apiUrl}/categories`;
 
   /**
-   * Public. Plain array (not paginated), sorted by name. Only TOP-LEVEL categories, each with
+   * Admin only. Plain array (not paginated), sorted by name. Only TOP-LEVEL categories, each with
    * its subcategories nested in `subcategories` — search with `findCategoryById` /
    * `findCategoryBySlug`, not on this array directly.
    */
@@ -18,7 +18,7 @@ export class CategoriesApi {
     return this.http.get<Category[]>(this.baseUrl);
   }
 
-  /** Public. Categories and subcategories (for a subcategory `parent` is set). */
+  /** Admin only. Categories and subcategories (for a subcategory `parent` is set). */
   getBySlug(slug: string): Observable<Category> {
     return this.http.get<Category>(`${this.baseUrl}/${encodeURIComponent(slug)}`);
   }

@@ -3,13 +3,14 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AUTH_LOGIN_URL, AUTH_REGISTER_URL } from '../api/auth/auth-api';
+import { AUTH_LOGIN_URL } from '../api/auth/auth-api';
 import { AUTH_CONFIG } from '../tokens/auth-config';
 import { AuthService } from './auth-service';
 
 /**
  * Attaches the bearer token to Epoch API requests only, and logs the user out on 401
- * (except for login/register, where 401 means wrong credentials).
+ * (except for login, where 401 means wrong credentials). Register is admin-only: a 401
+ * there means the admin token is bad.
  */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   if (!isApiRequest(req)) {
@@ -41,5 +42,5 @@ function isApiRequest(req: HttpRequest<unknown>): boolean {
 }
 
 function isCredentialsRequest(req: HttpRequest<unknown>): boolean {
-  return req.method === 'POST' && (req.url === AUTH_LOGIN_URL || req.url === AUTH_REGISTER_URL);
+  return req.method === 'POST' && req.url === AUTH_LOGIN_URL;
 }

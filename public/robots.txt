@@ -1,10 +1,4 @@
 User-agent: *
-Disallow: /manage
-Disallow: /me
-Disallow: /login
-Disallow: /register
-Disallow: /search
-Disallow: /what-where-when
-Disallow: /flashcards
+Disallow: /
 
 Sitemap: https://www.epoch.ge/sitemap.xml

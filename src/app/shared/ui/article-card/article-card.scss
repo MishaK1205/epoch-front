@@ -63,6 +63,7 @@ $chip-full-path-min-width: 22rem;
   position: relative;
   aspect-ratio: 3 / 2;
   overflow: hidden;
+  color: var(--color-text-subtle);
   background: var(--color-surface-alt);
   border-bottom: var(--border-width) solid var(--color-border);
 
@@ -70,6 +71,13 @@ $chip-full-path-min-width: 22rem;
     object-fit: cover;
     transition: transform var(--duration-slower) var(--easing-out);
   }
+}
+
+.item__placeholder {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
 }
 
 // Projected action (save toggle) in the image corner, outside the link

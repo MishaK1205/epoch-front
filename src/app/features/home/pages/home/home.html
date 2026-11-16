@@ -26,14 +26,12 @@
           @for (article of items(); track article.id) {
             <li>
               <app-article-card [article]="article" [read]="readIds.has(article.id)">
-                @if (loggedIn()) {
-                  <app-reading-list-toggle
-                    cardAction
-                    appearance="icon"
-                    size="sm"
-                    [articleId]="article.id"
-                  />
-                }
+                <app-reading-list-toggle
+                  cardAction
+                  appearance="icon"
+                  size="sm"
+                  [articleId]="article.id"
+                />
               </app-article-card>
             </li>
           }

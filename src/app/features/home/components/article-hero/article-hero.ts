@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { ArticleSummary } from '../../../../core/api/articles/articles.models';
 import { TimeAgoPipe } from '../../../../shared/pipes/time-ago-pipe';
 
-/** Full-width featured article with the title over the cover image. */
+/** Full-width featured article. A missing cover keeps the dark background; the title stays readable. */
 @Component({
   selector: 'app-article-hero',
   imports: [NgOptimizedImage, RouterLink, TimeAgoPipe],

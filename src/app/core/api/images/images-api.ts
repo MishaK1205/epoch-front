@@ -14,7 +14,7 @@ export class ImagesApi {
   private readonly baseUrl = `${environment.apiUrl}/images`;
 
   /**
-   * Moderator or admin. Fails with `ClientValidationError` (no request sent) if the file type
+   * Admin only. Fails with `ClientValidationError` (no request sent) if the file type
    * or size is not allowed.
    */
   upload(file: File, alt?: string): Observable<UploadedImage> {
@@ -25,7 +25,7 @@ export class ImagesApi {
     return this.http.post<UploadedImage>(this.baseUrl, this.toFormData(file, alt));
   }
 
-  /** Moderator or admin. Same as `upload()`, but emits upload progress events. */
+  /** Admin only. Same as `upload()`, but emits upload progress events. */
   uploadWithProgress(file: File, alt?: string): Observable<HttpEvent<UploadedImage>> {
     const error = validateImageFile(file);
     if (error) {
@@ -37,23 +37,23 @@ export class ImagesApi {
     });
   }
 
-  /** Moderator or admin; moderators only see their own images. */
+  /** Admin only. Every image, not only the current admin's uploads. */
   list(query: ListImagesQuery = {}): Observable<Paginated<UploadedImage>> {
     return this.http.get<Paginated<UploadedImage>>(this.baseUrl, { params: toHttpParams(query) });
   }
 
-  /** Moderator or admin. */
+  /** Admin only. */
   get(id: string): Observable<UploadedImage> {
     return this.http.get<UploadedImage>(`${this.baseUrl}/${encodeURIComponent(id)}`);
   }
 
-  /** Owner (moderator) or admin. */
+  /** Admin only. */
   updateAlt(id: string, alt: string): Observable<UploadedImage> {
     const body: UpdateImageRequest = { alt };
     return this.http.patch<UploadedImage>(`${this.baseUrl}/${encodeURIComponent(id)}`, body);
   }
 
-  /** Owner (moderator) or admin. 409 while the image is used by an article. */
+  /** Admin only. 409 while the image is used by an article. */
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${encodeURIComponent(id)}`);
   }

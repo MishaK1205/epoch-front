@@ -8,10 +8,10 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { API_LIMITS } from '../../../../core/api/api-limits';
-import { AuthService } from '../../../../core/auth/auth-service';
+import { AuthService, NO_ACCESS_MESSAGE } from '../../../../core/auth/auth-service';
 import { Alert } from '../../../../shared/ui/alert/alert';
 import { Button } from '../../../../shared/ui/button/button';
 import { InputField } from '../../../../shared/ui/input-field/input-field';
@@ -20,7 +20,7 @@ import { AuthCard } from '../../components/auth-card/auth-card';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, RouterLink, Alert, Button, InputField, AuthCard],
+  imports: [ReactiveFormsModule, Alert, Button, InputField, AuthCard],
   templateUrl: './login.html',
   styleUrl: '../../auth-form.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -54,7 +54,13 @@ export class Login {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: () => void this.router.navigateByUrl(safeReturnUrl(this.returnUrl())),
+        next: (response) => {
+          if (response.user.role !== 'admin') {
+            this.serverErrors.set([NO_ACCESS_MESSAGE]);
+            return;
+          }
+          void this.router.navigateByUrl(safeReturnUrl(this.returnUrl()));
+        },
         error: (err: unknown) => this.serverErrors.set(getAuthErrorMessages(err)),
       });
   }

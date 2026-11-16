@@ -14,7 +14,6 @@ import { getApiErrorMessages } from '../../../../core/api/api-error-messages';
 import { API_LIMITS } from '../../../../core/api/api-limits';
 import { ArticlesApi } from '../../../../core/api/articles/articles-api';
 import { TagsApi } from '../../../../core/api/tags/tags-api';
-import { AuthService } from '../../../../core/auth/auth-service';
 import { ReadingListToggle } from '../../../../core/reading-list/reading-list-toggle/reading-list-toggle';
 import { ReadingListStore } from '../../../../core/services/reading-list-store';
 import { Seo } from '../../../../core/services/seo';
@@ -61,7 +60,6 @@ export class SearchResults {
   private readonly router = inject(Router);
   private readonly seo = inject(Seo);
 
-  protected readonly loggedIn = inject(AuthService).isLoggedIn;
   protected readonly readArticleIds = inject(ReadingListStore).readIds;
   protected readonly maxLength = API_LIMITS.search.max;
 

@@ -6,6 +6,9 @@ import { AuthApi } from '../api/auth/auth-api';
 import { AuthResponse, LoginRequest, RegisterRequest } from '../api/auth/auth.models';
 import { User } from '../api/users/users.models';
 
+/** Shown when a correct password belongs to a role that cannot call the API. */
+export const NO_ACCESS_MESSAGE = 'ამ ანგარიშს წვდომა არ აქვს';
+
 const TOKEN_KEY = 'epoch_access_token';
 const TOKEN_EXPIRES_AT_KEY = 'epoch_access_token_expires_at';
 /** setTimeout overflows above this delay. */
@@ -24,21 +27,32 @@ export class AuthService {
 
   readonly currentUser = this._currentUser.asReadonly();
   readonly isLoggedIn = computed(() => this._currentUser() !== null);
+  /** The only role that can use the app. `user` and `moderator` stay in the API union. */
   readonly isAdmin = computed(() => this._currentUser()?.role === 'admin');
-  readonly isModerator = computed(() => this._currentUser()?.role === 'moderator');
-  readonly canWriteArticles = computed(() => this.isAdmin() || this.isModerator());
 
-  /** Public. Saves the token and sets `currentUser`. */
-  register(body: RegisterRequest): Observable<AuthResponse> {
-    return this.authApi.register(body).pipe(tap((response) => this.startSession(response)));
+  /**
+   * Admin only. Creates an account with role `user`. Does not store `accessToken` or replace
+   * `currentUser` — the new account cannot call the API until its role is changed to `admin`.
+   */
+  createAccount(body: RegisterRequest): Observable<AuthResponse> {
+    return this.authApi.register(body);
   }
 
-  /** Public. Saves the token and sets `currentUser`. */
+  /**
+   * Public. Stores the token and sets `currentUser` only when the account is an admin.
+   * A correct password for `user` or `moderator` still returns 200; that token is discarded.
+   */
   login(body: LoginRequest): Observable<AuthResponse> {
-    return this.authApi.login(body).pipe(tap((response) => this.startSession(response)));
+    return this.authApi.login(body).pipe(
+      tap((response) => {
+        if (response.user.role === 'admin') {
+          this.startSession(response);
+        }
+      }),
+    );
   }
 
-  /** Any logged-in user. Refreshes `currentUser` (e.g. to pick up a role change). */
+  /** Admin only. Refreshes `currentUser` (e.g. to pick up a role change). */
   me(): Observable<User> {
     return this.authApi.me().pipe(tap((user) => this._currentUser.set(user)));
   }
@@ -83,9 +97,14 @@ export class AuthService {
       this.scheduleExpiry(expiresAt);
     }
     try {
-      await firstValueFrom(this.me());
+      const user = await firstValueFrom(this.me());
+      if (user.role !== 'admin') {
+        this.logout();
+      }
     } catch (err) {
-      if (err instanceof HttpErrorResponse && err.status === 401) {
+      // 403 here means the stored account is not an admin. Other 403s (for example
+      // "You cannot change your own role") are not handled in this method.
+      if (err instanceof HttpErrorResponse && (err.status === 401 || err.status === 403)) {
         this.logout();
       }
     }

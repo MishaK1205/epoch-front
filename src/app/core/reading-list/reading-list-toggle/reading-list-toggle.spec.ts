@@ -46,7 +46,7 @@ describe('ReadingListToggle', () => {
         id: '507f1f77bcf86cd799439099',
         username: 'john',
         email: 'john@example.com',
-        role: 'user',
+        role: 'admin',
         createdAt: '2026-10-01T12:00:00.000Z',
         updatedAt: '2026-10-01T12:00:00.000Z',
       },

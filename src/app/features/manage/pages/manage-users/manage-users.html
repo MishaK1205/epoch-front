@@ -1,3 +1,45 @@
+<section class="create" aria-labelledby="create-account-title">
+  <div class="create__intro">
+    <h2 class="create__title" id="create-account-title">ახალი ანგარიში</h2>
+    <p class="create__hint">
+      ანგარიში იქმნება როლით „მომხმარებელი“ და აპში ვერ შევა, სანამ როლს „ადმინზე“ არ შეცვლით.
+      თქვენი სესია უცვლელი რჩება.
+    </p>
+  </div>
+
+  <form class="create__form" [formGroup]="createForm" (ngSubmit)="createAccount()" novalidate>
+    <div class="create__fields">
+      <app-input-field
+        formControlName="username"
+        label="მომხმარებლის სახელი"
+        autocomplete="off"
+        hint="3–30 სიმბოლო: ლათინური ასოები, ციფრები, „_“ და „.“"
+        [maxlength]="limits.username.max"
+        [errorMessages]="usernameMessages"
+      />
+      <app-input-field
+        formControlName="email"
+        type="email"
+        label="ელ-ფოსტა"
+        autocomplete="off"
+        [maxlength]="limits.email.max"
+      />
+      <app-input-field
+        formControlName="password"
+        type="password"
+        label="პაროლი"
+        autocomplete="new-password"
+        hint="მინიმუმ 8 სიმბოლო, ერთი ასო და ერთი ციფრი"
+        [maxlength]="limits.password.max"
+        [errorMessages]="passwordMessages"
+      />
+    </div>
+    <button appButton type="submit" [loading]="creating()" [disabled]="creating()">
+      ანგარიშის შექმნა
+    </button>
+  </form>
+</section>
+
 <nav class="chips" aria-label="როლის ფილტრი">
   @for (filter of filters; track filter.label) {
     <a

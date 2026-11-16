@@ -88,11 +88,7 @@
           @if (categoryOptions().length === 0) {
             <p class="editor__hint">
               ჯერ შექმენით კატეგორია.
-              @if (isAdmin()) {
-                <a class="editor__link" routerLink="/manage/categories">კატეგორიების მართვა</a>
-              } @else {
-                მიმართეთ ადმინისტრატორს.
-              }
+              <a class="editor__link" routerLink="/manage/categories">კატეგორიების მართვა</a>
             </p>
           }
         </div>
@@ -103,6 +99,7 @@
           [previewUrl]="article()?.coverImage?.url ?? null"
           [previewAlt]="article()?.coverImage?.alt ?? ''"
         />
+        <p class="editor__hint">არასავალდებულო. სურათის გარეშეც შეიძლება შენახვა.</p>
       </div>
 
       <div class="editor__content">
