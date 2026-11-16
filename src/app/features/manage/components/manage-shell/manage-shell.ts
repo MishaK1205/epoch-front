@@ -12,7 +12,6 @@ const TITLE_SUFFIX = ' — Epoch';
   templateUrl: './manage-shell.html',
   styleUrl: './manage-shell.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { 'data-allow-copy': '' },
 })
 export class ManageShell {
   private readonly router = inject(Router);

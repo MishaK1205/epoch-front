@@ -22,6 +22,55 @@ After finishing every task, **add a new entry at the top** using the template be
 
 ---
 
+## 2026-11-16 — Open What, Where, When again without a stack overflow
+
+**Task:** Clicking „რა? სად? როდის?“ in the sidebar, after leaving that page, threw
+`Maximum call stack size exceeded` and the navigation never finished.
+
+**Changes:**
+
+- Modified `core/services/cached-route-reuse.ts` — a parent route and the empty-path page under
+  it (`/what-where-when`) are stored separately. They share a URL, and one cache key made the
+  route tree its own child on the way back.
+- Modified `core/services/cached-route-reuse.spec.ts` — covers leaving that page and opening it
+  again.
+- Modified `docs/PROJECT_GUIDELINES.md` — the cache keeps those two routes apart.
+
+**Notes:** A stored page is attached only when its route config is the one that was saved.
+
+## 2026-11-16 — Allow selecting and copying text on every page
+
+**Task:** Remove the block that stopped visitors from selecting and copying text on the site.
+
+**Changes:**
+
+- Removed `core/services/copy-protection.ts` and `copy-protection.spec.ts` — this cancelled copy,
+  cut, the context menu, dragging and text selection.
+- Modified `app.config.ts` — no longer starts that protection.
+- Modified `styles/_base.scss` — `body` can be selected again; images can be dragged.
+- Modified `features/manage/components/manage-shell/manage-shell.ts` and
+  `features/flashcards/pages/flashcard-play/flashcard-play.ts` — dropped `data-allow-copy`, which
+  only existed to opt those screens out of the block.
+- Modified `docs/PROJECT_GUIDELINES.md` — removed the copy-protection convention.
+
+**Notes:** Buttons still keep `user-select: none` so a click does not highlight the label.
+
+## 2026-11-16 — Bring the home page stylesheet under the build limit
+
+**Task:** The production build failed because `home.scss` was 9.72 kB, over the 8 kB component
+style error budget, so the Vercel deploy exited with an error.
+
+**Changes:**
+
+- Modified `features/home/pages/home/home.scss` — stopped pulling in the shared feed stylesheet
+  (those rules were copied in and then overridden) and shared repeated declarations. Emitted CSS
+  is 7.72 kB, under the error budget.
+- Modified `features/home/pages/home/home.ts` and `home.html` — each category tile and deck sets
+  its topic color directly, instead of eight generated tint classes.
+
+**Notes:** The page looks the same. Other stylesheets still warn at 4 kB; those warnings do not
+fail the build.
+
 ## 2026-11-16 — Cache pages and API reads across navigation
 
 **Task:** Stop the app from requesting data again when the user comes back to a page whose

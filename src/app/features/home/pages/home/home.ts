@@ -22,6 +22,14 @@ const HOME_SIZE = 4;
 const TAG_PAGE_SIZE = 12;
 const TOPIC_TINTS = 8;
 
+function topicPaint(index: number): { tint: string; accent: string } {
+  const slot = index % TOPIC_TINTS;
+  return {
+    tint: `var(--topic-tint-${slot})`,
+    accent: `var(--topic-accent-${slot})`,
+  };
+}
+
 /**
  * Front page: editorial hero, the real category tiles, three latest stories, and the
  * flashcard decks that already exist. `?tag=` keeps the paginated tag feed.
@@ -78,6 +86,12 @@ export class Home {
   protected readonly deckCards = computed(() =>
     this.decks.hasValue() ? this.decks.value().slice(0, 3) : [],
   );
+  protected readonly topicTiles = computed(() =>
+    this.categories().map((category, index) => ({ category, ...topicPaint(index) })),
+  );
+  protected readonly studyDecks = computed(() =>
+    this.deckCards().map((deck, index) => ({ deck, ...topicPaint(index) })),
+  );
   protected readonly totalPages = computed(() =>
     this.articles.hasValue() ? Math.ceil(this.articles.value().total / TAG_PAGE_SIZE) : 0,
   );
@@ -87,10 +101,6 @@ export class Home {
 
   protected goToPage(page: number): void {
     void this.router.navigate([], { queryParams: { page }, queryParamsHandling: 'merge' });
-  }
-
-  protected tintClass(index: number): string {
-    return `tint-${index % TOPIC_TINTS}`;
   }
 
   protected monogram(name: string): string {

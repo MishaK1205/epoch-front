@@ -35,12 +35,22 @@ const ROUTES_BY_API: Record<string, readonly string[]> = {
   '/users': ['/manage/users'],
 };
 
-/** Full path + sorted query, so `/?tag=a` and `/` are different cached pages. */
+/**
+ * Full path + sorted query, then the route-config chain.
+ * The config chain keeps a parent (`what-where-when`) and its empty child (`path: ''`) apart:
+ * both have the same URL, and storing them under one key makes the route tree its own child,
+ * which overflows the stack on the way back.
+ * `/?tag=a` and `/` stay different cached pages.
+ */
 export function routeStorageKey(route: ActivatedRouteSnapshot): string {
   const parts: string[] = [];
+  const configs: string[] = [];
   for (const snapshot of route.pathFromRoot) {
     for (const segment of snapshot.url) {
       parts.push(segment.path);
+    }
+    if (snapshot.routeConfig) {
+      configs.push(snapshot.routeConfig.path ?? '');
     }
   }
   const path = `/${parts.join('/')}`;
@@ -51,11 +61,12 @@ export function routeStorageKey(route: ActivatedRouteSnapshot): string {
     }
   }
   const query = params.toString();
-  return query ? `${path}?${query}` : path;
+  const url = query ? `${path}?${query}` : path;
+  return `${url}::${configs.join('/')}`;
 }
 
 export function routeShowsApiData(storageKey: string, apiPrefix: string): boolean {
-  const path = storageKey.split('?')[0];
+  const path = storageKey.split('::')[0].split('?')[0];
   const routes = ROUTES_BY_API[apiPrefix];
   if (!routes) {
     return false;
@@ -102,7 +113,8 @@ export class CachedRouteReuse implements RouteReuseStrategy {
   }
 
   shouldAttach(route: ActivatedRouteSnapshot): boolean {
-    return this.handles.has(routeStorageKey(route));
+    const handle = this.handles.get(routeStorageKey(route));
+    return !!handle && storedRouteConfig(handle) === route.routeConfig;
   }
 
   retrieve(route: ActivatedRouteSnapshot): DetachedRouteHandle | null {
@@ -146,4 +158,13 @@ export class CachedRouteReuse implements RouteReuseStrategy {
 function destroyHandle(handle: DetachedRouteHandle): void {
   const stored = handle as { componentRef?: { destroy(): void } | null };
   stored.componentRef?.destroy();
+}
+
+function storedRouteConfig(
+  handle: DetachedRouteHandle,
+): ActivatedRouteSnapshot['routeConfig'] | null {
+  const stored = handle as {
+    route?: { value?: { snapshot?: ActivatedRouteSnapshot } };
+  };
+  return stored.route?.value?.snapshot?.routeConfig ?? null;
 }

@@ -20,7 +20,6 @@ import { authInterceptor } from './core/auth/auth-interceptor';
 import { AuthService } from './core/auth/auth-service';
 import { apiGetCacheInterceptor } from './core/interceptors/api-get-cache-interceptor';
 import { CachedRouteReuse } from './core/services/cached-route-reuse';
-import { CopyProtection } from './core/services/copy-protection';
 import { ReadingListStore } from './core/services/reading-list-store';
 import { SeoTitleStrategy } from './core/services/seo-title-strategy';
 
@@ -40,6 +39,5 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => inject(AuthService).loadCurrentUser()),
     // Instantiate eagerly so it syncs with the auth state from app start, not from first use.
     provideEnvironmentInitializer(() => inject(ReadingListStore)),
-    provideEnvironmentInitializer(() => inject(CopyProtection)),
   ],
 };

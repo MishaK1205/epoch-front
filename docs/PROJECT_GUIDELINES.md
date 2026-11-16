@@ -190,8 +190,9 @@ back does not call the API again and does not flash a spinner.
 - `CategoriesStore.reload()` drops `GET /categories` itself before reloading.
 - `CachedRouteReuse` keeps the left page (up to 20) and attaches it on the way back. The same
   route with new params is still the same component and loads the new params; a different query
-  string is a different stored page. Routes with `canDeactivate` (editors), `/login` and the
-  not-found route are not kept.
+  string is a different stored page. A parent route and the empty-path page under it share a URL
+  (`/what-where-when`) but are stored separately, so coming back does not loop. Routes with
+  `canDeactivate` (editors), `/login` and the not-found route are not kept.
 - A write also destroys the stored pages that render that data (`ROUTES_BY_API`), so the next
   visit loads the new data. A bookmark does not destroy the home page. Logout and a new login
   drop the HTTP cache and every stored page.
@@ -237,12 +238,6 @@ image, article? })` from an `effect`. Canonical URLs come from `environment.site
 - `angular.json` `security.allowedHosts` lists the hosts the SSR server answers
   (`epoch.ge`, `www.epoch.ge`, `*.vercel.app`); other hosts get 400. Locally, run the built
   server with `NG_ALLOWED_HOSTS=127.0.0.1 PORT=4310 npm run serve:ssr:epoch-front`.
-- Copy protection: `CopyProtection` (`core/services/copy-protection.ts`, started eagerly in
-  `app.config.ts`) cancels `copy`, `cut`, `contextmenu`, `dragstart` and `selectstart`, and
-  `_base.scss` sets `user-select: none` on `body`. Inputs, textareas, `contenteditable` (Quill)
-  and anything inside `[data-allow-copy]` (the `ManageShell` host) stay copyable. Keep the CSS
-  exceptions in sync with `COPY_ALLOWED_SELECTOR`. It is only a deterrent: the SSR HTML stays
-  fully readable for search engines.
 - `AngularNodeAppEngine` is created with `trustProxyHeaders: true`: Vercel sends
   `X-Forwarded-For` / `-Port`, and any untrusted `X-Forwarded-*` header makes Angular silently
   serve the empty client-side page. To verify SSR, check for `ng-server-context` in the HTML of

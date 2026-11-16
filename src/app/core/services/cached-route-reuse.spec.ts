@@ -99,6 +99,41 @@ describe('CachedRouteReuse', () => {
   });
 });
 
+describe('CachedRouteReuse for a parent with an empty child', () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([
+          {
+            path: '',
+            component: ShellPage,
+            children: [
+              { path: 'history', component: ItemPage },
+              {
+                path: 'what-where-when',
+                children: [{ path: '', component: HomePage }],
+              },
+            ],
+          },
+        ]),
+        { provide: RouteReuseStrategy, useClass: CachedRouteReuse },
+      ],
+    });
+  });
+
+  it('opens that page again after leaving it', async () => {
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/history');
+    await harness.navigateByUrl('/what-where-when');
+    const page = harness.routeDebugElement?.children[0]?.componentInstance;
+
+    await harness.navigateByUrl('/history');
+    await harness.navigateByUrl('/what-where-when');
+
+    expect(harness.routeDebugElement?.children[0]?.componentInstance).toBe(page);
+  });
+});
+
 describe('CachedRouteReuse inside a shell', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({

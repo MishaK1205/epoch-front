@@ -35,7 +35,6 @@ function toQueue(value: string | undefined): Queue {
   templateUrl: './flashcard-play.html',
   styleUrl: './flashcard-play.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { 'data-allow-copy': '' },
 })
 export class FlashcardPlay {
   private readonly categoriesApi = inject(FlashcardCategoriesApi);

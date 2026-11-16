@@ -118,15 +118,17 @@
         </div>
       </div>
       <div class="category-grid">
-        @for (category of categories(); track category.id; let i = $index) {
+        @for (tile of topicTiles(); track tile.category.id) {
           <a
-            class="category-tile {{ tintClass(i) }}"
+            class="category-tile"
+            [style.--tint]="tile.tint"
+            [style.--accent]="tile.accent"
             routerLink="/articles"
-            [queryParams]="{ category: category.slug }"
+            [queryParams]="{ category: tile.category.slug }"
           >
-            <span class="category-icon" aria-hidden="true">{{ monogram(category.name) }}</span>
-            <span class="category-name">{{ category.name }}</span>
-            <span class="category-count">{{ category.articleCount }} სტატია</span>
+            <span class="category-icon" aria-hidden="true">{{ monogram(tile.category.name) }}</span>
+            <span class="category-name">{{ tile.category.name }}</span>
+            <span class="category-count">{{ tile.category.articleCount }} სტატია</span>
           </a>
         }
       </div>
@@ -195,11 +197,13 @@
         </a>
       </div>
       <div class="deck-grid home-decks">
-        @for (deck of deckCards(); track deck.id; let i = $index) {
+        @for (card of studyDecks(); track card.deck.id; let i = $index) {
           <a
-            class="deck-card {{ tintClass(i) }}"
+            class="deck-card"
+            [style.--tint]="card.tint"
+            [style.--accent]="card.accent"
             routerLink="/flashcards"
-            [queryParams]="{ categoryId: deck.id }"
+            [queryParams]="{ categoryId: card.deck.id }"
           >
             <div class="deck-top">
               <app-icon name="layers" [size]="32" />
@@ -207,19 +211,19 @@
             </div>
             <div class="deck-body">
               <p class="eyebrow">ფლეშბარათები</p>
-              <h3>{{ deck.name }}</h3>
-              @if (deck.description) {
-                <p>{{ deck.description }}</p>
+              <h3>{{ card.deck.name }}</h3>
+              @if (card.deck.description) {
+                <p>{{ card.deck.description }}</p>
               }
               <div class="deck-meta">
-                <span>{{ deck.totalFlashcardCount }} ბარათი</span>
+                <span>{{ card.deck.totalFlashcardCount }} ბარათი</span>
                 <span class="round-arrow" aria-hidden="true">
                   <app-icon name="chevron-right" [size]="14" />
                 </span>
               </div>
               <div class="deck-progress">
-                <span class="progress-track"><i [style.width.%]="deckProgress(deck)"></i></span>
-                <span>{{ deck.totalKnownCount }}/{{ deck.totalFlashcardCount }} ნაცნობი</span>
+                <span class="progress-track"><i [style.width.%]="deckProgress(card.deck)"></i></span>
+                <span>{{ card.deck.totalKnownCount }}/{{ card.deck.totalFlashcardCount }} ნაცნობი</span>
               </div>
             </div>
           </a>
