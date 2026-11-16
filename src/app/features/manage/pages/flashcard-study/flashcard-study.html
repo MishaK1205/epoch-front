@@ -12,8 +12,8 @@
 } @else if (deckMissing()) {
   <app-empty-state
     icon="book-open"
-    title="ეს დასტა არ არსებობს."
-    description="დაბრუნდით დასტების სიაში."
+    title="ეს კატეგორია არ არსებობს."
+    description="აირჩიეთ სხვა კატეგორია."
   >
     <a appButton variant="outline" [routerLink]="homeUrl()">
       <app-icon btnIconStart name="chevron-left" [size]="18" />
@@ -21,50 +21,76 @@
     </a>
   </app-empty-state>
 } @else if (deck(); as deck) {
-  <header class="study__head">
-    <div>
+  <header class="deck-head">
+    <div class="deck-head__titles">
       @if (!embedded()) {
-        <a class="study__back" [routerLink]="homeUrl()">
+        <a class="deck-head__back" [routerLink]="homeUrl()">
           <app-icon name="chevron-left" [size]="16" />
           დასტები
         </a>
       }
-      <p class="study__kicker">{{ deck.kicker }}</p>
-      <h2 class="study__title">{{ deck.title }}</h2>
-      @if (progressValue(); as progress) {
-        <p class="study__progress">
-          {{ progress.known }} ცნობილი · {{ progress.unknown }} უცნობი · {{ progress.total }} სულ
-        </p>
-      }
+      <p class="deck-head__kicker">{{ deck.kicker }}</p>
+      <h2 class="deck-head__title">{{ deck.title }}</h2>
     </div>
-    @if ((progressValue()?.total ?? 0) > 0) {
-      <button
-        appButton
-        type="button"
-        variant="outline"
-        size="sm"
-        [disabled]="pending() !== null"
-        [loading]="pending() === 'reset'"
-        (click)="askReset()"
-      >
-        {{ deck.resetLabel }}
-      </button>
+    @if (progressValue(); as progress) {
+      <div class="deck-head__stats">
+        <p class="deck-head__percent">{{ knownPercent() }}%</p>
+        <div
+          class="meter"
+          role="meter"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          [attr.aria-valuenow]="knownPercent()"
+          [attr.aria-label]="progress.known + ' ვიცი ' + progress.total + '-დან'"
+        >
+          <span class="meter__fill" [style.width.%]="knownPercent()"></span>
+        </div>
+        <p class="deck-head__counts">
+          {{ progress.known }} ვიცი · {{ progress.unknown }} არ ვიცი · {{ progress.total }} სულ
+        </p>
+      </div>
     }
   </header>
 
-  <nav class="chips" aria-label="რიგი">
-    @for (item of queues; track item.value) {
-      <a
-        class="chip"
-        routerLink="."
-        [class.is-active]="queue() === item.value"
-        [attr.aria-current]="queue() === item.value ? 'page' : null"
-        [queryParams]="{ queue: item.value === 'unknown' ? null : item.value, page: null }"
-        queryParamsHandling="merge"
-        >{{ item.label }}</a
-      >
-    }
-  </nav>
+  <div class="deck-tools">
+    <nav class="filter" aria-label="ვიცი თუ არა">
+      @for (item of queues; track item.value) {
+        <a
+          class="filter__item"
+          routerLink="."
+          [class.is-active]="queue() === item.value"
+          [attr.aria-current]="queue() === item.value ? 'page' : null"
+          [queryParams]="{ queue: item.value === 'all' ? null : item.value }"
+          queryParamsHandling="merge"
+        >
+          {{ item.label }}
+          @let count = countFor(item.value);
+          @if (count !== null) {
+            <span class="filter__count">{{ count }}</span>
+          }
+        </a>
+      }
+    </nav>
+    <div class="deck-tools__actions">
+      @if ((progressValue()?.total ?? 0) > 0) {
+        <button appButton type="button" variant="ghost" size="sm" (click)="toggleAnswers()">
+          <app-icon btnIconStart [name]="answersHidden() ? 'eye' : 'eye-off'" [size]="16" />
+          {{ answersHidden() ? 'პასუხების ჩვენება' : 'პასუხების დამალვა' }}
+        </button>
+        <button
+          appButton
+          type="button"
+          variant="outline"
+          size="sm"
+          [disabled]="pending() !== null"
+          [loading]="pending() === 'reset'"
+          (click)="askReset()"
+        >
+          {{ deck.resetLabel }}
+        </button>
+      }
+    </div>
+  </div>
 
   <div class="alerts" aria-live="polite">
     @if (successMessage()) {
@@ -82,8 +108,8 @@
   @if (emptyDeck()) {
     <app-empty-state
       icon="book-open"
-      title="ამ დასტაში ბარათები ჯერ არ არის."
-      description="შექმენით პირველი ბარათი ამ კატეგორიაში."
+      title="ამ კატეგორიაში ბარათები ჯერ არ არის."
+      description="შექმენით პირველი ბარათი."
     >
       <a appButton variant="accent" [routerLink]="newCardUrl" [queryParams]="deck.newCardParams">
         <app-icon btnIconStart name="plus" [size]="18" />
@@ -93,7 +119,7 @@
   } @else if (finishedUnknown()) {
     <app-empty-state
       icon="check-circle"
-      title="ამ დასტის ყველა ბარათი იცით."
+      title="ამ კატეგორიის ყველა ბარათი იცით."
       [description]="deck.resetConfirm"
     >
       <button
@@ -107,78 +133,101 @@
         {{ deck.resetLabel }}
       </button>
     </app-empty-state>
-  } @else if (!card()) {
+  } @else if (cardItems().length === 0) {
     <app-empty-state icon="search" [title]="emptyQueueMessage()" />
-  } @else if (card(); as card) {
-    <article class="study-card" aria-live="polite">
-      <p class="study-card__meta">ბარათი {{ queuePosition() }} / {{ queueTotal() }}</p>
-      <p class="study-card__front">{{ card.front }}</p>
-      @if (revealed()) {
-        <p class="study-card__back">{{ card.back }}</p>
-        @if (card.note) {
-          <p class="study-card__note">{{ card.note }}</p>
-        }
-        <div class="study-card__actions">
-          <button
-            appButton
-            type="button"
-            variant="accent"
-            [disabled]="pending() !== null"
-            [loading]="pending() === 'known'"
-            (click)="know()"
-          >
-            <app-icon btnIconStart name="check" [size]="18" />
-            ვიცი
-          </button>
-          <button
-            appButton
-            type="button"
-            variant="outline"
-            [disabled]="pending() !== null"
-            [loading]="pending() === 'unknown'"
-            (click)="stillLearning()"
-          >
-            ჯერ ვსწავლობ
-          </button>
-        </div>
-      } @else {
-        <button appButton type="button" variant="accent" (click)="reveal()">პასუხის ჩვენება</button>
+  } @else {
+    <p class="board-count">{{ cardItems().length }} ბარათი</p>
+    <div class="board" [class.board--loading]="cards.isLoading()">
+      @for (card of cardItems(); track card.id; let index = $index) {
+        <article
+          class="board-card"
+          [class.is-known]="card.known"
+          [attr.aria-busy]="cardBusy(card.id) || null"
+        >
+          <header class="board-card__top">
+            <span class="board-card__index">{{ index + 1 }}</span>
+            @if (!subcategoryId() && card.subcategory) {
+              <span class="board-card__where">{{ card.subcategory.name }}</span>
+            }
+            <span class="board-card__mark" [class.is-known]="card.known">
+              {{ card.known ? 'ვიცი' : 'არ ვიცი' }}
+            </span>
+          </header>
+          <h3 class="board-card__front">{{ card.front }}</h3>
+          @if (answerVisible(card.id)) {
+            <p class="board-card__back">{{ card.back }}</p>
+            @if (card.note) {
+              <p class="board-card__note">{{ card.note }}</p>
+            }
+          } @else {
+            <button class="board-card__reveal" type="button" (click)="reveal(card.id)">
+              პასუხის ჩვენება
+            </button>
+          }
+          <div class="mark" role="group" [attr.aria-label]="'მდგომარეობა: ' + card.front">
+            <button
+              class="mark__choice"
+              type="button"
+              [class.is-on]="card.known"
+              [disabled]="pending() !== null"
+              [attr.aria-pressed]="card.known"
+              (click)="know(card)"
+            >
+              @if (pending() === 'known' && pendingCardId() === card.id) {
+                <app-spinner size="sm" label="" />
+              } @else {
+                ვიცი
+              }
+            </button>
+            <button
+              class="mark__choice"
+              type="button"
+              [class.is-on]="!card.known"
+              [disabled]="pending() !== null"
+              [attr.aria-pressed]="!card.known"
+              (click)="forget(card)"
+            >
+              @if (pending() === 'unknown' && pendingCardId() === card.id) {
+                <app-spinner size="sm" label="" />
+              } @else {
+                არ ვიცი
+              }
+            </button>
+          </div>
+          <footer class="board-card__footer">
+            <a
+              appButton
+              variant="ghost"
+              size="sm"
+              [routerLink]="['/manage/flashcards', card.id, 'edit']"
+              [attr.aria-label]="'რედაქტირება: ' + card.front"
+            >
+              <app-icon btnIconStart name="edit" [size]="16" />
+              რედაქტირება
+            </a>
+            <button
+              appButton
+              type="button"
+              variant="danger-ghost"
+              size="sm"
+              [disabled]="pending() !== null"
+              [loading]="pending() === 'delete' && pendingCardId() === card.id"
+              [attr.aria-label]="'წაშლა: ' + card.front"
+              (click)="askDelete(card)"
+            >
+              <app-icon btnIconStart name="trash" [size]="16" />
+              წაშლა
+            </button>
+          </footer>
+        </article>
       }
-      <p class="study-card__hint">Space ან Enter აჩვენებს პასუხს. ისრები გადაადგილებს.</p>
-    </article>
-    <div class="study-card__nav">
-      <button appButton type="button" variant="ghost" size="sm" (click)="previous()">
-        <app-icon btnIconStart name="chevron-left" [size]="16" />
-        წინა
-      </button>
-      <button appButton type="button" variant="ghost" size="sm" (click)="next()">
-        შემდეგი
-        <app-icon btnIconEnd name="chevron-right" [size]="16" />
-      </button>
-      <a appButton variant="ghost" size="sm" [routerLink]="['/manage/flashcards', card.id, 'edit']">
-        <app-icon btnIconStart name="edit" [size]="16" />
-        რედაქტირება
-      </a>
-      <button
-        appButton
-        type="button"
-        variant="danger-ghost"
-        size="sm"
-        [disabled]="pending() !== null"
-        [loading]="pending() === 'delete'"
-        (click)="askDelete(card)"
-      >
-        <app-icon btnIconStart name="trash" [size]="16" />
-        წაშლა
-      </button>
     </div>
-    <app-pagination [page]="page()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
   }
 }
 
 <app-confirm-dialog
   #resetDialog
-  title="განულდეს ეს დასტა?"
+  title="განულდეს ეს კატეგორია?"
   [message]="deck()?.resetConfirm ?? ''"
   confirmLabel="განულება"
   (confirmed)="confirmReset()"

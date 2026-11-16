@@ -15,6 +15,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { API_LIMITS } from '../../../../core/api/api-limits';
+import { currentPageActive, navigationTick } from '../../../../core/services/active-page';
 import { FlashcardCategoriesApi } from '../../../../core/api/flashcards/flashcard-categories-api';
 import { FlashcardsApi } from '../../../../core/api/flashcards/flashcards-api';
 import { Flashcard, FlashcardStatus } from '../../../../core/api/flashcards/flashcards.models';
@@ -68,6 +69,8 @@ export class FlashcardCards {
   private readonly flashcardsApi = inject(FlashcardsApi);
   private readonly categoriesApi = inject(FlashcardCategoriesApi);
   private readonly router = inject(Router);
+  private readonly navigation = navigationTick();
+  private readonly pageActive = currentPageActive();
   private readonly destroyRef = inject(DestroyRef);
   private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialog');
 
@@ -178,7 +181,8 @@ export class FlashcardCards {
     effect(() => this.categoryFilter.setValue(this.effectiveCategoryId(), { emitEvent: false }));
     effect(() => this.subcategoryFilter.setValue(this.subcategoryId() ?? '', { emitEvent: false }));
     effect(() => {
-      if (!this.cards.hasValue()) {
+      this.navigation();
+      if (!this.pageActive() || !this.cards.hasValue()) {
         return;
       }
       const { items, total } = this.cards.value();

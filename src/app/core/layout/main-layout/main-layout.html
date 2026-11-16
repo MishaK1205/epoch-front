@@ -1,0 +1,5 @@
+@if (login()) {
+  <main class="main"><router-outlet /></main>
+} @else {
+  <app-reading-shell />
+}

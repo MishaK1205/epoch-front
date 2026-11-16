@@ -1,0 +1,108 @@
+<a class="skip-link" href="#main">შინაარსზე გადასვლა</a>
+
+<aside class="sidebar" [class.open]="menuOpen()" id="sidebar">
+  <a class="logo" routerLink="/" (click)="closeMenu()">epoch</a>
+
+  <nav class="nav-group" aria-label="მთავარი">
+    <a
+      class="nav-link"
+      routerLink="/"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+    >
+      <app-icon name="sun" [size]="18" />
+      მთავარი
+    </a>
+    <a class="nav-link" routerLink="/articles" [class.active]="articlesActive()">
+      <app-icon name="book-open" [size]="18" />
+      სტატიები
+    </a>
+    <a class="nav-link" routerLink="/flashcards" routerLinkActive="active">
+      <app-icon name="layers" [size]="18" />
+      ფლეშბარათები
+    </a>
+    <a class="nav-link" routerLink="/what-where-when" routerLinkActive="active">
+      <app-icon name="help-circle" [size]="18" />
+      რა? სად? როდის?
+    </a>
+    <a class="nav-link" routerLink="/me/saved" routerLinkActive="active">
+      <app-icon name="bookmark" [size]="18" />
+      შენახული
+      @if (savedCount() > 0) {
+        <span class="count">{{ savedCount() }}</span>
+      }
+    </a>
+  </nav>
+
+  @if (categories().length > 0) {
+    <p class="nav-label">თემები</p>
+    <nav class="nav-group" aria-label="კატეგორიები">
+      @for (category of categories(); track category.id) {
+        <a
+          class="nav-link"
+          routerLink="/articles"
+          [queryParams]="{ category: category.slug }"
+          [class.active]="topicActive(category.slug)"
+        >
+          {{ category.name }}
+          @if (category.articleCount > 0) {
+            <span class="count">{{ category.articleCount }}</span>
+          }
+        </a>
+      }
+    </nav>
+  }
+
+  <div class="sidebar-spacer"></div>
+  <div class="sidebar-note">
+    <p class="serif">შენი სია</p>
+    <p>მონიშნე სტატია, რომ მერე დაუბრუნდე.</p>
+    <a class="nav-link" routerLink="/manage" routerLinkActive="active">
+      <app-icon name="settings" [size]="16" />
+      რედაქცია
+    </a>
+    <button type="button" class="nav-link" (click)="logout()">
+      <app-icon name="log-out" [size]="16" />
+      გამოსვლა
+    </button>
+  </div>
+</aside>
+
+@if (menuOpen()) {
+  <button
+    type="button"
+    class="mobile-overlay show"
+    aria-label="მენიუს დახურვა"
+    (click)="closeMenu()"
+  ></button>
+}
+
+<div class="workspace">
+  <header class="topbar">
+    <button type="button" class="mobile-menu" aria-label="მენიუ" (click)="toggleMenu()">
+      <app-icon name="menu" [size]="21" />
+    </button>
+    <div class="top-actions">
+      @if (user()) {
+        <app-search-box />
+        <a class="saved-top" routerLink="/me/saved">
+          <app-icon name="bookmark" [size]="16" />
+          ჩემი კოლექცია
+        </a>
+        <span class="avatar" [attr.title]="user()?.username">{{ initial() }}</span>
+      }
+    </div>
+  </header>
+
+  <div class="content">
+    <main id="main" tabindex="-1">
+      <router-outlet />
+    </main>
+    <footer class="footer">
+      <div class="footer-left">
+        <a class="logo" routerLink="/">epoch</a>
+      </div>
+      <p class="footer-right">სტატიები და ფლეშბარათები ერთ ადგილას.</p>
+    </footer>
+  </div>
+</div>

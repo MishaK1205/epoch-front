@@ -1,7 +1,7 @@
-<header class="page-heading">
-  <p class="page-heading__kicker">თამაში</p>
-  <h1 class="page-heading__title">რა? სად? როდის?</h1>
-  <p class="page-heading__description">აირჩიეთ პაკეტი, რომ მისი კითხვები ნახოთ.</p>
+<header class="page-intro">
+  <p class="eyebrow">თამაში</p>
+  <h1>რა? სად? როდის?</h1>
+  <p>აირჩიეთ პაკეტი, რომ მისი კითხვები ნახოთ.</p>
 </header>
 
 <section class="packages" aria-label="პაკეტები">
@@ -59,16 +59,10 @@
         @let item = row.item;
         <li>
           <a class="card" [routerLink]="['/what-where-when', item.id]">
-            <span class="card__top">
-              <time class="card__date" [attr.datetime]="item.date">{{
-                item.date | calendarDate
-              }}</time>
-              @if (item.category; as category) {
-                <span class="card__category">{{ category.name }}</span>
-              }
-            </span>
+            <span class="card__eyebrow">{{ item.category?.name ?? 'პაკეტი' }}</span>
             <span class="card__title">{{ item.name }}</span>
             <span class="card__meta">
+              <time [attr.datetime]="item.date">{{ item.date | calendarDate }}</time>
               <span>{{ item.questionCount }} კითხვა</span>
               @if (row.authors) {
                 <span>{{ row.authors }}</span>

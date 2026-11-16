@@ -65,6 +65,38 @@ $breakpoints: (
     --palette-red-200: #f3c4c4;
     --palette-red-100: #fdecec;
     --palette-amber-500: #e3a008;
+    // Editorial (Curio) palette. The reading shell remaps the semantic tokens to these.
+    // Topic tints repeat by category order — categories themselves come from the API.
+    --palette-paper: #fcfbf8;
+    --palette-paper-raised: #fffdf8;
+    --palette-paper-sidebar: #f4f3ed;
+    --palette-paper-sage: #edf0e5;
+    --palette-olive-700: #34422d;
+    --palette-olive-600: #47553e;
+    --palette-olive-500: #3e4b33;
+    --palette-olive-300: #829767;
+    --palette-olive-200: #d6dbcd;
+    --palette-olive-100: #e9eddf;
+    --palette-line: #e5e5dc;
+    --palette-ink-olive: #282d27;
+    --palette-prose: #555a4e;
+    --palette-muted-olive: #7b7e73;
+    --topic-tint-0: #f3efe4;
+    --topic-accent-0: #8a7044;
+    --topic-tint-1: #e7efe4;
+    --topic-accent-1: #5d7352;
+    --topic-tint-2: #e8eef2;
+    --topic-accent-2: #5d7384;
+    --topic-tint-3: #f3ebe4;
+    --topic-accent-3: #8a6248;
+    --topic-tint-4: #eeeaf2;
+    --topic-accent-4: #6d6280;
+    --topic-tint-5: #eaf2ee;
+    --topic-accent-5: #4f7364;
+    --topic-tint-6: #f4eee8;
+    --topic-accent-6: #7a6552;
+    --topic-tint-7: #eef0e4;
+    --topic-accent-7: #6a7348;
 
     // ---------------------------------------------------------------------------
     // Semantic colors
@@ -233,8 +265,7 @@ $breakpoints: (
     --shadow-btn: 0 1px 2px rgb(0 0 0 / 14%), inset 0 1px 0 rgb(255 255 255 / 10%);
     --shadow-btn-hover: 0 4px 12px rgb(0 0 0 / 18%), inset 0 1px 0 rgb(255 255 255 / 12%);
     --shadow-btn-accent: 0 1px 2px rgb(7 24 36 / 40%), inset 0 1px 0 rgb(255 255 255 / 18%);
-    --shadow-btn-accent-hover:
-      0 6px 16px rgb(7 24 36 / 45%), inset 0 1px 0 rgb(255 255 255 / 18%);
+    --shadow-btn-accent-hover: 0 6px 16px rgb(7 24 36 / 45%), inset 0 1px 0 rgb(255 255 255 / 18%);
 
     // ---------------------------------------------------------------------------
     // Motion

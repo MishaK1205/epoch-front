@@ -15,6 +15,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { API_LIMITS } from '../../../../core/api/api-limits';
+import { currentPageActive, navigationTick } from '../../../../core/services/active-page';
 import { WhatWhereWhenApi } from '../../../../core/api/what-where-when/what-where-when-api';
 import { WhatWhereWhenCategoriesApi } from '../../../../core/api/what-where-when/what-where-when-categories-api';
 import { WhatWhereWhenSummary } from '../../../../core/api/what-where-when/what-where-when.models';
@@ -69,6 +70,8 @@ export class WwwPackages {
   private readonly api = inject(WhatWhereWhenApi);
   private readonly categoriesApi = inject(WhatWhereWhenCategoriesApi);
   private readonly router = inject(Router);
+  private readonly navigation = navigationTick();
+  private readonly pageActive = currentPageActive();
   private readonly destroyRef = inject(DestroyRef);
   private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialog');
 
@@ -134,7 +137,8 @@ export class WwwPackages {
     effect(() => this.categoryFilter.setValue(this.categoryId() ?? '', { emitEvent: false }));
     // A page past the end (e.g. after deleting the last item on it): go to the last page.
     effect(() => {
-      if (!this.packages.hasValue()) {
+      this.navigation();
+      if (!this.pageActive() || !this.packages.hasValue()) {
         return;
       }
       const { items, total } = this.packages.value();

@@ -22,6 +22,204 @@ After finishing every task, **add a new entry at the top** using the template be
 
 ---
 
+## 2026-11-16 — Cache pages and API reads across navigation
+
+**Task:** Stop the app from requesting data again when the user comes back to a page whose
+data is already loaded, including the home page and the other screens.
+
+**Changes:**
+
+- Added `core/services/api-get-cache.ts` and `core/interceptors/api-get-cache-interceptor.ts` —
+  session cache of successful API GETs, one shared in-flight request, and invalidation when a
+  write changes that data.
+- Added `core/services/cached-route-reuse.ts` — keeps a left page and shows it again on the way
+  back, so the screen does not reload. A write drops the pages that show that data. Editors are
+  not kept.
+- Added `core/services/active-page.ts` — a restored page re-applies its document head, and a
+  detached page does not change the title or the URL.
+- Modified `app.config.ts` — registers the cache interceptor and the route reuse strategy.
+- Modified `core/auth/auth-service.ts` — logout and a new login drop the cache.
+- Modified `core/services/categories-store.ts` — `reload()` bypasses the cached category list.
+- Modified the reading, search, flashcard and package pages that set the document title or
+  correct the page number — they skip that work while the page is cached in the background.
+- Modified `docs/PROJECT_GUIDELINES.md` — the cache and which pages stay in memory.
+
+**Notes:** A bookmark does not reload the home page. Publishing or editing an article does, the
+next time that page is opened. `GET /auth/me` is never cached. The first open of a page still
+calls the API; only a repeat visit is served from memory.
+
+---
+
+## 2026-11-16 — Editorial What/Where/When and manage
+
+**Task:** Make the „რა? სად? როდის?“ pages and the admin panels use the same paper and olive
+design as the home page.
+
+**Changes:**
+
+- Modified `core/layout/main-layout/` — every route except login uses `ReadingShell`.
+- Removed `core/layout/site-header/`, `site-footer/`, `drawer-categories/`, and `logo/` — the
+  old header and footer had no remaining page.
+- Modified `core/layout/reading-shell/` — olive palette, flat buttons, and a highlighted
+  „რედაქცია“ link while a manage page is open.
+- Modified `features/manage/` — serif titles, olive tabs and filter chips, and list titles in
+  the same type as article cards. Question and table labels stay in normal Georgian case.
+- Modified `features/what-where-when/` — the package list and a package’s questions use the
+  articles-page heading, chips, and serif cards.
+- Modified `shared/ui/www-question-list/` — the question label is no longer uppercase.
+- Modified `docs/PROJECT_GUIDELINES.md` — the reading shell is the chrome for manage and the
+  game, and the old header is no longer the visual style.
+
+**Notes:** Login stays a paper page without the sidebar. Search, the library, and the public
+flashcard page were already in the shell; their headings were left as they were.
+
+---
+
+## 2026-11-16 — Show What Where When in the sidebar
+
+**Task:** The „რა? სად? როდის?“ section was missing from the local reading pages, including
+when the app talks to the production API.
+
+**Changes:**
+
+- Modified `core/layout/reading-shell/reading-shell.html` — the sidebar links to
+  `/what-where-when`, next to flashcards.
+- Modified `docs/PROJECT_GUIDELINES.md` — the reading sidebar is where that link lives.
+
+**Notes:** The route and the manage tab were already there. The new sidebar had replaced the
+drawer, so the only public link was on pages that still use the old header.
+
+---
+
+## 2026-11-16 — Article reader without the flashcard card
+
+**Task:** Remove the sticky flashcard card from the article page, let the article use the full
+content width, stop „კიდევ ამ თემაზე“ from covering the end of the article, and drop „ონლაინ
+ჟურნალი“ plus the period after epoch in the sidebar and footer.
+
+**Changes:**
+
+- Modified `features/articles/pages/article-detail/` — the flashcard card and its deck lookup
+  are gone. Contents sit in a static row. The prose is the full width of the reading area, and
+  Quill’s fixed editor height no longer lets the facts row paint over the related articles.
+- Modified `core/layout/reading-shell/` — sidebar and footer wordmarks are „epoch“, without the
+  caption.
+- Modified `docs/PROJECT_GUIDELINES.md` — the article page no longer includes a flashcard link.
+
+**Notes:** Login still uses „epoch.“ and „ონლაინ ჟურნალი“. The articles list keeps its
+flashcard banner.
+
+---
+
+## 2026-11-16 — Reading bar without the section label
+
+**Task:** Remove „epoch / სტატია“ from the reading header, shorten the search field, and let
+the remaining controls use the full bar.
+
+**Changes:**
+
+- Modified `core/layout/reading-shell/` — the section label is gone. Search grows across the
+  bar; the collection link and avatar stay at the end. The field is shorter and uses a smaller
+  font.
+- Modified `core/search/search-box/search-box.scss` — height, font size, and max width can be
+  set from the header. The manage header keeps the previous size.
+
+**Notes:** On a phone the bar is the menu button, the search icon, and the avatar.
+
+---
+
+## 2026-11-16 — Articles browse page
+
+**Task:** Make „სტატიები“ open its own page, laid out like the reference: intro, topic
+filters, sort, the card grid, and the flashcard banner.
+
+**Changes:**
+
+- Added `features/articles/pages/article-list/` — `/articles`, with `?category=` and
+  `?sort=title`. Newest order comes from the API; title order is sorted in the browser.
+- Modified `features/articles/articles.routes.ts` — the list route is declared before
+  `/articles/:slug`.
+- Modified `app.routes.server.ts` — the list is server-rendered, same as the other reading pages.
+- Modified `core/layout/reading-shell/` — „სტატიები“ and the topic links open this page. The
+  matching topic stays highlighted.
+- Modified `features/home/pages/home/` — topic tiles and „სტატიების ნახვა“ / „ყველა სტატია“
+  go to the list.
+- Modified `features/articles/pages/article-detail/` — the breadcrumb returns to the list.
+- Modified `docs/PROJECT_GUIDELINES.md` — `/articles` is the browse page.
+
+**Notes:** The API has no sort parameter and no reading time on the summary, so the list sorts
+by title only among the first 100 matches and does not offer „shortest read“. `/category/:slug`
+is still there for older links.
+
+---
+
+## 2026-11-16 — Editorial login page
+
+**Task:** Restyle the login page so it matches the paper and olive reading design.
+
+**Changes:**
+
+- Modified `features/auth/components/auth-card/` — paper page, serif title, olive submit button.
+  The wordmark shows above the form on small screens. Template moved to its own file.
+- Modified `features/auth/components/auth-brand/` — side panel is the sidebar paper, with the
+  wordmark and a short note. The dark gradient and feature list are gone.
+- Modified `features/auth/pages/login/login.html` — plain Georgian subtitle; the button uses the
+  accent color.
+- Modified `core/layout/main-layout/` — `/login` no longer sits under the old header and footer.
+- Modified `docs/PROJECT_GUIDELINES.md` — login uses the editorial palette.
+
+**Notes:** The form, validation, and admin-only login behavior are unchanged. Manage and
+What/Where/When still use the previous header.
+
+---
+
+## 2026-11-16 — Editorial copy and layout fixes
+
+**Task:** Replace the literal Georgian slogans taken from the Curio reference with normal
+sentences, and fix layout details the first pass missed.
+
+**Changes:**
+
+- Modified `features/home/pages/home/` — plain Georgian for the hero, topics, latest stories,
+  flashcard banner, and decks. Category tiles use eight columns, then four horizontal tiles, then
+  two. The hero stays two columns until the small breakpoint. The third story and deck hide on
+  the same widths as the reference.
+- Modified `core/layout/reading-shell/` — sidebar, top bar, and footer copy. The top bar names
+  the current section. The sidebar narrows below the large breakpoint.
+- Modified `features/articles/pages/article-detail/` — breadcrumb and flashcard prompt. The
+  contents list becomes chips on narrower screens and the side card hides with it. Related
+  articles stack earlier.
+- Modified `shared/ui/article-card/`, `features/home/pages/category-articles/` — kickers no longer
+  use uppercase tracking.
+- Modified `docs/PROJECT_GUIDELINES.md` — editorial kickers stay in normal Georgian case.
+
+**Notes:** The reference slogans (“A little curiosity”, “Worth a closer look”) do not make sense
+in Georgian, so the pages say what they are: a magazine, topics, new articles, and flashcards.
+Deck cards no longer repeat the deck name as both the kicker and the title.
+
+---
+
+## 2026-11-16 — Editorial home and article pages
+
+**Task:** Rebuild the home page and the article page from the Curio reference, in Georgian, using the existing categories and live articles.
+
+**Changes:**
+
+- Added `core/layout/reading-shell/` — sidebar, top bar, and footer for the reading pages. Categories, search, saved articles, and flashcards stay on the current API.
+- Modified `core/layout/main-layout/` — reading routes use the shell; login, manage, and What/Where/When keep the previous header.
+- Modified `features/home/pages/home/` — editorial hero, real category tiles, three latest articles, and up to three flashcard decks.
+- Modified `features/articles/pages/article-detail/` — reader layout: breadcrumb, byline, contents from headings, facts, related articles.
+- Modified `features/home/pages/category-articles/category-articles.scss` — category page matches the editorial type and filters.
+- Modified `shared/ui/article-card/` — cover, eyebrow, excerpt, and date, with a placeholder when the cover is missing.
+- Added `shared/utils/article-sections.ts` — heading ids for the contents list and a reading-time estimate.
+- Modified `shared/ui/icon/` — `layers` and `sun` icons for the new navigation.
+- Modified `styles/_design-system.scss` — paper, olive, and topic-tint tokens.
+- Modified `docs/PROJECT_GUIDELINES.md` — editorial shell and the new home/article structure.
+
+**Notes:** Topic colors repeat by category order; names still come from `GET /categories`. A flashcard deck is linked from an article only when its name matches the article category. Sample Curio topics and copy are not used. `ArticleHero`, `ArticleSection`, and `CategorySection` are no longer on the home page.
+
+---
+
 ## 2026-11-16 — Admin-only app and optional article cover
 
 **Task:** Lock the site to admins (login stays public) and make an article cover optional.

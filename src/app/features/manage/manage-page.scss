@@ -39,27 +39,30 @@
 .chip {
   display: inline-flex;
   align-items: center;
-  height: var(--control-height-sm);
-  padding: 0 var(--space-4);
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-ink);
-  background: var(--color-surface);
-  border: var(--border-width) solid var(--color-border-strong);
-  border-radius: var(--radius-full);
+  min-height: var(--control-height-sm);
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  background: transparent;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-sm);
   transition:
     color var(--duration-fast) var(--easing-standard),
     background-color var(--duration-fast) var(--easing-standard),
     border-color var(--duration-fast) var(--easing-standard);
 
-  &:hover {
-    border-color: var(--color-ink);
+  &:hover:not(.is-active) {
+    border-color: var(--color-accent-border);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
   }
 
   &.is-active {
     color: var(--color-text-inverse);
-    background: var(--color-ink);
-    border-color: var(--color-ink);
+    background: var(--color-accent);
+    border-color: var(--color-accent);
   }
 }
 

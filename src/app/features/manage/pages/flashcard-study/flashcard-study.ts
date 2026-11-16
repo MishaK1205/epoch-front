@@ -4,18 +4,15 @@ import {
   Component,
   computed,
   DestroyRef,
-  effect,
   inject,
   input,
-  linkedSignal,
   output,
   signal,
   viewChild,
 } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
-import { API_LIMITS } from '../../../../core/api/api-limits';
 import { FlashcardCategoriesApi } from '../../../../core/api/flashcards/flashcard-categories-api';
 import { FlashcardsApi } from '../../../../core/api/flashcards/flashcards-api';
 import { Flashcard, FlashcardStatus } from '../../../../core/api/flashcards/flashcards.models';
@@ -24,25 +21,20 @@ import { Button } from '../../../../shared/ui/button/button';
 import { ConfirmDialog } from '../../../../shared/ui/confirm-dialog/confirm-dialog';
 import { EmptyState } from '../../../../shared/ui/empty-state/empty-state';
 import { Icon } from '../../../../shared/ui/icon/icon';
-import { Pagination } from '../../../../shared/ui/pagination/pagination';
 import { Spinner } from '../../../../shared/ui/spinner/spinner';
 import { getManageErrorMessages } from '../../manage-errors';
 import {
   FLASHCARD_DECKS_URL,
   flashcardDeleteMessage,
   flashcardsResetMessage,
-  toPage,
 } from '../../manage-labels';
 import { findStudyDeck } from './flashcard-deck';
 
-const PAGE_SIZE = API_LIMITS.pagination.defaultLimit;
-const NEW_CARD_URL = '/manage/flashcards/new';
-
-type Queue = 'unknown' | FlashcardStatus | 'all';
+type Queue = 'all' | FlashcardStatus;
 type Pending = 'known' | 'unknown' | 'reset' | 'delete';
 
 function toQueue(value: string | undefined): Queue {
-  return value === 'known' || value === 'all' ? value : 'unknown';
+  return value === 'known' || value === 'unknown' ? value : 'all';
 }
 
 function toDirect(value: string | boolean | undefined): boolean {
@@ -50,21 +42,19 @@ function toDirect(value: string | boolean | undefined): boolean {
 }
 
 /**
- * Flip through one deck. Used by `/flashcards` and, if opened directly, by the
- * manage study route. `embedded` hides the link back to the deck list.
+ * Every card of one deck, on a single board. Used by `/flashcards`.
+ * `embedded` hides the link back to the manage deck list.
  */
 @Component({
   selector: 'app-flashcard-study',
-  imports: [RouterLink, Alert, Button, ConfirmDialog, EmptyState, Icon, Pagination, Spinner],
+  imports: [RouterLink, Alert, Button, ConfirmDialog, EmptyState, Icon, Spinner],
   templateUrl: './flashcard-study.html',
   styleUrls: ['../../manage-page.scss', './flashcard-study.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { '(window:keydown)': 'onKeydown($event)' },
 })
 export class FlashcardStudy {
   private readonly categoriesApi = inject(FlashcardCategoriesApi);
   private readonly flashcardsApi = inject(FlashcardsApi);
-  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly resetDialog = viewChild.required<ConfirmDialog>('resetDialog');
   private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialog');
@@ -72,8 +62,7 @@ export class FlashcardStudy {
   readonly categoryId = input<string>();
   readonly subcategoryId = input<string>();
   readonly direct = input(false, { transform: toDirect });
-  readonly page = input(1, { transform: toPage });
-  readonly queue = input('unknown', { transform: toQueue });
+  readonly queue = input('all', { transform: toQueue });
   /** The category page already shows the deck list, so the back link stays hidden. */
   readonly embedded = input(false);
 
@@ -83,11 +72,11 @@ export class FlashcardStudy {
   protected readonly homeUrl = computed(() =>
     this.embedded() ? '/flashcards' : FLASHCARD_DECKS_URL,
   );
-  protected readonly newCardUrl = NEW_CARD_URL;
+  protected readonly newCardUrl = '/manage/flashcards/new';
   protected readonly queues: readonly { value: Queue; label: string }[] = [
-    { value: 'unknown', label: 'უცნობი' },
-    { value: 'known', label: 'ცნობილი' },
     { value: 'all', label: 'ყველა' },
+    { value: 'known', label: 'ვიცი' },
+    { value: 'unknown', label: 'არ ვიცი' },
   ];
 
   protected readonly categories = rxResource({ stream: () => this.categoriesApi.list() });
@@ -116,63 +105,38 @@ export class FlashcardStudy {
         return undefined;
       }
       const queue = this.queue();
-      return {
-        ...query,
-        page: this.page(),
-        limit: PAGE_SIZE,
-        status: queue === 'all' ? undefined : queue,
-      };
+      return { ...query, status: queue === 'all' ? undefined : queue };
     },
-    stream: ({ params }) => this.flashcardsApi.list(params),
+    stream: ({ params }) => this.flashcardsApi.listAll(params),
   });
 
   protected readonly progressValue = computed(() =>
     this.progress.hasValue() ? this.progress.value() : null,
   );
-  protected readonly cardItems = computed(() =>
-    this.cards.hasValue() ? this.cards.value().items : [],
-  );
-  protected readonly queueTotal = computed(() =>
-    this.cards.hasValue() ? this.cards.value().total : 0,
-  );
-  protected readonly totalPages = computed(() => Math.ceil(this.queueTotal() / PAGE_SIZE));
-  private readonly queueKey = computed(
-    () =>
-      `${this.categoryId() ?? ''}|${this.subcategoryId() ?? ''}|${this.direct()}|${this.queue()}|${this.page()}`,
-  );
-  protected readonly cardIndex = linkedSignal({
-    source: this.queueKey,
-    computation: () => 0,
-  });
-  protected readonly safeIndex = computed(() => {
-    const length = this.cardItems().length;
-    if (length === 0) {
+  protected readonly cardItems = computed(() => (this.cards.hasValue() ? this.cards.value() : []));
+  protected readonly knownPercent = computed(() => {
+    const progress = this.progressValue();
+    if (!progress || progress.total === 0) {
       return 0;
     }
-    return Math.min(this.cardIndex(), length - 1);
+    return Math.round((progress.known / progress.total) * 100);
   });
-  protected readonly card = computed(() => this.cardItems()[this.safeIndex()] ?? null);
-  protected readonly revealed = linkedSignal({
-    source: () => this.card()?.id ?? null,
-    computation: () => false,
-  });
-  protected readonly queuePosition = computed(
-    () => (this.page() - 1) * PAGE_SIZE + this.safeIndex() + 1,
-  );
   protected readonly emptyDeck = computed(() => this.progressValue()?.total === 0);
   protected readonly finishedUnknown = computed(() => {
     const progress = this.progressValue();
     return (
       this.queue() === 'unknown' &&
       this.cards.hasValue() &&
-      this.queueTotal() === 0 &&
+      this.cardItems().length === 0 &&
       !!progress &&
       progress.unknown === 0 &&
       progress.total > 0
     );
   });
   protected readonly emptyQueueMessage = computed(() =>
-    this.queue() === 'known' ? 'ცნობილი ბარათი ჯერ არ გაქვთ.' : 'ამ რიგში ბარათი არ არის.',
+    this.queue() === 'known'
+      ? 'ამ კატეგორიაში ჯერ არც ერთი ბარათი არ იცით.'
+      : 'ამ ფილტრს ბარათი არ შეესაბამება.',
   );
   protected readonly loading = computed(() => {
     if (this.categories.isLoading() && !this.categories.hasValue()) {
@@ -191,7 +155,11 @@ export class FlashcardStudy {
     return err ? getManageErrorMessages(err) : [];
   });
 
+  /** Hide answers so the board can be used as a quiz. Marks stay visible. */
+  protected readonly answersHidden = signal(false);
+  private readonly revealedIds = signal<ReadonlySet<string>>(new Set());
   protected readonly pending = signal<Pending | null>(null);
+  protected readonly pendingCardId = signal<string | null>(null);
   protected readonly toDelete = signal<Flashcard | null>(null);
   protected readonly successMessage = signal('');
   protected readonly actionErrors = signal<string[]>([]);
@@ -199,17 +167,31 @@ export class FlashcardStudy {
     flashcardDeleteMessage(this.toDelete()?.front ?? ''),
   );
 
-  constructor() {
-    effect(() => {
-      if (!this.cards.hasValue() || !this.deck()) {
-        return;
-      }
-      const { items, total } = this.cards.value();
-      const lastPage = Math.max(1, Math.ceil(total / PAGE_SIZE));
-      if (items.length === 0 && total > 0 && this.page() > lastPage) {
-        this.goToPage(lastPage);
-      }
-    });
+  protected countFor(queue: Queue): number | null {
+    const progress = this.progressValue();
+    if (!progress) {
+      return null;
+    }
+    if (queue === 'known') {
+      return progress.known;
+    }
+    if (queue === 'unknown') {
+      return progress.unknown;
+    }
+    return progress.total;
+  }
+
+  protected answerVisible(id: string): boolean {
+    return !this.answersHidden() || this.revealedIds().has(id);
+  }
+
+  protected toggleAnswers(): void {
+    this.answersHidden.update((hidden) => !hidden);
+    this.revealedIds.set(new Set());
+  }
+
+  protected reveal(id: string): void {
+    this.revealedIds.update((ids) => new Set(ids).add(id));
   }
 
   protected retry(): void {
@@ -218,96 +200,22 @@ export class FlashcardStudy {
     this.cards.reload();
   }
 
-  protected goToPage(page: number): void {
-    void this.router.navigate([], {
-      queryParams: { page: page > 1 ? page : null },
-      queryParamsHandling: 'merge',
-    });
+  protected cardBusy(id: string): boolean {
+    return this.pendingCardId() === id && this.pending() !== null && this.pending() !== 'reset';
   }
 
-  protected reveal(): void {
-    this.revealed.set(true);
+  protected know(card: Flashcard): void {
+    if (card.known || this.pending()) {
+      return;
+    }
+    this.mark(card, 'known');
   }
 
-  protected next(): void {
-    const length = this.cardItems().length;
-    const index = this.safeIndex();
-    if (index < length - 1) {
-      this.cardIndex.set(index + 1);
+  protected forget(card: Flashcard): void {
+    if (!card.known || this.pending()) {
       return;
     }
-    if (this.page() < this.totalPages()) {
-      this.goToPage(this.page() + 1);
-    }
-  }
-
-  protected previous(): void {
-    const index = this.safeIndex();
-    if (index > 0) {
-      this.cardIndex.set(index - 1);
-      return;
-    }
-    if (this.page() > 1) {
-      this.goToPage(this.page() - 1);
-    }
-  }
-
-  protected know(): void {
-    const card = this.card();
-    if (!card || this.pending()) {
-      return;
-    }
-    const leaveInPlace = this.queue() === 'unknown';
-    this.pending.set('known');
-    this.actionErrors.set([]);
-    this.flashcardsApi
-      .markKnown(card.id)
-      .pipe(
-        finalize(() => this.pending.set(null)),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: () => {
-          this.progress.reload();
-          this.cards.reload();
-          this.deckChanged.emit();
-          if (!leaveInPlace) {
-            this.next();
-          }
-        },
-        error: (err: unknown) => this.actionErrors.set(getManageErrorMessages(err)),
-      });
-  }
-
-  protected stillLearning(): void {
-    const card = this.card();
-    if (!card || this.pending()) {
-      return;
-    }
-    if (!card.known) {
-      this.next();
-      return;
-    }
-    const leaveInPlace = this.queue() === 'known';
-    this.pending.set('unknown');
-    this.actionErrors.set([]);
-    this.flashcardsApi
-      .markUnknown(card.id)
-      .pipe(
-        finalize(() => this.pending.set(null)),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: () => {
-          this.progress.reload();
-          this.cards.reload();
-          this.deckChanged.emit();
-          if (!leaveInPlace) {
-            this.next();
-          }
-        },
-        error: (err: unknown) => this.actionErrors.set(getManageErrorMessages(err)),
-      });
+    this.mark(card, 'unknown');
   }
 
   protected askReset(): void {
@@ -320,6 +228,7 @@ export class FlashcardStudy {
       return;
     }
     this.pending.set('reset');
+    this.pendingCardId.set(null);
     this.actionErrors.set([]);
     this.successMessage.set('');
     this.flashcardsApi
@@ -350,12 +259,16 @@ export class FlashcardStudy {
       return;
     }
     this.pending.set('delete');
+    this.pendingCardId.set(card.id);
     this.actionErrors.set([]);
     this.successMessage.set('');
     this.flashcardsApi
       .delete(card.id)
       .pipe(
-        finalize(() => this.pending.set(null)),
+        finalize(() => {
+          this.pending.set(null);
+          this.pendingCardId.set(null);
+        }),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
@@ -378,23 +291,29 @@ export class FlashcardStudy {
       });
   }
 
-  protected onKeydown(event: KeyboardEvent): void {
-    const target = event.target;
-    if (!(target instanceof HTMLElement) || target.closest('input, textarea, select, dialog')) {
-      return;
-    }
-    if (event.key === 'ArrowRight') {
-      event.preventDefault();
-      this.next();
-    } else if (event.key === 'ArrowLeft') {
-      event.preventDefault();
-      this.previous();
-    } else if ((event.key === ' ' || event.key === 'Enter') && !this.revealed()) {
-      if (target.closest('button, a')) {
-        return;
-      }
-      event.preventDefault();
-      this.reveal();
-    }
+  private mark(card: Flashcard, action: 'known' | 'unknown'): void {
+    this.pending.set(action);
+    this.pendingCardId.set(card.id);
+    this.actionErrors.set([]);
+    const request =
+      action === 'known'
+        ? this.flashcardsApi.markKnown(card.id)
+        : this.flashcardsApi.markUnknown(card.id);
+    request
+      .pipe(
+        finalize(() => {
+          this.pending.set(null);
+          this.pendingCardId.set(null);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
+          this.progress.reload();
+          this.cards.reload();
+          this.deckChanged.emit();
+        },
+        error: (err: unknown) => this.actionErrors.set(getManageErrorMessages(err)),
+      });
   }
 }

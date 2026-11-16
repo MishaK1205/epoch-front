@@ -20,79 +20,158 @@
   </div>
 } @else if (article.hasValue()) {
   @let item = article.value();
-  <article class="article">
-    <header class="article__head">
+  <div class="reading-progress" aria-hidden="true">
+    <span [style.width.%]="progress()"></span>
+  </div>
+  <article class="article" #articleRoot>
+    <nav class="breadcrumb" aria-label="გზა">
+      <a routerLink="/">მთავარი</a>
+      <app-icon name="chevron-right" [size]="12" />
       @if (item.category; as category) {
-        <nav class="article__kicker" aria-label="კატეგორია">
-          <a class="article__kicker-link" [routerLink]="['/category', category.slug]">{{
-            category.name
-          }}</a>
-          @if (item.subcategory; as subcategory) {
-            <span aria-hidden="true">›</span>
-            <a class="article__kicker-link" [routerLink]="['/category', subcategory.slug]">{{
-              subcategory.name
-            }}</a>
-          }
-        </nav>
+        <a routerLink="/articles" [queryParams]="{ category: category.slug }">{{ category.name }}</a>
+        <app-icon name="chevron-right" [size]="12" />
       }
-      <h1 class="article__title">{{ item.title }}</h1>
-      <p class="article__meta">
+      @if (item.subcategory; as subcategory) {
+        <a routerLink="/articles" [queryParams]="{ category: subcategory.slug }">{{
+          subcategory.name
+        }}</a>
+      } @else {
+        <span>{{ item.title }}</span>
+      }
+    </nav>
+
+    <header class="article-header">
+      <p class="eyebrow">
+        @if (item.category; as category) {
+          {{ category.name }}
+        }
+        @if (item.subcategory; as subcategory) {
+          · {{ subcategory.name }}
+        }
+      </p>
+      <h1>{{ item.title }}</h1>
+      @if (item.excerpt) {
+        <p class="article-deck">{{ item.excerpt }}</p>
+      }
+      <div class="article-byline">
+        <span class="author-avatar">{{ initial() }}</span>
         @if (item.author; as author) {
           <span>{{ author.username }}</span>
-          <span aria-hidden="true">|</span>
+          <span aria-hidden="true">·</span>
         }
+        <span>{{ minutes() }} წუთი კითხვა</span>
+        <span aria-hidden="true">·</span>
         <time [attr.datetime]="item.publishedAt">{{ item.publishedAt | timeAgo }}</time>
-      </p>
-      <div class="article__actions">
-        <app-reading-list-toggle kind="saved" [articleId]="item.id" />
-        <app-reading-list-toggle kind="read" [articleId]="item.id" />
+      </div>
+      <div class="article-actions">
+        <app-reading-list-toggle kind="saved" size="sm" [articleId]="item.id" />
+        <button type="button" class="link-btn" (click)="copyLink()">
+          <app-icon name="external-link" [size]="14" />
+          {{ copied() ? 'ბმული დაკოპირდა' : 'ბმულის კოპირება' }}
+        </button>
       </div>
     </header>
 
     @if (item.coverImage; as cover) {
-      <figure class="article__cover">
-        <img [src]="cover.url" [alt]="cover.alt ?? ''" fetchpriority="high" />
+      <figure class="article-hero">
+        <img [src]="cover.url" [alt]="cover.alt ?? ''" />
+        @if (cover.alt) {
+          <figcaption>{{ cover.alt }}</figcaption>
+        }
       </figure>
     }
 
-    <div class="ql-editor article__content" [innerHTML]="content()"></div>
-
-    <aside class="article__finish" aria-label="კითხვის დასრულება">
-      <div class="article__finish-text">
-        <p class="article__finish-title">
-          @if (isRead()) {
-            სტატია წაკითხულია
-          } @else {
-            დაასრულეთ კითხვა?
-          }
-        </p>
-        <p class="article__finish-hint">
-          @if (isRead()) {
-            სტატია თქვენს წაკითხულების სიაშია. ნებისმიერ დროს შეგიძლიათ ამოშალოთ.
-          } @else {
-            მონიშნეთ წაკითხულად, რომ თქვენს სიაში შეინახოთ და ადვილად იპოვოთ რა გაქვთ წაკითხული.
-          }
-        </p>
-      </div>
-      <div class="article__finish-actions">
-        <app-reading-list-toggle kind="read" [articleId]="item.id" />
-        @if (isRead()) {
-          <a appButton variant="ghost" routerLink="/me/read">წაკითხულების სია</a>
+    @if (sections().length > 0) {
+      <nav class="toc" aria-label="სარჩევი">
+        <p class="eyebrow">სარჩევი</p>
+        @for (section of sections(); track section.id) {
+          <a [href]="'#' + section.id">{{ section.title }}</a>
         }
-      </div>
-    </aside>
+      </nav>
+    }
 
-    @if (item.tags.length > 0) {
-      <footer class="article__footer">
-        <h2 class="visually-hidden">თეგები</h2>
-        <ul class="article__tags" role="list">
-          @for (tag of item.tags; track tag) {
-            <li>
-              <a class="article__tag" routerLink="/" [queryParams]="{ tag }">#{{ tag }}</a>
-            </li>
+    <div class="article-column">
+        <div class="ql-editor article__content" [innerHTML]="content()"></div>
+
+        <dl class="article-facts">
+          @if (item.author; as author) {
+            <div>
+              <dt>ავტორი</dt>
+              <dd>{{ author.username }}</dd>
+            </div>
           }
-        </ul>
-      </footer>
+          @if (item.category; as category) {
+            <div>
+              <dt>კატეგორია</dt>
+              <dd>{{ category.name }}</dd>
+            </div>
+          }
+          <div>
+            <dt>კითხვა</dt>
+            <dd>{{ minutes() }} წუთი</dd>
+          </div>
+          <div>
+            <dt>გამოქვეყნდა</dt>
+            <dd>
+              <time [attr.datetime]="item.publishedAt">{{ item.publishedAt | timeAgo }}</time>
+            </dd>
+          </div>
+        </dl>
+
+        @if (item.tags.length > 0) {
+          <footer class="article-tags">
+            <h2 class="visually-hidden">თეგები</h2>
+            <ul role="list">
+              @for (tag of item.tags; track tag) {
+                <li>
+                  <a routerLink="/" [queryParams]="{ tag }">#{{ tag }}</a>
+                </li>
+              }
+            </ul>
+          </footer>
+        }
+
+        <aside class="read-footer" aria-label="კითხვის დასრულება">
+          <div>
+            <p class="read-footer__title">
+              {{ isRead() ? 'სტატია წაკითხულია' : 'დაასრულეთ კითხვა?' }}
+            </p>
+            <p>
+              {{
+                isRead()
+                  ? 'სტატია თქვენს წაკითხულების სიაშია.'
+                  : 'მონიშნეთ წაკითხულად, რომ მერე ადვილად იპოვოთ.'
+              }}
+            </p>
+          </div>
+          <app-reading-list-toggle kind="read" [articleId]="item.id" />
+        </aside>
+    </div>
+
+    @if (relatedItems().length > 0) {
+      <section class="related" aria-label="მსგავსი სტატიები">
+        <div class="related__head">
+          <h2>კიდევ ამ თემაზე</h2>
+          @if (item.category; as category) {
+            <a class="text-link" routerLink="/articles" [queryParams]="{ category: category.slug }"
+              >ყველა სტატია</a
+            >
+          }
+        </div>
+        @let known = readIds();
+        <div class="related__grid">
+          @for (relatedItem of relatedItems(); track relatedItem.id) {
+            <app-article-card [article]="relatedItem" [read]="known.has(relatedItem.id)">
+              <app-reading-list-toggle
+                cardAction
+                appearance="icon"
+                size="sm"
+                [articleId]="relatedItem.id"
+              />
+            </app-article-card>
+          }
+        </div>
+      </section>
     }
   </article>
 }

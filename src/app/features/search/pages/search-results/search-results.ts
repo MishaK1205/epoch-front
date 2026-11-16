@@ -15,6 +15,7 @@ import { API_LIMITS } from '../../../../core/api/api-limits';
 import { ArticlesApi } from '../../../../core/api/articles/articles-api';
 import { TagsApi } from '../../../../core/api/tags/tags-api';
 import { ReadingListToggle } from '../../../../core/reading-list/reading-list-toggle/reading-list-toggle';
+import { currentPageActive, navigationTick } from '../../../../core/services/active-page';
 import { ReadingListStore } from '../../../../core/services/reading-list-store';
 import { Seo } from '../../../../core/services/seo';
 import { Alert } from '../../../../shared/ui/alert/alert';
@@ -59,6 +60,8 @@ export class SearchResults {
   private readonly tagsApi = inject(TagsApi);
   private readonly router = inject(Router);
   private readonly seo = inject(Seo);
+  private readonly navigation = navigationTick();
+  private readonly pageActive = currentPageActive();
 
   protected readonly readArticleIds = inject(ReadingListStore).readIds;
   protected readonly maxLength = API_LIMITS.search.max;
@@ -116,6 +119,10 @@ export class SearchResults {
 
   constructor() {
     effect(() => {
+      this.navigation();
+      if (!this.pageActive()) {
+        return;
+      }
       const q = this.query();
       this.seo.update({
         title: q ? `ძიება: ${q} — Epoch` : 'ძიება — Epoch',
@@ -125,7 +132,8 @@ export class SearchResults {
 
     // A page past the end (e.g. an old link): jump to the last page.
     effect(() => {
-      if (!this.results.hasValue()) {
+      this.navigation();
+      if (!this.pageActive() || !this.results.hasValue()) {
         return;
       }
       const { items, total, limit } = this.results.value();

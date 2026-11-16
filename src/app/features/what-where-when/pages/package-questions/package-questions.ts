@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, input } f
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { getApiErrorMessages, WhatWhereWhenApi } from '../../../../core/api';
+import { currentPageActive, navigationTick } from '../../../../core/services/active-page';
 import { Seo } from '../../../../core/services/seo';
 import { CalendarDatePipe } from '../../../../shared/pipes/calendar-date-pipe';
 import { Alert } from '../../../../shared/ui/alert/alert';
@@ -32,6 +33,8 @@ import { WwwQuestionList } from '../../../../shared/ui/www-question-list/www-que
 export class PackageQuestions {
   private readonly api = inject(WhatWhereWhenApi);
   private readonly seo = inject(Seo);
+  private readonly navigation = navigationTick();
+  private readonly pageActive = currentPageActive();
 
   readonly id = input.required<string>();
 
@@ -52,6 +55,10 @@ export class PackageQuestions {
 
   constructor() {
     effect(() => {
+      this.navigation();
+      if (!this.pageActive()) {
+        return;
+      }
       if (this.pkg.hasValue()) {
         this.seo.update({ title: `${this.pkg.value().name} — რა? სად? როდის? — Epoch` });
       }

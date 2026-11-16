@@ -48,7 +48,7 @@
     position: relative;
     display: block;
     width: 100%;
-    max-width: var(--search-box-width);
+    max-width: var(--search-box-max, var(--search-box-width));
   }
 }
 
@@ -73,10 +73,10 @@
 
 .search-box__input {
   width: 100%;
-  height: var(--control-height-md);
+  height: var(--search-input-height, var(--control-height-md));
   padding: 0 var(--space-12) 0 var(--space-5);
   font: inherit;
-  font-size: var(--text-base);
+  font-size: var(--search-input-font, var(--text-base));
   color: var(--color-text);
   background: var(--color-input-bg);
   border: var(--border-width) solid var(--color-input-border);
@@ -102,8 +102,8 @@
   position: absolute;
   top: 50%;
   right: var(--space-1);
-  width: var(--control-height-sm);
-  height: var(--control-height-sm);
+  width: calc(var(--search-input-height, var(--control-height-md)) - 8px);
+  height: calc(var(--search-input-height, var(--control-height-md)) - 8px);
   color: var(--color-text-muted);
   transform: translateY(-50%);
 }

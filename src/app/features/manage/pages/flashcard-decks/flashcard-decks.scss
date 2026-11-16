@@ -36,8 +36,10 @@
 }
 
 .deck-group__name {
+  font-family: var(--font-serif);
   font-size: var(--text-xl);
-  font-weight: var(--font-weight-bold);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: -0.02em;
 }
 
 .deck-group__count {
@@ -95,7 +97,8 @@
 }
 
 .deck-row__name {
-  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-serif);
+  font-weight: var(--font-weight-medium);
   color: var(--color-ink);
   overflow-wrap: anywhere;
 }

@@ -51,9 +51,11 @@
 }
 
 .view__title {
-  font-size: var(--text-3xl);
-  font-weight: var(--font-weight-bold);
+  font-family: var(--font-serif);
+  font-size: var(--text-4xl);
+  font-weight: var(--font-weight-regular);
   line-height: var(--line-height-tight);
+  letter-spacing: -0.04em;
   color: var(--color-ink);
 }
 
@@ -66,7 +68,6 @@
     font-size: var(--text-xs);
     font-weight: var(--font-weight-semibold);
     color: var(--color-text-subtle);
-    text-transform: uppercase;
     letter-spacing: var(--letter-spacing-wide);
   }
 

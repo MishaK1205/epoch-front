@@ -1,8 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { EMPTY, expand, map, Observable, reduce } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { Paginated } from '../../../shared/models/paginated';
+import { API_LIMITS } from '../api-limits';
 import { toHttpParams } from '../http-params';
 import {
   CreateFlashcardRequest,
@@ -35,6 +36,27 @@ export class FlashcardsApi {
     return this.http.get<Paginated<Flashcard>>(this.baseUrl, {
       params: toHttpParams(listParams(query)),
     });
+  }
+
+  /**
+   * Every card matching `query`, in study order. The API returns at most 100 per
+   * request, so this follows `page` until `total` is covered.
+   */
+  listAll(query: ListFlashcardsQuery = {}): Observable<Flashcard[]> {
+    const { page: _page, limit: _limit, ...filters } = query;
+    const limit = API_LIMITS.pagination.maxLimit;
+    const load = (page: number) => this.list({ ...filters, page, limit });
+    return load(1).pipe(
+      expand((result) => {
+        const loaded = result.page * result.limit;
+        if (result.items.length === 0 || loaded >= result.total) {
+          return EMPTY;
+        }
+        return load(result.page + 1);
+      }),
+      map((result) => result.items),
+      reduce((cards, items) => cards.concat(items), [] as Flashcard[]),
+    );
   }
 
   /**

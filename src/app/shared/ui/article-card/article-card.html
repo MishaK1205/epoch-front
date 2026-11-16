@@ -9,29 +9,19 @@
           <app-icon name="image" [size]="28" />
         </span>
       }
+      @if (item.tags[0]; as tag) {
+        <span class="item__tag">{{ tag }}</span>
+      }
     </div>
     <div class="item__body">
-      <div class="item__chips">
-        @if (item.category; as category) {
+      @if (item.category; as category) {
+        <p class="item__eyebrow">
+          {{ category.name }}
           @if (item.subcategory; as subcategory) {
-            <span class="item__chip" [title]="category.name + ' › ' + subcategory.name">
-              <span class="item__chip-parent">
-                {{ category.name }}
-                <span aria-hidden="true">›</span>
-              </span>
-              <span>{{ subcategory.name }}</span>
-            </span>
-          } @else {
-            <span class="item__chip">{{ category.name }}</span>
+            <span> · {{ subcategory.name }}</span>
           }
-        }
-        @if (read()) {
-          <span class="item__chip item__chip--read">
-            <app-icon name="check" [size]="12" />
-            წაკითხული
-          </span>
-        }
-      </div>
+        </p>
+      }
       <h3 class="item__title">
         @if (highlightQuery()) {
           <app-highlight-text [text]="item.title" [query]="highlightQuery()" />
@@ -39,22 +29,21 @@
           {{ item.title }}
         }
       </h3>
-      @if (isLead()) {
+      @if (item.excerpt) {
         <p class="item__excerpt">{{ item.excerpt }}</p>
-        <p class="item__meta">
-          @if (item.author; as author) {
-            <span>{{ author.username }}</span>
-            <span aria-hidden="true">·</span>
-          }
-          <time [attr.datetime]="item.publishedAt">{{ item.publishedAt | timeAgo }}</time>
-        </p>
       }
     </div>
   </a>
   <div class="item__footer">
-    <ng-content select="[cardFooter]" />
+    <p class="item__meta">
+      <time [attr.datetime]="item.publishedAt">{{ item.publishedAt | timeAgo }}</time>
+      @if (read()) {
+        <span> · წაკითხული</span>
+      }
+    </p>
+    <div class="item__action">
+      <ng-content select="[cardAction]" />
+    </div>
   </div>
-  <div class="item__action">
-    <ng-content select="[cardAction]" />
-  </div>
+  <ng-content select="[cardFooter]" />
 </article>

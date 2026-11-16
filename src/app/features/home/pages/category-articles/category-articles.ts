@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { getApiErrorMessages } from '../../../../core/api/api-error-messages';
 import { ArticlesApi } from '../../../../core/api/articles/articles-api';
 import { ReadingListToggle } from '../../../../core/reading-list/reading-list-toggle/reading-list-toggle';
+import { currentPageActive, navigationTick } from '../../../../core/services/active-page';
 import { CategoriesStore } from '../../../../core/services/categories-store';
 import { ReadingListStore } from '../../../../core/services/reading-list-store';
 import { Seo } from '../../../../core/services/seo';
@@ -31,6 +32,8 @@ export class CategoryArticles {
   private readonly categoriesStore = inject(CategoriesStore);
   private readonly router = inject(Router);
   private readonly seo = inject(Seo);
+  private readonly navigation = navigationTick();
+  private readonly pageActive = currentPageActive();
 
   protected readonly readArticleIds = inject(ReadingListStore).readIds;
 
@@ -66,6 +69,10 @@ export class CategoryArticles {
 
   constructor() {
     effect(() => {
+      this.navigation();
+      if (!this.pageActive()) {
+        return;
+      }
       const category = this.category();
       if (category) {
         this.seo.update({

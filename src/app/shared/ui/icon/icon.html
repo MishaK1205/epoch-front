@@ -89,6 +89,17 @@
       <path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z" />
       <path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z" />
     }
+    @case ('layers') {
+      <path d="M12 3l9 5-9 5-9-5 9-5z" />
+      <path d="M3 12l9 5 9-5" />
+      <path d="M3 17l9 5 9-5" />
+    }
+    @case ('sun') {
+      <circle cx="12" cy="12" r="4" />
+      <path
+        d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M17.7 6.3l1.4-1.4M4.9 19.1l1.4-1.4"
+      />
+    }
     @case ('help-circle') {
       <circle cx="12" cy="12" r="10" />
       <path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01" />

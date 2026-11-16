@@ -5,50 +5,226 @@
   </header>
 }
 
-@if (featured(); as article) {
-  <app-article-hero [article]="article" />
-}
+@if (articles.isLoading() && !heading()) {
+  <div class="feed-state"><app-spinner size="lg" /></div>
+} @else if (errorMessages().length > 0 && !heading()) {
+  <app-alert variant="error">
+    @for (message of errorMessages(); track message) {
+      <p>{{ message }}</p>
+    }
+  </app-alert>
+} @else if (heading()) {
+  <section class="home__feed" aria-label="სტატიები">
+    @if (articles.isLoading()) {
+      <div class="feed-state"><app-spinner size="lg" /></div>
+    } @else if (errorMessages().length > 0) {
+      <app-alert variant="error">
+        @for (message of errorMessages(); track message) {
+          <p>{{ message }}</p>
+        }
+      </app-alert>
+    } @else if (items().length > 0) {
+      @let readIds = readArticleIds();
+      <ul class="teaser-grid" role="list">
+        @for (article of items(); track article.id) {
+          <li>
+            <app-article-card [article]="article" [read]="readIds.has(article.id)">
+              <app-reading-list-toggle
+                cardAction
+                appearance="icon"
+                size="sm"
+                [articleId]="article.id"
+              />
+            </app-article-card>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="feed-state">ამ თეგით სტატიები არ არის.</p>
+    }
+    <app-pagination [page]="page()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
+  </section>
+} @else {
+  <section class="hero">
+    <div class="hero-copy">
+      <p class="eyebrow">
+        <app-icon name="sun" [size]="14" />
+        ონლაინ ჟურნალი
+      </p>
+      <h1>წაიკითხე ის,<br /><em>რაც გაინტერესებს.</em></h1>
+      <p>სტატიები თემების მიხედვით და ფლეშბარათები, რომ წაკითხული დაგამახსოვრდეს.</p>
+      <div class="hero-actions">
+        <a class="btn" routerLink="/articles">
+          სტატიების ნახვა
+          <app-icon name="chevron-right" [size]="16" />
+        </a>
+        <a class="text-link" routerLink="/flashcards">
+          ფლეშბარათები
+          <app-icon name="layers" [size]="16" />
+        </a>
+      </div>
+      <p class="hero-footnote">მოკლე სტატიები, ადვილად დასამახსოვრებელი.</p>
+    </div>
 
-<div class="home">
-  @if (articles.isLoading()) {
-    <div class="feed-state"><app-spinner size="lg" /></div>
-  } @else if (errorMessages().length > 0) {
-    <app-alert variant="error">
-      @for (message of errorMessages(); track message) {
-        <p>{{ message }}</p>
-      }
-    </app-alert>
-  } @else if (heading()) {
-    <section class="home__feed" aria-label="სტატიები">
-      @if (items().length > 0) {
-        @let readIds = readArticleIds();
-        <ul class="teaser-grid" role="list">
-          @for (article of items(); track article.id) {
-            <li>
-              <app-article-card [article]="article" [read]="readIds.has(article.id)">
-                <app-reading-list-toggle
-                  cardAction
-                  appearance="icon"
-                  size="sm"
-                  [articleId]="article.id"
-                />
-              </app-article-card>
-            </li>
+    @if (featured(); as article) {
+      <article class="feature">
+        <a class="feature-image" [routerLink]="['/articles', article.slug]">
+          @if (article.coverImage; as cover) {
+            <img [src]="cover.url" [alt]="cover.alt ?? ''" />
+          } @else {
+            <span class="feature-placeholder" aria-hidden="true">
+              <app-icon name="image" [size]="32" />
+            </span>
           }
-        </ul>
-      } @else {
-        <p class="feed-state">ამ თეგით სტატიები არ არის.</p>
-      }
-      <app-pagination [page]="page()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
+          <span class="feature-label">რედაქციის არჩევანი</span>
+        </a>
+        <div class="feature-body">
+          <p class="eyebrow">
+            @if (article.category; as category) {
+              {{ category.name }}
+            } @else {
+              სტატია
+            }
+          </p>
+          <h2>
+            <a [routerLink]="['/articles', article.slug]">{{ article.title }}</a>
+          </h2>
+          <div class="feature-bottom">
+            <p class="meta">
+              <time [attr.datetime]="article.publishedAt">{{ article.publishedAt | timeAgo }}</time>
+              @if (article.author; as author) {
+                <span>· {{ author.username }}</span>
+              }
+            </p>
+            <a
+              class="round-arrow"
+              [routerLink]="['/articles', article.slug]"
+              [attr.aria-label]="article.title"
+            >
+              <app-icon name="chevron-right" [size]="14" />
+            </a>
+          </div>
+        </div>
+      </article>
+    }
+  </section>
+
+  @if (categories().length > 0) {
+    <section class="section" aria-label="კატეგორიები">
+      <div class="section-head">
+        <div>
+          <h2>თემები</h2>
+          <p class="subtext">აირჩიე კატეგორია და ნახე მისი სტატიები.</p>
+        </div>
+      </div>
+      <div class="category-grid">
+        @for (category of categories(); track category.id; let i = $index) {
+          <a
+            class="category-tile {{ tintClass(i) }}"
+            routerLink="/articles"
+            [queryParams]="{ category: category.slug }"
+          >
+            <span class="category-icon" aria-hidden="true">{{ monogram(category.name) }}</span>
+            <span class="category-name">{{ category.name }}</span>
+            <span class="category-count">{{ category.articleCount }} სტატია</span>
+          </a>
+        }
+      </div>
     </section>
-  } @else {
-    @if (latest().length > 0) {
-      <app-article-section title="უახლესი სტატიები" [articles]="latest()" />
+  }
+
+  <section class="section" id="stories" aria-label="სტატიები">
+    <div class="section-head">
+      <div>
+        <h2>ახალი სტატიები</h2>
+        <p class="subtext">ბოლოს გამოქვეყნებული მასალა.</p>
+      </div>
+      <a class="text-link" routerLink="/articles">
+        ყველა სტატია
+        <app-icon name="chevron-right" [size]="16" />
+      </a>
+    </div>
+    @if (closer().length > 0) {
+      @let readIds = readArticleIds();
+      <div class="article-grid home-stories">
+        @for (article of closer(); track article.id) {
+          <app-article-card [article]="article" [read]="readIds.has(article.id)">
+            <app-reading-list-toggle
+              cardAction
+              appearance="icon"
+              size="sm"
+              [articleId]="article.id"
+            />
+          </app-article-card>
+        }
+      </div>
     } @else if (!featured()) {
       <p class="feed-state">სტატიები ჯერ არ არის.</p>
     }
-    @for (category of categories(); track category.id) {
-      <app-category-section [category]="category" />
-    }
+  </section>
+
+  <section class="flash-banner">
+    <div class="card-illustration" aria-hidden="true">
+      <span class="mini-card"></span>
+      <span class="mini-card"></span>
+      <span class="mini-card">
+        <app-icon name="layers" [size]="28" />
+      </span>
+    </div>
+    <div>
+      <p class="eyebrow">გაიმეორე წაკითხული</p>
+      <h2>წაიკითხე და დაიმახსოვრე.</h2>
+      <p>ბარათებით გაიმეორე ის, რაც წაიკითხე.</p>
+    </div>
+    <a class="btn" routerLink="/flashcards">
+      ფლეშბარათებზე გადასვლა
+      <app-icon name="chevron-right" [size]="16" />
+    </a>
+  </section>
+
+  @if (deckCards().length > 0) {
+    <section class="section" aria-label="ფლეშბარათები">
+      <div class="section-head">
+        <div>
+          <h2>სასწავლო დასტები</h2>
+          <p class="subtext">აირჩიე დასტა და გაიმეორე წაკითხული.</p>
+        </div>
+        <a class="text-link" routerLink="/flashcards">
+          ყველა დასტა
+          <app-icon name="chevron-right" [size]="16" />
+        </a>
+      </div>
+      <div class="deck-grid home-decks">
+        @for (deck of deckCards(); track deck.id; let i = $index) {
+          <a
+            class="deck-card {{ tintClass(i) }}"
+            routerLink="/flashcards"
+            [queryParams]="{ categoryId: deck.id }"
+          >
+            <div class="deck-top">
+              <app-icon name="layers" [size]="32" />
+              <span class="deck-number">{{ deckNumber(i) }}</span>
+            </div>
+            <div class="deck-body">
+              <p class="eyebrow">ფლეშბარათები</p>
+              <h3>{{ deck.name }}</h3>
+              @if (deck.description) {
+                <p>{{ deck.description }}</p>
+              }
+              <div class="deck-meta">
+                <span>{{ deck.totalFlashcardCount }} ბარათი</span>
+                <span class="round-arrow" aria-hidden="true">
+                  <app-icon name="chevron-right" [size]="14" />
+                </span>
+              </div>
+              <div class="deck-progress">
+                <span class="progress-track"><i [style.width.%]="deckProgress(deck)"></i></span>
+                <span>{{ deck.totalKnownCount }}/{{ deck.totalFlashcardCount }} ნაცნობი</span>
+              </div>
+            </div>
+          </a>
+        }
+      </div>
+    </section>
   }
-</div>
+}

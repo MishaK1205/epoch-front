@@ -8,7 +8,6 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 import { Spinner } from '../../../../shared/ui/spinner/spinner';
 import { Alert } from '../../../../shared/ui/alert/alert';
 import { getManageErrorMessages } from '../../../manage/manage-errors';
-import { toPage } from '../../../manage/manage-labels';
 import {
   FlashcardDeckGroup,
   FlashcardDeckRow,
@@ -23,7 +22,7 @@ function toDirect(value: string | boolean | undefined): boolean {
 }
 
 function toQueue(value: string | undefined): Queue {
-  return value === 'known' || value === 'all' ? value : 'unknown';
+  return value === 'known' || value === 'unknown' ? value : 'all';
 }
 
 /**
@@ -44,8 +43,7 @@ export class FlashcardPlay {
   readonly categoryId = input<string>();
   readonly subcategoryId = input<string>();
   readonly direct = input(false, { transform: toDirect });
-  readonly page = input(1, { transform: toPage });
-  readonly queue = input('unknown', { transform: toQueue });
+  readonly queue = input('all', { transform: toQueue });
 
   protected readonly categories = rxResource({ stream: () => this.categoriesApi.list() });
   protected readonly groups = computed(() =>
@@ -82,5 +80,12 @@ export class FlashcardPlay {
       return 'ამ კატეგორიაში';
     }
     return row.name;
+  }
+
+  protected meter(known: number, total: number): number {
+    if (total <= 0) {
+      return 0;
+    }
+    return Math.round((known / total) * 100);
   }
 }

@@ -173,6 +173,32 @@ something only one component needs — use a `computed()` signal in that compone
   `environment.development.ts` (`npm start` / `npm run start:local`: `http://localhost:3000`) and
   `environment.prod-api.ts` (`npm run start:prod-api`: dev build against `https://api.epoch.ge`).
   Add any new environment key to all three.
+
+### Cached server data
+
+Reads are remembered for the logged-in session, and the page itself stays in memory, so going
+back does not call the API again and does not flash a spinner.
+
+- `ApiGetCache` (`core/services/api-get-cache.ts`) plus `apiGetCacheInterceptor` store successful
+  Epoch API GETs and share a request that is already in flight. The key is the URL with its query
+  sorted. `GET /auth/me` is never stored. A request opts out with
+  `context: new HttpContext().set(API_GET_CACHE, false)`.
+- A write (success or a 4xx/5xx, not a 401) drops the GETs it can make stale: an article write
+  drops `/articles`, `/tags` and `/categories`; a bookmark drops only that reading list. The map
+  is `mutationCachePrefixes`. An unknown write drops the whole cache. The `.reload()` that follows
+  a write therefore still hits the server, and a failed GET is never stored, so retry does too.
+- `CategoriesStore.reload()` drops `GET /categories` itself before reloading.
+- `CachedRouteReuse` keeps the left page (up to 20) and attaches it on the way back. The same
+  route with new params is still the same component and loads the new params; a different query
+  string is a different stored page. Routes with `canDeactivate` (editors), `/login` and the
+  not-found route are not kept.
+- A write also destroys the stored pages that render that data (`ROUTES_BY_API`), so the next
+  visit loads the new data. A bookmark does not destroy the home page. Logout and a new login
+  drop the HTTP cache and every stored page.
+- Pages that update the document head, or that navigate when their data arrives, must read
+  `navigationTick()` and skip the work when `currentPageActive()` is false. A detached page is
+  still alive; it must not change the title or the URL of the page the user is on now.
+
 - Quill editor: use helpers from `core/editor/quill-image-handler.ts`; never enable the video
   button. Use the `RichTextEditor` CVA (`features/manage/components/rich-text-editor`), which
   loads Quill with a dynamic `import('quill')` inside `afterNextRender` (keep it a lazy chunk —
@@ -360,20 +386,17 @@ export class UserCard {
 - Fonts: `Google Sans` (UI, headings; weights 400–700, Georgian subset included, falls back to
   `Noto Sans Georgian`) and `Noto Serif Georgian` (long text, excerpts),
   loaded in `src/index.html`. UI language is **Georgian** — all user-facing text is Georgian.
-- Visual style follows mentalfloss.com with modern product-UI polish: white header with uppercase
-  logo casting a shadow onto a slim navy (`--color-accent`, `#071824`) strip, black (`--color-ink`) primary buttons with soft
-  depth, uppercase display headings with a thick black underline, dark-slate footer
-  (`--color-footer-*`) with a centered logo. Controls share `--radius-control`.
-  Guest header auth is one small navy text link (`შესვლა`, `--color-accent`, `--text-sm`) with no
-  filled background. There is no public registration. Logged-in header buttons ("მართვა", "გასვლა", class `header__action`) become
-  square icon buttons below `md` (label hidden, name via `aria-label`), so the bar fits a phone;
-  the logo never shrinks. Check new header items at 375–393 px width while logged in.
-- Static accent text and **text** hover/focus on light backgrounds (article titles, drawer links,
-  kickers) use `--color-accent-text` (navy-700, `#1d5a87`, ~7.3:1 on white). Solid fills — the header
-  strip, accent buttons, selection — use `--color-accent` (`#071824`). `#071824` is too close to black
-  to read as a text hover, and too dark to show on the footer or auth panel, so those surfaces use
-  `--color-accent-on-dark` (navy-400, `#7ba4c1`). Kicker links darken from `--color-accent-text` to
-  `--color-accent` on hover.
+- Visual style is the editorial reading shell: paper background, olive accent, a serif
+  wordmark in the sidebar, and serif page titles in normal Georgian case. Login uses the same
+  palette without the sidebar. There is no public registration. Inside the shell, shared controls
+  follow the remapped tokens: flat buttons (`--shadow-btn` is none), `--radius-control` is
+  `--radius-md`, and page titles use `--font-serif` with tight tracking. Check the sidebar and the
+  top bar at 375–393 px: the menu button, search icon, and avatar have to fit.
+- Text and text hover on light backgrounds (article titles, sidebar links, kickers) use
+  `--color-accent-text`. Solid fills — accent buttons, active chips, selection — use
+  `--color-accent`. The shell remaps both to the olive palette. Kicker links darken from
+  `--color-accent-text` to `--color-accent` on hover. `--color-accent-on-dark` is for text on a
+  dark surface.
 - Focus: `--focus-ring` (white gap + ink ring) via the `focus-ring` mixin; `--focus-ring-inverse`
   on dark surfaces; inputs use `--focus-ring-accent` / `--focus-ring-danger`.
 - Motion: wrap transforms/animations in `@include motion-ok { … }` (prefers-reduced-motion);
@@ -404,12 +427,15 @@ component (in `shared/ui/` if generic, else in the feature) that uses the design
 | `HighlightText`   | `<app-highlight-text [text]="title" [query]="q" />` — marks the search words with `<mark>`                                                                                                                                                                               |
 | `WwwQuestionList` | `<app-www-question-list [questions]="pkg.questions" />` — "რა? სად? როდის?" questions with collapsible answers (collapsed by default)                                                                                                                                    |
 
-Auth-only components live in `features/auth/components/`: `AuthCard` (split-screen page shell),
-`AuthBrand` (dark brand panel), `PasswordStrength` (`<app-password-strength [password] />`).
+Auth-only components live in `features/auth/components/`: `AuthCard` (paper split-screen shell,
+same olive palette as the reading pages), `AuthBrand` (the side panel: wordmark and a short
+note), `PasswordStrength` (`<app-password-strength [password] />`). `/login` does not use
+the reading sidebar.
 
 ### Management area (`features/manage`) and article page (`features/articles`)
 
-- `/manage` is guarded by `roleGuard('admin')`, like the rest of the app. `ManageShell` renders the "მართვა" kicker, the h1 (route `title` without
+- `/manage` is guarded by `roleGuard('admin')`, like the rest of the app, and sits in the reading
+  shell. `ManageShell` renders the "მართვა" kicker, a serif h1 (route `title` without
   " — Epoch") and the section tabs. The server enforces permissions; the UI only hides/disables.
 - Manage-only components (`RichTextEditor`, `CoverImagePicker`, `TagsInput`, `ArticleRow`,
   `CategoryForm`, `CategoryRow`) live in `features/manage/components/`. List pages share
@@ -476,14 +502,14 @@ empty`, 1-based; `questions.N.…`, 0-based) are set as a `server` error on that
 - `/what-where-when` (`features/what-where-when`, `roleGuard('admin')`, client-rendered,
   `Disallow`ed in `robots.txt`) is the browsing area outside `/manage`: `PackageList` (cards,
   `?page=`, `?categoryId=` chips for categories that have packages) and `PackageQuestions`
-  (`:id`, the package's questions + a link to the manage editor). The drawer shows its link
-  ("თამაშები" section) only when `AuthService.isAdmin()`.
+  (`:id`, the package's questions + a link to the manage editor). The reading sidebar links to
+  it.
 - `/flashcards` (`features/flashcards`, same guard, client-rendered, `Disallow`ed in
   `robots.txt`) is the flashcard page outside `/manage`. `FlashcardPlay` lists every category
   in a side column (the category itself, then "ამ კატეგორიაში" and each subcategory when
   there are children) and shows `FlashcardStudy` for the one you pick. The deck rows and the
   study screen stay in the manage feature so the rules are not copied; this page imports
-  them. The drawer link is next to „რა? სად? როდის?“, admin only. Creating and editing stays
+  them. The reading sidebar lists it next to „რა? სად? როდის?“. Creating and editing stays
   at `/manage/flashcards`.
 - `TagsInput` is the chip input for any `string[]` list: authors use it with `prefix=""`,
   `[lowercase]="false"`, their own `maxCount` / `maxLength` and accessible labels.
@@ -499,40 +525,33 @@ pattern for new form controls. Validation messages come from
 
 ### Layout
 
-- `core/layout/main-layout` wraps every page (header + `<main>` + footer). Add new routes as
-  children of the `MainLayout` route in `app.routes.ts`.
-- Category list for the drawer/footer comes from `CategoriesStore`
-  (`core/services/categories-store.ts`). The drawer and the footer show **only categories** (no
-  auth links). The accent strip under the header bar is decorative (no links).
-- Category links always point to `/category/:slug` (`features/home/pages/category-articles`),
-  never to `/?category=`. Subcategories use the same route with their own slug: the page shows a
-  `parent › name` breadcrumb for them and "All + subcategory" chips for any category that has
-  subcategories. The drawer list is `DrawerCategories` (`core/layout/drawer-categories`): a category with
-  subcategories has a chevron toggle (collapsed by default) next to its link; the footer and the home
-  sections list top-level categories only. Feed-style pages (home, category, library) share the
-  `src/styles/_feed-page.scss` partial (`.page-heading*`, `.feed-state`, `.teaser-grid`) via
-  `@use 'feed-page';` in their component SCSS. Parse `?page=` with `toPage()` from
-  `shared/utils/page-param.ts`.
-- Article teasers are `ArticleCard` (`shared/ui/article-card`, `<app-article-card>`): a white
-  (`--color-surface`) tile with `--radius-card`, a hairline border and `--shadow-card` (lifts to
-  `--shadow-card-hover` with a small `translateY` under `motion-ok`), the image on top, and a body
-  holding a soft navy pill chip (`--color-accent-soft` / `--color-accent-text`, uppercase; long
-  category names wrap onto a second line — never clip them) and a bold serif title.
-  `variant="card"` (default) is the small card — its size comes from the grid it sits in
-  (`.teaser-grid`, 1/2/3 columns; the `ArticleSection` 2×2 block). `variant="lead"` is the large
-  card (16:10 image, bigger title, excerpt, meta) shown next to that block. `[read]="true"` adds
-  a green "წაკითხული" chip. The card is
-  presentational: it only imports the `ArticleSummary` DTO type from `core/api` (allowed for
-  shared domain cards). Project a control into the image corner with `<… cardAction />` — it
-  renders outside the link, so clicking it doesn't navigate.
-- Home page (`features/home/pages/home`): hero (newest article), then stacked sections built from
-  `ArticleSection` (`features/home/components/article-section`: underlined title, optional
-  "ყველა სტატია" button, lead card + 2×2 small cards, max 5 articles, renders the save toggles
-  itself). The save toggles are always shown: these pages are behind the admin guard. "უახლესი სტატიები" shows the next 5 articles (no pagination); below it one
-  `CategorySection` (`features/home/components/category-section`) per category from
-  `CategoriesStore` — each loads its own 5 newest articles, links to `/category/:slug`, and stays
-  hidden while loading / on error / when empty. `/?tag=` switches the page to a paginated
-  `.teaser-grid` like the category page.
+- `core/layout/main-layout` wraps every page. Every route except `/login` renders `ReadingShell`:
+  a fixed sidebar and top bar in the editorial palette. That includes home, articles, search,
+  library, flashcards, „რა? სად? როდის?“, `/manage`, and not-found. `/login` is the same palette
+  on its own page, without the sidebar.
+  The shell remaps the semantic color tokens (`--color-bg`, `--color-accent`, radii, button
+  shadows) to the paper and olive palette; topic tile colors are `--topic-tint-*` /
+  `--topic-accent-*`, repeated by category order. Category names still come from
+  `CategoriesStore`. Editorial kickers stay in normal Georgian case: `text-transform: uppercase`
+  turns them into Mtavruli, and the reference design's wide letter-spacing is for Latin capitals,
+  so these labels use `0.04em`. Add new
+  routes as children of the `MainLayout` route in `app.routes.ts`.
+- Category list for the sidebar comes from `CategoriesStore`
+  (`core/services/categories-store.ts`). Links point to `/category/:slug`. Subcategories use the
+  same route with their own slug. Feed-style pages share `src/styles/_feed-page.scss`.
+- Article teasers are `ArticleCard` (`shared/ui/article-card`): cover on top (placeholder when
+  the cover is missing), a category eyebrow, a serif title, a two-line excerpt and the date.
+  `[read]="true"` adds „წაკითხული“. Project a control with `<… cardAction />` outside the link.
+- Home page (`features/home/pages/home`): editorial hero plus the newest published article as
+  „რედაქციის არჩევანი“, then one tile per real category, then the next three articles, a link to
+  `/flashcards`, and up to three flashcard decks from `FlashcardCategoriesApi`. No sample topics.
+  `/?tag=` stays a paginated `.teaser-grid`. `/articles` (`ArticleList`, declared before
+  `:slug`) is the browse page from the reference: topic chips (`?category=`), newest or title
+  sort, the card grid, and the flashcard banner. Topic tiles and the sidebar topics open that
+  page. The article page (`/articles/:slug`) is the reader:
+  breadcrumb, byline, save, copy link, cover, contents from `<h2>` (a static row, not a side
+  column), prose across the full content width, a facts row from the article fields, and related
+  articles in the same category. The reader has no flashcard card.
 - Saved / read UI: `ReadingListToggle` (`core/reading-list/reading-list-toggle`,
   `<app-reading-list-toggle [articleId] kind="saved|read" appearance="icon|button" size="sm|md">`)
   is the only control for saving / marking read. `appearance="icon"` is the round bookmark in card
@@ -541,8 +560,8 @@ pattern for new form controls. Validation messages come from
   These pages are admin-only, so the toggles are the signed-in admin's own lists. Smart, app-wide widgets like this that bind
   to `core/services` stores live under `core/<topic>/` (like `core/layout`), not in `shared/`.
 - The admin's lists live at `/me/saved` and `/me/read` (`features/library`, `roleGuard('admin')`), one
-  `ReadingList` page whose `kind` input comes from route `data`. Header: logged-in users get a
-  bookmark icon link to `/me/saved` and a "ჩემი ბიბლიოთეკა" section at the top of the drawer.
+  `ReadingList` page whose `kind` input comes from route `data`. The reading shell links „შენახული“
+  and „ჩემი კოლექცია“ to `/me/saved`. Parse `?page=` with `toPage()` from `shared/utils/page-param.ts`.
 - Route params and query params are bound to component `input()`s (`withComponentInputBinding()`).
 
 ### Search

@@ -58,7 +58,7 @@
   font-weight: var(--font-weight-semibold);
   letter-spacing: var(--letter-spacing-tight);
   white-space: nowrap;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-md);
 
   &.toggle--sm {
     min-height: var(--control-height-sm);

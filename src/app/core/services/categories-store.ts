@@ -5,6 +5,7 @@ import { CategoriesApi } from '../api/categories/categories-api';
 import { Category, CategoryBase } from '../api/categories/categories.models';
 import { findCategoryBySlug } from '../api/categories/categories.utils';
 import { AuthService } from '../auth/auth-service';
+import { ApiGetCache } from './api-get-cache';
 
 /**
  * App-wide category tree (header nav, footer, filters, editor pickers). Loaded once; call
@@ -14,6 +15,7 @@ import { AuthService } from '../auth/auth-service';
 export class CategoriesStore {
   private readonly categoriesApi = inject(CategoriesApi);
   private readonly auth = inject(AuthService);
+  private readonly apiCache = inject(ApiGetCache);
   /** The header and footer inject this store on the login page too, so don't call the API yet. */
   private readonly resource = rxResource({
     params: () => this.auth.isLoggedIn(),
@@ -35,7 +37,9 @@ export class CategoriesStore {
     return this.categories().find((category) => category.id === id);
   }
 
+  /** Drops the cached `GET /categories` first, so this really hits the server. */
   reload(): void {
+    this.apiCache.invalidatePrefix('/categories');
     this.resource.reload();
   }
 }

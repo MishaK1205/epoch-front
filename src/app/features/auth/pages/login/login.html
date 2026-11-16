@@ -1,4 +1,4 @@
-<app-auth-card title="შესვლა" subtitle="კეთილი იყოს თქვენი დაბრუნება Epoch-ზე.">
+<app-auth-card title="შესვლა" subtitle="შეიყვანე მომხმარებლის სახელი და პაროლი.">
   <form class="form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
     @if (serverErrors().length > 0) {
       <app-alert variant="error">
@@ -26,6 +26,7 @@
     <button
       appButton
       type="submit"
+      variant="accent"
       size="lg"
       fullWidth
       class="form__submit"

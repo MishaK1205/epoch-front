@@ -1,0 +1,112 @@
+@if (selected(); as category) {
+  <nav class="breadcrumb" aria-label="გზა">
+    <a routerLink="/">მთავარი</a>
+    <app-icon name="chevron-right" [size]="12" />
+    <a routerLink="/articles">სტატიები</a>
+    <app-icon name="chevron-right" [size]="12" />
+    <span>{{ category.name }}</span>
+  </nav>
+  <header class="page-intro category-header">
+    <span class="category-icon {{ tintClass(categoryIndex()) }}" aria-hidden="true">
+      {{ monogram(category.name) }}
+    </span>
+    <div>
+      <p class="eyebrow">თემა</p>
+      <h1>{{ category.name }}</h1>
+      <p>{{ category.description || 'ამ თემის გამოქვეყნებული სტატიები.' }}</p>
+    </div>
+  </header>
+  <div class="tabs">
+    <a class="tab active" routerLink="/articles" [queryParams]="filterQuery(category.slug)">
+      სტატიები
+      <span class="tab-count">{{ category.articleCount }}</span>
+    </a>
+    <a class="tab" routerLink="/flashcards">ფლეშბარათები</a>
+  </div>
+} @else {
+  <header class="page-intro">
+    <p class="eyebrow">სტატიები</p>
+    <h1>ყველა სტატია</h1>
+    <p>აირჩიე თემა, ან გადახედე სრულ სიას.</p>
+  </header>
+}
+
+@if (categories().length > 0) {
+  <div class="filters" aria-label="თემით გაფილტვრა">
+    <a
+      class="filter"
+      routerLink="/articles"
+      [queryParams]="filterQuery()"
+      [class.active]="!category()"
+      >ყველა თემა</a
+    >
+    @for (topic of categories(); track topic.id) {
+      <a
+        class="filter"
+        routerLink="/articles"
+        [queryParams]="filterQuery(topic.slug)"
+        [class.active]="category() === topic.slug"
+        >{{ topic.name }}</a
+      >
+    }
+  </div>
+}
+
+@if (articles.isLoading()) {
+  <div class="feed-state"><app-spinner size="lg" /></div>
+} @else if (errorMessages().length > 0) {
+  <app-alert variant="error">
+    @for (message of errorMessages(); track message) {
+      <p>{{ message }}</p>
+    }
+  </app-alert>
+} @else {
+  <div class="filter-toolbar">
+    <span class="meta">{{ total() }} სტატია</span>
+    <label class="meta">
+      დალაგება
+      <select class="select" [value]="sort()" (change)="setSort($event)">
+        <option value="newest">უახლესი</option>
+        <option value="title">სათაური: ა–ჰ</option>
+      </select>
+    </label>
+  </div>
+
+  @if (items().length > 0) {
+    @let readIds = readArticleIds();
+    <div class="article-grid">
+      @for (article of items(); track article.id) {
+        <app-article-card [article]="article" [read]="readIds.has(article.id)">
+          <app-reading-list-toggle
+            cardAction
+            appearance="icon"
+            size="sm"
+            [articleId]="article.id"
+          />
+        </app-article-card>
+      }
+    </div>
+    <app-pagination [page]="page()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
+  } @else {
+    <p class="feed-state">სტატიები ჯერ არ არის.</p>
+  }
+}
+
+<section class="flash-banner">
+  <div class="card-illustration" aria-hidden="true">
+    <span class="mini-card"></span>
+    <span class="mini-card"></span>
+    <span class="mini-card">
+      <app-icon name="layers" [size]="28" />
+    </span>
+  </div>
+  <div>
+    <p class="eyebrow">გაიმეორე წაკითხული</p>
+    <h2>წაიკითხე და დაიმახსოვრე.</h2>
+    <p>ბარათებით გაიმეორე ის, რაც წაიკითხე.</p>
+  </div>
+  <a class="btn" routerLink="/flashcards">
+    ფლეშბარათებზე გადასვლა
+    <app-icon name="chevron-right" [size]="16" />
+  </a>
+</section>

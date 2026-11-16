@@ -1,40 +1,42 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { getApiErrorMessages } from '../../../../core/api/api-error-messages';
 import { ArticlesApi } from '../../../../core/api/articles/articles-api';
+import { FlashcardCategory } from '../../../../core/api/flashcards/flashcards.models';
+import { FlashcardCategoriesApi } from '../../../../core/api/flashcards/flashcard-categories-api';
 import { ReadingListToggle } from '../../../../core/reading-list/reading-list-toggle/reading-list-toggle';
 import { CategoriesStore } from '../../../../core/services/categories-store';
 import { ReadingListStore } from '../../../../core/services/reading-list-store';
+import { TimeAgoPipe } from '../../../../shared/pipes/time-ago-pipe';
 import { Alert } from '../../../../shared/ui/alert/alert';
 import { ArticleCard } from '../../../../shared/ui/article-card/article-card';
+import { Icon } from '../../../../shared/ui/icon/icon';
 import { Pagination } from '../../../../shared/ui/pagination/pagination';
 import { Spinner } from '../../../../shared/ui/spinner/spinner';
 import { toPage } from '../../../../shared/utils/page-param';
-import { ArticleHero } from '../../components/article-hero/article-hero';
-import { ArticleSection } from '../../components/article-section/article-section';
-import { CategorySection } from '../../components/category-section/category-section';
 
-/** Front page: the hero plus the 5 articles of the "უახლესი სტატიები" section. */
-const HOME_SIZE = 6;
+/** Newest article is the editor's pick; the next three are the latest stories. */
+const HOME_SIZE = 4;
 /** Tag feed (`?tag=`): paginated teaser grid. */
 const TAG_PAGE_SIZE = 12;
+const TOPIC_TINTS = 8;
 
 /**
- * Front page for a signed-in admin: hero, the 5 latest articles, then one section per category.
- * `?tag=<tag>&page=<n>` switches to a paginated tag feed. Categories live at `/category/:slug`.
+ * Front page: editorial hero, the real category tiles, three latest stories, and the
+ * flashcard decks that already exist. `?tag=` keeps the paginated tag feed.
  */
 @Component({
   selector: 'app-home',
   imports: [
+    RouterLink,
     Alert,
     Pagination,
     Spinner,
-    ArticleHero,
     ArticleCard,
-    ArticleSection,
-    CategorySection,
     ReadingListToggle,
+    Icon,
+    TimeAgoPipe,
   ],
   templateUrl: './home.html',
   styleUrl: './home.scss',
@@ -42,6 +44,7 @@ const TAG_PAGE_SIZE = 12;
 })
 export class Home {
   private readonly articlesApi = inject(ArticlesApi);
+  private readonly decksApi = inject(FlashcardCategoriesApi);
   private readonly router = inject(Router);
 
   protected readonly readArticleIds = inject(ReadingListStore).readIds;
@@ -58,6 +61,10 @@ export class Home {
     stream: ({ params }) => this.articlesApi.listPublished(params),
   });
 
+  protected readonly decks = rxResource({
+    stream: () => this.decksApi.list(),
+  });
+
   protected readonly heading = computed(() => {
     const tag = this.tag();
     return tag ? { kicker: 'თეგი', title: `#${tag}` } : null;
@@ -66,9 +73,11 @@ export class Home {
   protected readonly items = computed(() =>
     this.articles.hasValue() ? this.articles.value().items : [],
   );
-  /** Front page only: the newest article fills the hero, the next 5 the latest section. */
   protected readonly featured = computed(() => (this.heading() ? null : (this.items()[0] ?? null)));
-  protected readonly latest = computed(() => this.items().slice(1, HOME_SIZE));
+  protected readonly closer = computed(() => this.items().slice(1, HOME_SIZE));
+  protected readonly deckCards = computed(() =>
+    this.decks.hasValue() ? this.decks.value().slice(0, 3) : [],
+  );
   protected readonly totalPages = computed(() =>
     this.articles.hasValue() ? Math.ceil(this.articles.value().total / TAG_PAGE_SIZE) : 0,
   );
@@ -78,5 +87,24 @@ export class Home {
 
   protected goToPage(page: number): void {
     void this.router.navigate([], { queryParams: { page }, queryParamsHandling: 'merge' });
+  }
+
+  protected tintClass(index: number): string {
+    return `tint-${index % TOPIC_TINTS}`;
+  }
+
+  protected monogram(name: string): string {
+    return Array.from(name.trim())[0] ?? '';
+  }
+
+  protected deckNumber(index: number): string {
+    return String(index + 1).padStart(2, '0');
+  }
+
+  protected deckProgress(deck: FlashcardCategory): number {
+    if (deck.totalFlashcardCount <= 0) {
+      return 0;
+    }
+    return Math.round((deck.totalKnownCount / deck.totalFlashcardCount) * 100);
   }
 }

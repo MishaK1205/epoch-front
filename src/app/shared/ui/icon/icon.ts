@@ -23,6 +23,8 @@ export type IconName =
   | 'search'
   | 'bookmark'
   | 'book-open'
+  | 'layers'
+  | 'sun'
   | 'help-circle';
 
 /** Inline SVG icon. Inherits `color` from its parent. Decorative (aria-hidden). */

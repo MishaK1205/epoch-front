@@ -1,22 +1,50 @@
 @use 'mixins' as *;
 @use 'feed-page';
 
+:host {
+  display: block;
+}
+
 .questions-page__error {
   gap: var(--space-4);
+}
+
+.page-intro {
+  margin-bottom: var(--space-8);
+}
+
+.eyebrow {
+  margin-bottom: var(--space-3);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.4;
+  color: var(--color-accent-text);
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+.page-intro h1 {
+  font-family: var(--font-serif);
+  font-size: var(--text-4xl);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-tight);
+  letter-spacing: -0.04em;
+
+  @include up(md) {
+    font-size: var(--text-5xl);
+  }
 }
 
 .back {
   display: inline-flex;
   gap: var(--space-1);
   align-items: center;
-  margin-bottom: var(--space-4);
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--space-5);
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
   border-radius: var(--radius-sm);
 
   &:hover {
-    color: var(--color-ink);
+    color: var(--color-accent);
   }
 
   &:focus-visible {
@@ -34,7 +62,6 @@
     font-size: var(--text-xs);
     font-weight: var(--font-weight-semibold);
     color: var(--color-text-subtle);
-    text-transform: uppercase;
     letter-spacing: var(--letter-spacing-wide);
   }
 
@@ -59,13 +86,7 @@
 }
 
 .questions-page {
-  @include container;
-
-  padding-block: var(--space-6) var(--space-16);
-
-  > * {
-    max-width: var(--container-narrow);
-  }
+  padding-bottom: var(--space-10);
 }
 
 .questions-page__empty {

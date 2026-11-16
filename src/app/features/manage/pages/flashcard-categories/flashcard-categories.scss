@@ -15,8 +15,10 @@
 }
 
 .panel__title {
-  font-size: var(--text-lg);
-  font-weight: var(--font-weight-bold);
+  font-family: var(--font-serif);
+  font-size: var(--text-xl);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: -0.02em;
 }
 
 .categories__error {
@@ -60,7 +62,8 @@
 }
 
 .category__name {
-  font-weight: var(--font-weight-bold);
+  font-family: var(--font-serif);
+  font-weight: var(--font-weight-medium);
   color: var(--color-ink);
   overflow-wrap: anywhere;
 }

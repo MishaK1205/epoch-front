@@ -56,6 +56,47 @@ describe('FlashcardsApi', () => {
     req.flush({ items: [], total: 0, page: 1, limit: 20 });
   });
 
+  it('listAll loads every page of the filter', () => {
+    const received: { id: string }[] = [];
+    api.listAll({ categoryId: 'abc', status: 'known', direct: true }).subscribe((items) => {
+      received.push(...items);
+    });
+
+    const first = expectList();
+    expect(first.request.params.get('categoryId')).toBe('abc');
+    expect(first.request.params.get('status')).toBe('known');
+    expect(first.request.params.get('direct')).toBe('true');
+    expect(first.request.params.get('page')).toBe('1');
+    expect(first.request.params.get('limit')).toBe('100');
+    first.flush({
+      items: [{ id: 'a' }, { id: 'b' }],
+      total: 3,
+      page: 1,
+      limit: 2,
+    });
+
+    const second = expectList();
+    expect(second.request.params.get('page')).toBe('2');
+    expect(second.request.params.get('categoryId')).toBe('abc');
+    expect(second.request.params.get('status')).toBe('known');
+    second.flush({
+      items: [{ id: 'c' }],
+      total: 3,
+      page: 2,
+      limit: 2,
+    });
+
+    expect(received.map((card) => card.id)).toEqual(['a', 'b', 'c']);
+  });
+
+  it('listAll stops after the page that covers total', () => {
+    api.listAll({ categoryId: 'abc' }).subscribe();
+
+    const req = expectList();
+    expect(req.request.params.has('status')).toBe(false);
+    req.flush({ items: [{ id: 'only' }], total: 1, page: 1, limit: 100 });
+  });
+
   it('progress calls /flashcards/progress and drops status and page', () => {
     api.progress({ categoryId: 'abc', status: 'unknown', page: 2 }).subscribe();
 

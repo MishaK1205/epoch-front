@@ -29,10 +29,9 @@
 }
 
 .question__title {
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-bold);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-accent-text);
-  text-transform: uppercase;
   letter-spacing: var(--letter-spacing-wide);
 }
 

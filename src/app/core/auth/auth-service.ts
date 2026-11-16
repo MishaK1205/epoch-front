@@ -5,6 +5,7 @@ import { firstValueFrom, Observable, tap } from 'rxjs';
 import { AuthApi } from '../api/auth/auth-api';
 import { AuthResponse, LoginRequest, RegisterRequest } from '../api/auth/auth.models';
 import { User } from '../api/users/users.models';
+import { ApiGetCache } from '../services/api-get-cache';
 
 /** Shown when a correct password belongs to a role that cannot call the API. */
 export const NO_ACCESS_MESSAGE = 'ამ ანგარიშს წვდომა არ აქვს';
@@ -18,6 +19,7 @@ const MAX_TIMER_DELAY_MS = 2_147_483_647;
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly authApi = inject(AuthApi);
+  private readonly apiCache = inject(ApiGetCache);
   /** `null` during server rendering: the server always renders the guest view. */
   private readonly storage = isPlatformBrowser(inject(PLATFORM_ID)) ? localStorage : null;
 
@@ -63,6 +65,7 @@ export class AuthService {
     this.storage?.removeItem(TOKEN_EXPIRES_AT_KEY);
     this.clearExpiryTimer();
     this._currentUser.set(null);
+    this.apiCache.clear();
   }
 
   /** Returns the stored token, or `null` if missing or expired. */
@@ -111,6 +114,7 @@ export class AuthService {
   }
 
   private startSession(response: AuthResponse): void {
+    this.apiCache.clear();
     const expiresAt = Date.now() + response.expiresIn * 1000;
     this.storage?.setItem(TOKEN_KEY, response.accessToken);
     this.storage?.setItem(TOKEN_EXPIRES_AT_KEY, String(expiresAt));

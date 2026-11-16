@@ -24,13 +24,13 @@
   </div>
 } @else if (pkg.hasValue()) {
   @let item = pkg.value();
-  <header class="page-heading">
+  <header class="page-intro">
     <a class="back" routerLink="/what-where-when">
       <app-icon name="chevron-left" [size]="16" />
       ყველა პაკეტი
     </a>
-    <p class="page-heading__kicker">რა? სად? როდის?</p>
-    <h1 class="page-heading__title">{{ item.name }}</h1>
+    <p class="eyebrow">რა? სად? როდის?</p>
+    <h1>{{ item.name }}</h1>
     <dl class="meta">
       <div>
         <dt>თარიღი</dt>

@@ -54,20 +54,16 @@
 .row__title {
   @include line-clamp(2);
 
-  font-size: var(--text-base);
-  font-weight: var(--font-weight-bold);
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-medium);
   line-height: var(--line-height-snug);
+  letter-spacing: -0.01em;
   color: var(--color-ink);
   border-radius: var(--radius-sm);
 
   &:hover {
-    text-decoration: underline;
-    text-decoration-thickness: 2px;
-    text-underline-offset: 3px;
-  }
-
-  @include up(md) {
-    font-size: var(--text-lg);
+    color: var(--color-accent-text);
   }
 }
 

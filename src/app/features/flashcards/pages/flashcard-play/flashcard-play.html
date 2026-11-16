@@ -1,10 +1,18 @@
-<header class="page-heading">
-  <p class="page-heading__kicker">თამაში</p>
-  <h1 class="page-heading__title">ფლეშბარათები</h1>
-  <p class="page-heading__description">
-    აირჩიეთ კატეგორია. ცნობილი / სულ — მხოლოდ თქვენი ანგარიში.
-  </p>
-  <a class="play__manage" appButton variant="ghost" size="sm" routerLink="/manage/flashcards">
+<header class="page-heading play-heading">
+  <div>
+    <p class="page-heading__kicker">სწავლა</p>
+    <h1 class="page-heading__title">ფლეშბარათები</h1>
+    <p class="page-heading__description">
+      აირჩიეთ კატეგორია და ნახეთ მისი ყველა ბარათი ერთ გვერდზე. გაფილტრეთ: ვიცი ან არ ვიცი.
+    </p>
+  </div>
+  <a
+    class="play-heading__manage"
+    appButton
+    variant="ghost"
+    size="sm"
+    routerLink="/manage/flashcards"
+  >
     <app-icon btnIconStart name="settings" [size]="16" />
     მართვა
   </a>
@@ -45,8 +53,14 @@
               [attr.aria-current]="currentRowId() === group.category.id + ':all' ? 'page' : null"
             >
               <span class="play__name">{{ group.category.name }}</span>
-              <span class="play__count">{{ group.known }} / {{ group.total }}</span>
+              <span class="play__count">{{ group.known }}/{{ group.total }}</span>
             </a>
+            <span class="play__meter" aria-hidden="true">
+              <span
+                class="play__meter-fill"
+                [style.width.%]="meter(group.known, group.total)"
+              ></span>
+            </span>
             @if (group.category.description) {
               <p class="play__description">{{ group.category.description }}</p>
             }
@@ -63,7 +77,7 @@
                         [attr.aria-current]="currentRowId() === row.id ? 'page' : null"
                       >
                         <span class="play__name">{{ rowLabel(row) }}</span>
-                        <span class="play__count">{{ row.known }} / {{ row.total }}</span>
+                        <span class="play__count">{{ row.known }}/{{ row.total }}</span>
                       </a>
                     </li>
                   }
@@ -81,7 +95,6 @@
             [categoryId]="categoryId()"
             [subcategoryId]="subcategoryId()"
             [direct]="direct()"
-            [page]="page()"
             [queue]="queue()"
             (deckChanged)="categories.reload()"
           />
@@ -89,7 +102,7 @@
           <app-empty-state
             icon="book-open"
             title="აირჩიეთ კატეგორია."
-            description="სიიდან აირჩიეთ დასტა, რომ ბარათები ნახოთ."
+            description="მარცხნივ აირჩიეთ კატეგორია, რომ მისი ყველა ბარათი აქ გამოჩნდეს."
           />
         }
       </div>

@@ -1,0 +1,22 @@
+<div class="auth">
+  <app-auth-brand class="auth__brand" />
+
+  <div class="auth__main">
+    <p class="auth__mark">
+      epoch.
+      <span>ონლაინ ჟურნალი</span>
+    </p>
+
+    <section class="auth-card">
+      <header class="auth-card__header">
+        <h1 class="auth-card__title">{{ title() }}</h1>
+        @if (subtitle()) {
+          <p class="auth-card__subtitle">{{ subtitle() }}</p>
+        }
+      </header>
+      <ng-content />
+    </section>
+
+    <div class="auth-card__footer"><ng-content select="[authCardFooter]" /></div>
+  </div>
+</div>
