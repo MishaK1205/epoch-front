@@ -222,15 +222,20 @@ back does not call the API again and does not flash a spinner.
 
 ### Server-side rendering (SSR) and SEO
 
-- The app is server-rendered with `@angular/ssr` (`outputMode: "server"`). It is an admin tool:
-  `/login` is the only public route. Render modes per route live in `app.routes.server.ts`.
-  The server has no token, so a guarded route redirects to `/login` and does not call the API.
-  Add every new route there.
+- The app is served by `@angular/ssr` (`outputMode: "server"`), but every route is
+  client-rendered (`RenderMode.Client` on `**` in `app.routes.server.ts`). It is an admin tool
+  and `/login` is the only public page. The server has no token, so rendering a guarded route
+  on the server redirects to `/login` and that page is what a refresh paints until `/auth/me`
+  returns. The client shell (`index.html`) shows the boot wordmark instead, then the real page
+  or the login form. Do not add a `RenderMode.Server` route for a guarded page.
 - Code runs on the server too: never touch `window`, `document`, `localStorage`, `navigator` or
   timers that matter only in the browser at construction time. Guard with
   `isPlatformBrowser(inject(PLATFORM_ID))`, or run DOM code in `afterNextRender`. `AuthService`
-  has no storage on the server, so the server always renders the guest view and the browser
-  swaps in the logged-in UI after hydration. Keep user-dependent markup inside `@if` blocks.
+  has no storage on the server. Keep user-dependent markup inside `@if` blocks.
+- When a token is already stored, `preloadReadingRoutes` downloads the article list and the
+  article page during session restore. The router waits for that script before it changes the
+  page, so a category click would otherwise sit still and only then start the API request.
+  The address updates as soon as the route is known (`urlUpdateStrategy: 'eager'`).
 - Head tags: use `Seo` (`core/services/seo.ts`), never `Title` / `Meta` directly.
   `SeoTitleStrategy` resets title, description, canonical URL and Open Graph tags from the route
   `title` on every navigation; a page with loaded data calls `seo.update({ title, description,

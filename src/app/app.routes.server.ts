@@ -1,22 +1,9 @@
 import { RenderMode, ServerRoute } from '@angular/ssr';
 
 /**
- * `/login` is the only public page. Every other route is behind `roleGuard('admin')`.
- * The server has no token, so those routes redirect to `/login` and do not call the API.
+ * The whole app is rendered in the browser. The server has no token, so a
+ * server render of any guarded route redirects to `/login` and that HTML is
+ * what a refresh paints until the client finishes `/auth/me`. The client shell
+ * (`index.html`) shows the boot wordmark instead, then the real page or login.
  */
-export const serverRoutes: ServerRoute[] = [
-  { path: '', renderMode: RenderMode.Server },
-  { path: 'category/:slug', renderMode: RenderMode.Server },
-  { path: 'articles', renderMode: RenderMode.Server },
-  { path: 'articles/:slug', renderMode: RenderMode.Server },
-  { path: 'search', renderMode: RenderMode.Server },
-  { path: 'login', renderMode: RenderMode.Server },
-  { path: 'manage', renderMode: RenderMode.Client },
-  { path: 'manage/**', renderMode: RenderMode.Client },
-  { path: 'me', renderMode: RenderMode.Client },
-  { path: 'me/**', renderMode: RenderMode.Client },
-  { path: 'what-where-when', renderMode: RenderMode.Client },
-  { path: 'what-where-when/**', renderMode: RenderMode.Client },
-  { path: 'flashcards', renderMode: RenderMode.Client },
-  { path: '**', renderMode: RenderMode.Server },
-];
+export const serverRoutes: ServerRoute[] = [{ path: '**', renderMode: RenderMode.Client }];

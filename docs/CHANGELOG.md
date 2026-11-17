@@ -22,6 +22,30 @@ After finishing every task, **add a new entry at the top** using the template be
 
 ---
 
+## 2026-11-17 — Hide the login flash and speed up category navigation
+
+**Task:** On refresh the login page showed for a few seconds. Opening a category did nothing
+for a few seconds, then the page changed and the requests started. The sidebar's რედაქცია and
+გამოსვლა controls did not fade like the category links.
+
+**Changes:**
+
+- Modified `app.routes.server.ts` — every route is client-rendered, so a refresh is the boot
+  shell and not a server redirect to `/login`.
+- Modified `index.html` — the shell shows the epoch wordmark on the paper background until the
+  app takes over.
+- Added `preload-reading-routes.ts` — while a stored token is checked, the article list and
+  the article page download in the background.
+- Modified `app.config.ts` — starts that preload next to session restore, and updates the
+  address as soon as the route is known.
+- Modified `core/layout/reading-shell/reading-shell.scss` and `reading-shell.html` — რედაქცია
+  and გამოსვლა use the same hover fade, padding, and icon size as the other sidebar links.
+- Modified `docs/PROJECT_GUIDELINES.md` — guarded routes stay client-rendered, and the article
+  pages are preloaded during session restore.
+
+**Notes:** The boot wordmark uses the paper and olive values directly, because the design-system
+stylesheet is not loaded yet. An expired token still skips the preload and shows login.
+
 ## 2026-11-16 — Show the gap between pasted paragraphs
 
 **Task:** Pasted article text still had no space between paragraphs.
