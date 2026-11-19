@@ -1,0 +1,121 @@
+<section
+  class="card"
+  [class.card--invalid]="invalid()"
+  [formGroup]="group()"
+  [attr.aria-labelledby]="cardId + '-title'"
+>
+  <header class="card__head">
+    <h3 class="card__title" [id]="cardId + '-title'">კითხვა {{ number() }}</h3>
+    <div class="card__actions">
+      <button
+        appButton
+        type="button"
+        variant="ghost"
+        size="sm"
+        [disabled]="first()"
+        [attr.aria-label]="'კითხვა ' + number() + ': ზემოთ აწევა'"
+        (click)="moveUp.emit()"
+      >
+        <app-icon class="card__up" name="chevron-down" [size]="16" />
+      </button>
+      <button
+        appButton
+        type="button"
+        variant="ghost"
+        size="sm"
+        [disabled]="last()"
+        [attr.aria-label]="'კითხვა ' + number() + ': ქვემოთ ჩამოწევა'"
+        (click)="moveDown.emit()"
+      >
+        <app-icon name="chevron-down" [size]="16" />
+      </button>
+      <button
+        appButton
+        type="button"
+        variant="ghost"
+        size="sm"
+        [disabled]="!canDuplicate()"
+        [attr.aria-label]="'კითხვა ' + number() + ': დუბლირება'"
+        (click)="duplicate.emit()"
+      >
+        <app-icon btnIconStart name="plus" [size]="16" />
+        დუბლირება
+      </button>
+      <button
+        appButton
+        type="button"
+        variant="danger-ghost"
+        size="sm"
+        [attr.aria-label]="'კითხვა ' + number() + ': წაშლა'"
+        (click)="remove.emit()"
+      >
+        <app-icon btnIconStart name="trash" [size]="16" />
+        წაშლა
+      </button>
+    </div>
+  </header>
+
+  @if (serverError()) {
+    <p class="card__error">
+      <app-icon name="alert-circle" [size]="16" />
+      <span>{{ serverError() }}</span>
+    </p>
+  }
+
+  <app-textarea-field
+    formControlName="text"
+    label="კითხვა"
+    placeholder="კითხვის ტექსტი…"
+    showCount
+    [rows]="2"
+    [maxlength]="limits.questionText.max"
+  />
+
+  <app-cover-image-picker
+    formControlName="imageId"
+    label="სურათი (არასავალდებულო)"
+    [previewUrl]="imageUrl()"
+    [previewAlt]="imageAlt()"
+  />
+
+  <fieldset class="choices" [attr.aria-describedby]="choiceError() ? cardId + '-choice' : null">
+    <legend class="choices__legend">პასუხები — მონიშნეთ სწორი</legend>
+    <div class="choices__list" formArrayName="options">
+      @for (control of optionControls(); track $index; let i = $index) {
+        <div class="choice" [class.choice--correct]="correctIndex() === i">
+          <label class="choice__mark">
+            <input
+              class="choice__radio"
+              type="radio"
+              [name]="cardId + '-correct'"
+              [value]="i"
+              [formControl]="group().controls.correctIndex"
+            />
+            <span class="choice__mark-text">სწორი</span>
+          </label>
+          <app-input-field
+            class="choice__field"
+            [formControlName]="i"
+            [label]="'პასუხი ' + letters[i]"
+            [maxlength]="limits.option.max"
+          />
+        </div>
+      }
+    </div>
+    @if (choiceError()) {
+      <p class="card__error" [id]="cardId + '-choice'">
+        <app-icon name="alert-circle" [size]="16" />
+        <span>{{ choiceError() }}</span>
+      </p>
+    }
+  </fieldset>
+
+  <app-textarea-field
+    formControlName="explanation"
+    label="განმარტება"
+    hint="არასავალდებულო. ჩანს პასუხის შემდეგ."
+    showCount
+    [rows]="2"
+    [maxlength]="limits.explanation.max"
+  />
+</section>

@@ -37,6 +37,20 @@ export const FLASHCARD_DECKS_URL = '/manage/flashcards';
 export const FLASHCARD_CARDS_URL = '/manage/flashcards/cards';
 export const FLASHCARD_CATEGORIES_URL = '/manage/flashcards/categories';
 
+export const QUIZZES_URL = '/manage/quizzes';
+export const QUIZ_CATEGORIES_URL = '/manage/quizzes/categories';
+/** The play page outside `/manage`. */
+export const QUIZ_PLAY_URL = '/quizzes';
+
+/** Navigation state flags for quizzes (set after create / delete). */
+export const QUIZ_CREATED_STATE_KEY = 'quizCreated';
+export const QUIZ_DELETED_STATE_KEY = 'quizDeleted';
+
+/** Confirm-dialog text for deleting a quiz (its results go too). */
+export function quizDeleteMessage(title: string): string {
+  return `„${title}“ სამუდამოდ წაიშლება ყველა შედეგთან ერთად. ამ მოქმედების გაუქმება შეუძლებელია. სურათები დარჩება.`;
+}
+
 /** Navigation state flag set after creating a card, so the list can confirm it. */
 export const FLASHCARD_CREATED_STATE_KEY = 'flashcardCreated';
 

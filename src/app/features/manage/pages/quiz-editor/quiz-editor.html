@@ -1,0 +1,191 @@
+@if (loading()) {
+  <div class="editor__state"><app-spinner size="lg" /></div>
+} @else if (notFound()) {
+  <div class="editor__state">
+    <app-empty-state
+      icon="search"
+      title="ქვიზი ვერ მოიძებნა"
+      description="ასეთი ქვიზი არ არსებობს ან წაშლილია."
+    >
+      <a appButton variant="outline" [routerLink]="listUrl">
+        <app-icon btnIconStart name="chevron-left" [size]="18" />
+        ქვიზების სიაში დაბრუნება
+      </a>
+    </app-empty-state>
+  </div>
+} @else if (loadErrors().length > 0) {
+  <div class="editor__state">
+    <app-alert variant="error">
+      @for (message of loadErrors(); track message) {
+        <p>{{ message }}</p>
+      }
+    </app-alert>
+    <button appButton type="button" variant="outline" (click)="retryLoad()">სცადეთ თავიდან</button>
+  </div>
+} @else if (showForm()) {
+  <form class="editor" [formGroup]="form" (ngSubmit)="save()" novalidate>
+    <div class="editor__head">
+      <a class="editor__back" [routerLink]="listUrl">
+        <app-icon name="chevron-left" [size]="16" />
+        ყველა ქვიზი
+      </a>
+      @if (quiz(); as current) {
+        <span class="editor__updated">
+          ბოლო ცვლილება
+          <time [attr.datetime]="current.updatedAt">{{ current.updatedAt | timeAgo }}</time>
+        </span>
+      }
+    </div>
+
+    <div class="editor__alerts" aria-live="polite">
+      @if (successMessage()) {
+        <app-alert variant="success">
+          <p>{{ successMessage() }}</p>
+          @if (quiz(); as current) {
+            @if (current.questionCount > 0) {
+              <p>
+                <a class="editor__link" [routerLink]="[playUrl, current.id]">ქვიზის თამაში</a>
+              </p>
+            }
+          }
+        </app-alert>
+      }
+      @if (quizGone()) {
+        <app-alert variant="error">
+          <p>ეს ქვიზი წაიშალა. ცვლილებები ვერ შეინახება.</p>
+          <a class="editor__link" [routerLink]="listUrl">ქვიზების სიაში დაბრუნება</a>
+        </app-alert>
+      }
+      @if (serverErrors().length > 0) {
+        <app-alert variant="error">
+          @for (message of serverErrors(); track message) {
+            <p>{{ message }}</p>
+          }
+        </app-alert>
+      }
+    </div>
+
+    <div class="editor__meta">
+      <app-input-field
+        class="editor__wide"
+        formControlName="title"
+        label="სათაური"
+        placeholder="მაგ.: ევროპის დედაქალაქები"
+        [maxlength]="limits.title.max"
+      />
+      <app-textarea-field
+        class="editor__wide"
+        formControlName="description"
+        label="აღწერა"
+        hint="არასავალდებულო."
+        showCount
+        [rows]="3"
+        [maxlength]="limits.description.max"
+      />
+      <div class="editor__category">
+        <app-select
+          formControlName="categoryId"
+          label="კატეგორია"
+          placeholder="აირჩიეთ კატეგორია"
+          [options]="categoryOptions()"
+          [errorMessages]="{ required: 'აირჩიეთ კატეგორია.' }"
+          (selectionChange)="categoryPicked()"
+        />
+        <p class="editor__note">
+          @if (categories.error()) {
+            კატეგორიები ვერ ჩაიტვირთა.
+            <button type="button" class="editor__link" (click)="categories.reload()">
+              სცადეთ თავიდან
+            </button>
+          } @else if (noCategories()) {
+            ქვიზისთვის ჯერ კატეგორია უნდა შექმნათ.
+            <a class="editor__link" [routerLink]="categoriesUrl">კატეგორიის შექმნა</a>
+          } @else {
+            <a class="editor__link" [routerLink]="categoriesUrl">კატეგორიების მართვა</a>
+          }
+        </p>
+      </div>
+      @if (subcategoryOptions().length > 0) {
+        <app-select
+          formControlName="subcategoryId"
+          label="ქვეკატეგორია"
+          emptyLabel="ქვეკატეგორიის გარეშე"
+          [options]="subcategoryOptions()"
+        />
+      }
+      <div class="editor__wide">
+        <app-cover-image-picker
+          formControlName="coverImageId"
+          label="მთავარი სურათი"
+          [previewUrl]="quiz()?.coverImage?.url ?? null"
+          [previewAlt]="quiz()?.coverImage?.alt ?? ''"
+        />
+        <p class="editor__note">არასავალდებულო.</p>
+      </div>
+    </div>
+
+    <section class="questions" aria-labelledby="quiz-questions-heading">
+      <h2 class="questions__title" id="quiz-questions-heading">კითხვები</h2>
+      <p class="questions__hint">თითო კითხვას ოთხი პასუხი აქვს, მათგან ერთი სწორია.</p>
+      @for (question of questions(); track question; let index = $index, count = $count) {
+        <app-quiz-question-card
+          [group]="question"
+          [index]="index"
+          [total]="count"
+          [canDuplicate]="!full()"
+          (moveUp)="moveQuestion(index, -1)"
+          (moveDown)="moveQuestion(index, 1)"
+          (duplicate)="duplicateQuestion(index)"
+          (remove)="removeQuestion(index)"
+        />
+      } @empty {
+        <p class="questions__hint">
+          კითხვები ჯერ არ არის. ქვიზის თამაში კითხვების გარეშე ვერ დაიწყება.
+        </p>
+      }
+      <div class="questions__add">
+        <button
+          appButton
+          type="button"
+          variant="outline"
+          [disabled]="full()"
+          [attr.aria-describedby]="full() ? 'quiz-questions-full' : null"
+          (click)="addQuestion()"
+        >
+          <app-icon btnIconStart name="plus" [size]="18" />
+          კითხვის დამატება
+        </button>
+        @if (full()) {
+          <p class="questions__hint" id="quiz-questions-full">
+            ქვიზში მაქსიმუმ {{ limits.questions.maxCount }} კითხვა შეიძლება.
+          </p>
+        }
+      </div>
+    </section>
+
+    <div class="editor__actions">
+      <button appButton type="submit" [loading]="saving()" [disabled]="saving()">შენახვა</button>
+      <span class="editor__count" aria-live="polite">{{ questionCount() }} კითხვა</span>
+    </div>
+  </form>
+}
+
+<app-confirm-dialog
+  #removeDialog
+  title="წავშალოთ კითხვა?"
+  message="კითხვა და მისი პასუხები წაიშლება. ცვლილება ძალაში შევა შენახვის შემდეგ."
+  confirmLabel="წაშლა"
+  danger
+  (confirmed)="confirmRemove()"
+  (cancelled)="cancelRemove()"
+/>
+<app-confirm-dialog
+  #leaveDialog
+  title="შეუნახავი ცვლილებები"
+  message="ცვლილებები არ არის შენახული. დატოვებთ გვერდს მათი შენახვის გარეშე?"
+  confirmLabel="გასვლა"
+  cancelLabel="დარჩენა"
+  danger
+  (confirmed)="resolveLeave(true)"
+  (cancelled)="resolveLeave(false)"
+/>

@@ -39,4 +39,18 @@ export const API_LIMITS = {
     categoryName: { min: 2, max: 50 },
     categoryDescription: { max: 500 },
   },
+  /** Admin quizzes. Text lengths are after trimming. */
+  quiz: {
+    title: { min: 1, max: 200 },
+    description: { max: 2000 },
+    questions: { maxCount: 200 },
+    questionText: { min: 1, max: 1000 },
+    optionCount: 4,
+    option: { min: 1, max: 300 },
+    explanation: { max: 2000 },
+    categoryName: { min: 2, max: 50 },
+    categoryDescription: { max: 500 },
+    titleSearch: { max: 100 },
+    durationSeconds: { max: 86_400 },
+  },
 } as const;

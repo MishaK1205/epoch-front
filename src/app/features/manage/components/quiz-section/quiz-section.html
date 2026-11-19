@@ -1,0 +1,19 @@
+<nav class="chips" aria-label="ქვიზები">
+  <a
+    class="chip"
+    [routerLink]="quizzesUrl"
+    routerLinkActive="is-active"
+    [routerLinkActiveOptions]="{ exact: true }"
+    ariaCurrentWhenActive="page"
+    >ქვიზები</a
+  >
+  <a
+    class="chip"
+    [routerLink]="categoriesUrl"
+    routerLinkActive="is-active"
+    [routerLinkActiveOptions]="{ exact: true }"
+    ariaCurrentWhenActive="page"
+    >კატეგორიები</a
+  >
+</nav>
+<router-outlet />

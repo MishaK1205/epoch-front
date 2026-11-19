@@ -22,6 +22,54 @@ After finishing every task, **add a new entry at the top** using the template be
 
 ---
 
+## 2026-11-20 — Quizzes
+
+**Task:** Add quizzes on top of the new backend endpoints: a category tree, quizzes with
+four-option questions (one correct, optional image), management pages and a page to play them,
+in the existing design.
+
+**Changes:**
+
+- Added `core/api/quizzes/` — `quizzes.models.ts`, `QuizzesApi` (list, get, play, create,
+  update, delete, submitAttempt, listAttempts) and `QuizCategoriesApi`; exported from
+  `core/api/index.ts`. `play()` opts out of the GET cache.
+- Modified `core/api/api-limits.ts` — `API_LIMITS.quiz`.
+- Modified `core/services/api-get-cache.ts` and `cached-route-reuse.ts` — quiz writes drop
+  `/quizzes` and `/quiz-categories`, and the `/quizzes` and `/manage/quizzes` pages.
+- Added `features/manage/components/quiz-section`, `quiz-category-form`, `quiz-question-card`
+  and `features/manage/pages/quiz-list`, `quiz-categories`, `quiz-editor` (with `quiz-form.ts`
+  and its spec).
+- Modified `features/manage/manage.routes.ts`, `manage-shell.html` (tab „ქვიზები“),
+  `manage-labels.ts` and `manage-errors.ts` (Georgian texts for the quiz errors).
+- Added `features/quizzes/` — `QuizBrowse`, `QuizPlay` (`quiz-play-text.ts` + spec) and
+  `QuizResult`; route in `app.routes.ts`; sidebar link in `reading-shell.html`.
+- Modified `docs/PROJECT_GUIDELINES.md` — the quiz APIs and pages.
+
+**Notes:** Verified with `ngc` (full template type-check), Sass compilation of every new style
+and the two new specs; `ng build` / `ng test` could not run in the agent's Linux VM because
+only the macOS esbuild / rollup binaries are installed, so run them locally. `quiz-play.scss`
+is 5.4 kB (above the 4 kB warning, below the 8 kB error, like the home page). The play page
+shows the last 10 results; the best score is shown on the browse cards (`myStats`).
+
+## 2026-11-17 — Concepts, effects, and paradoxes flashcards
+
+**Task:** Add a production flashcard category of concepts, effects, and paradoxes. The front of
+each card is the name, and the back is a short definition in Georgian.
+
+**Changes:**
+
+- Added `tools/flashcards/effects_part1.py`, `effects_part2.py`, and `effects_part3.py` — the
+  Georgian source texts for the deck.
+- Added `tools/flashcards/effects-paradoxes.json` and `tools/flashcards/batches/` — the combined
+  payload and the groups used to upload it.
+
+**Notes:** The category lives on production (`https://api.epoch.ge`), not in this repo:
+`კონცეფციები, ეფექტები და პარადოქსები`, id `6afc2730a7cf5e24b11c0829`, 226 cards, no
+subcategories. Study order is creation order, starting with the requested names and ending with
+`ბრუკსის კანონი`. „დორსტეს ეფექტი“ is stored as `დროსტეს ეფექტი` (Droste). Simpson is one card,
+`სიმპსონის პარადოქსი`. Two uploaded backs said `სიიოლე`; both now say `სიმარტივე`
+(`დაშორებული გამეორების ეფექტი`, `ილუზორული ჭეშმარიტება`).
+
 ## 2026-11-17 — Hide the login flash and speed up category navigation
 
 **Task:** On refresh the login page showed for a few seconds. Opening a category did nothing

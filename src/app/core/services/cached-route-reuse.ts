@@ -32,6 +32,8 @@ const ROUTES_BY_API: Record<string, readonly string[]> = {
   '/flashcard-categories': ['/', '/flashcards', '/manage/flashcards'],
   '/what-where-when': ['/what-where-when', '/manage/what-where-when'],
   '/what-where-when-categories': ['/what-where-when', '/manage/what-where-when'],
+  '/quizzes': ['/quizzes', '/manage/quizzes'],
+  '/quiz-categories': ['/quizzes', '/manage/quizzes'],
   '/users': ['/manage/users'],
 };
 

@@ -45,6 +45,12 @@ export function mutationCachePrefixes(url: string): 'all' | readonly string[] {
   if (path.startsWith('/flashcards')) {
     return ['/flashcards', '/flashcard-categories'];
   }
+  if (path.startsWith('/quiz-categories')) {
+    return ['/quiz-categories', '/quizzes'];
+  }
+  if (path.startsWith('/quizzes')) {
+    return ['/quizzes', '/quiz-categories'];
+  }
   if (path.startsWith('/what-where-when-categories')) {
     return ['/what-where-when-categories', '/what-where-when'];
   }

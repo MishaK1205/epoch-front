@@ -3,6 +3,7 @@ import { CanActivateFn, Router, Routes } from '@angular/router';
 import { roleGuard } from '../../core/auth/role-guard';
 import { FlashcardSection } from './components/flashcard-section/flashcard-section';
 import { ManageShell } from './components/manage-shell/manage-shell';
+import { QuizSection } from './components/quiz-section/quiz-section';
 import { unsavedChangesGuard } from './unsaved-changes-guard';
 
 /** The study screen lives at `/flashcards`. Keep the old manage URL working. */
@@ -135,6 +136,38 @@ export const MANAGE_ROUTES: Routes = [
             canDeactivate: [unsavedChangesGuard],
             loadComponent: () =>
               import('./pages/flashcard-editor/flashcard-editor').then((m) => m.FlashcardEditor),
+          },
+        ],
+      },
+      {
+        path: 'quizzes',
+        canActivate: [roleGuard('admin')],
+        component: QuizSection,
+        children: [
+          {
+            path: '',
+            title: 'ქვიზები — Epoch',
+            loadComponent: () => import('./pages/quiz-list/quiz-list').then((m) => m.QuizList),
+          },
+          {
+            path: 'categories',
+            title: 'ქვიზის კატეგორიები — Epoch',
+            loadComponent: () =>
+              import('./pages/quiz-categories/quiz-categories').then((m) => m.QuizCategories),
+          },
+          {
+            path: 'new',
+            title: 'ახალი ქვიზი — Epoch',
+            canDeactivate: [unsavedChangesGuard],
+            loadComponent: () =>
+              import('./pages/quiz-editor/quiz-editor').then((m) => m.QuizEditor),
+          },
+          {
+            path: ':id/edit',
+            title: 'ქვიზის რედაქტირება — Epoch',
+            canDeactivate: [unsavedChangesGuard],
+            loadComponent: () =>
+              import('./pages/quiz-editor/quiz-editor').then((m) => m.QuizEditor),
           },
         ],
       },

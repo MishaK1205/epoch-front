@@ -1,0 +1,59 @@
+<section class="score" aria-labelledby="quiz-score-title">
+  <p class="score__kicker" id="quiz-score-title">შედეგი</p>
+  <p class="score__value">{{ attempt().correctCount }} / {{ attempt().questionCount }}</p>
+  <div
+    class="meter meter--lg"
+    role="progressbar"
+    aria-label="შედეგი პროცენტებში"
+    aria-valuemin="0"
+    aria-valuemax="100"
+    [attr.aria-valuenow]="attempt().percent"
+  >
+    <span class="meter__fill" [style.width.%]="attempt().percent"></span>
+  </div>
+  <p class="score__meta">
+    <span class="score__percent">{{ attempt().percent }}%</span>
+    @if (duration()) {
+      <span>დრო: {{ duration() }}</span>
+    }
+  </p>
+  <div class="score__actions">
+    <button appButton type="button" variant="accent" (click)="playAgain.emit()">
+      თავიდან თამაში
+    </button>
+    <a appButton variant="outline" routerLink="/quizzes">ყველა ქვიზი</a>
+  </div>
+</section>
+
+<section class="review" aria-labelledby="quiz-review-title">
+  <h2 class="review__title" id="quiz-review-title">პასუხები</h2>
+  <ol class="review__list" role="list">
+    @for (row of review(); track row.number) {
+      <li class="review-item" [class.is-correct]="row.isCorrect">
+        <p class="review-item__head">
+          <span class="review-item__number">{{ row.number }}</span>
+          <app-icon [name]="row.isCorrect ? 'check-circle' : 'alert-circle'" [size]="18" />
+          <span class="visually-hidden">{{ row.isCorrect ? 'სწორია' : 'არასწორია' }}</span>
+        </p>
+        <p class="review-item__question">
+          {{ row.question?.text ?? 'კითხვა წაიშალა' }}
+        </p>
+        <dl class="review-item__answers">
+          <div>
+            <dt>თქვენი პასუხი</dt>
+            <dd>{{ row.selected ?? 'გამოტოვებული' }}</dd>
+          </div>
+          @if (!row.isCorrect && row.correct) {
+            <div>
+              <dt>სწორი პასუხი</dt>
+              <dd class="review-item__correct">{{ row.correct }}</dd>
+            </div>
+          }
+        </dl>
+        @if (row.explanation) {
+          <p class="review-item__explanation">{{ row.explanation }}</p>
+        }
+      </li>
+    }
+  </ol>
+</section>

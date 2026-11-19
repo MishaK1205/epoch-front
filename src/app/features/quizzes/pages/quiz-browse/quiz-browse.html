@@ -1,0 +1,141 @@
+<header class="page-intro">
+  <p class="eyebrow">თამაში</p>
+  <h1>ქვიზები</h1>
+  <p>აირჩიეთ ქვიზი, უპასუხეთ კითხვებს და ნახეთ, რამდენი გამოიცანით.</p>
+</header>
+
+<section class="quizzes" aria-label="ქვიზები">
+  <div class="quizzes__tools">
+    <app-input-field
+      class="quizzes__search"
+      label="ძებნა სათაურით"
+      placeholder="მაგ.: დედაქალაქები"
+      type="search"
+      [formControl]="search"
+      [maxlength]="searchMax"
+    />
+  </div>
+
+  @if (categoryChips().length > 0) {
+    <nav class="chips" aria-label="კატეგორიები">
+      <a
+        class="chip"
+        routerLink="."
+        queryParamsHandling="merge"
+        [queryParams]="{ categoryId: null, page: null }"
+        [class.chip--active]="!categoryId()"
+        [attr.aria-current]="!categoryId() ? 'page' : null"
+        >ყველა</a
+      >
+      @for (category of categoryChips(); track category.id) {
+        <a
+          class="chip"
+          routerLink="."
+          queryParamsHandling="merge"
+          [queryParams]="{ categoryId: category.id, page: null }"
+          [class.chip--active]="activeParent()?.id === category.id"
+          [attr.aria-current]="categoryId() === category.id ? 'page' : null"
+          >{{ category.name }}</a
+        >
+      }
+    </nav>
+    @if (subcategoryChips().length > 0) {
+      @let parent = activeParent();
+      <nav class="chips chips--sub" aria-label="ქვეკატეგორიები">
+        @if (parent) {
+          <a
+            class="chip"
+            routerLink="."
+            queryParamsHandling="merge"
+            [queryParams]="{ categoryId: parent.id, page: null }"
+            [class.chip--active]="categoryId() === parent.id"
+            [attr.aria-current]="categoryId() === parent.id ? 'page' : null"
+            >ყველა — {{ parent.name }}</a
+          >
+        }
+        @for (sub of subcategoryChips(); track sub.id) {
+          <a
+            class="chip"
+            routerLink="."
+            queryParamsHandling="merge"
+            [queryParams]="{ categoryId: sub.id, page: null }"
+            [class.chip--active]="categoryId() === sub.id"
+            [attr.aria-current]="categoryId() === sub.id ? 'page' : null"
+            >{{ sub.name }}</a
+          >
+        }
+      </nav>
+    }
+  }
+
+  @if (quizzes.isLoading() && !quizzes.hasValue()) {
+    <div class="feed-state"><app-spinner size="lg" /></div>
+  } @else if (loadErrors().length > 0) {
+    <div class="feed-state quizzes__error">
+      <app-alert variant="error">
+        @for (message of loadErrors(); track message) {
+          <p>{{ message }}</p>
+        }
+      </app-alert>
+      <button appButton type="button" variant="outline" (click)="retry()">სცადეთ თავიდან</button>
+    </div>
+  } @else if (items().length === 0) {
+    <app-empty-state
+      icon="check-circle"
+      title="ქვიზები არ არის."
+      [description]="filtered() ? 'ამ ფილტრით ქვიზი ვერ მოიძებნა.' : 'ქვიზები ჯერ არ დამატებულა.'"
+    >
+      @if (filtered()) {
+        <a
+          appButton
+          variant="outline"
+          routerLink="."
+          [queryParams]="{ categoryId: null, q: null, page: null }"
+        >
+          ყველა ქვიზი
+        </a>
+      } @else {
+        <a appButton variant="accent" routerLink="/manage/quizzes/new">
+          <app-icon btnIconStart name="plus" [size]="18" />
+          ქვიზის შექმნა
+        </a>
+      }
+    </app-empty-state>
+  } @else {
+    <ul class="grid" role="list" [class.grid--loading]="quizzes.isLoading()">
+      @for (item of items(); track item.id) {
+        <li>
+          <a class="card" [routerLink]="['/quizzes', item.id]">
+            <span class="card__thumb">
+              @if (item.coverImage; as cover) {
+                <img [ngSrc]="cover.url" [alt]="cover.alt ?? ''" fill />
+              } @else {
+                <span class="card__placeholder" aria-hidden="true">
+                  <app-icon name="check-circle" [size]="28" />
+                </span>
+              }
+            </span>
+            <span class="card__eyebrow">
+              {{ item.category?.name ?? 'ქვიზი' }}
+              @if (item.subcategory; as subcategory) {
+                · {{ subcategory.name }}
+              }
+            </span>
+            <span class="card__title">{{ item.title }}</span>
+            <span class="card__meta">
+              <span>{{ item.questionCount }} კითხვა</span>
+              @if (item.myStats.bestPercent !== null) {
+                <span class="card__best">საუკეთესო: {{ item.myStats.bestPercent }}%</span>
+              } @else {
+                <span>ჯერ არ გითამაშიათ</span>
+              }
+            </span>
+          </a>
+        </li>
+      }
+    </ul>
+    @if (totalPages() > 1) {
+      <app-pagination [page]="page()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
+    }
+  }
+</section>

@@ -147,7 +147,9 @@ something only one component needs — use a `computed()` signal in that compone
   (admin-only "რა? სად? როდის?" quiz packages), `WhatWhereWhenCategoriesApi` (their flat
   categories at `/what-where-when-categories` — unrelated to the article `CategoriesApi`; never
   mix the two), `FlashcardsApi` and `FlashcardCategoriesApi` (admin-only flashcards at
-  `/flashcards` and `/flashcard-categories` — unrelated to both; never mix them).
+  `/flashcards` and `/flashcard-categories` — unrelated to both; never mix them), `QuizzesApi` and
+  `QuizCategoriesApi` (admin-only multiple-choice quizzes at `/quizzes` and `/quiz-categories` —
+  their own category tree; never mix them with the others).
 - Saved / read toggles: use `ReadingListStore` (`core/services/reading-list-store.ts`), not
   `ReadingListApi` directly. It holds `savedIds` / `readIds` signals (filled on login, cleared on
   logout, instantiated eagerly in `app.config.ts`) and `toggleSaved(id)` / `toggleRead(id)`, which
@@ -518,6 +520,22 @@ empty`, 1-based; `questions.N.…`, 0-based) are set as a `server` error on that
   study screen stay in the manage feature so the rules are not copied; this page imports
   them. The reading sidebar lists it next to „რა? სად? როდის?“. Creating and editing stays
   at `/manage/flashcards`.
+- Quizzes (`/manage/quizzes`, admin only, tab "ქვიზები"): `QuizSection` links ქვიზები /
+  კატეგორიები. Pages: `QuizList` (`?page=&categoryId=`, a category id includes its
+  subcategories), `QuizCategories` (same tree rules as flashcard categories, inline
+  `QuizCategoryForm`), `QuizEditor` (`new` and `:id/edit`). Each question is a
+  `QuizQuestionCard`: plain-text question, optional image through `CoverImagePicker`, exactly
+  four option inputs and a radio for the correct one, optional explanation. Form helpers live in
+  `quiz-form.ts`. The category is required; the subcategory select lists only the chosen
+  category's children and is reset from `(selectionChange)`. PATCH sends every question with its
+  `id` (a duplicated question has no `id`) and the form is reset from the response so new
+  questions get their ids. `Question N …` errors are 1-based, `questions.N.…` 0-based.
+- `/quizzes` (`features/quizzes`, `roleGuard('admin')`, client-rendered) is the play area:
+  `QuizBrowse` (cards, `?page=&categoryId=&q=`, category and subcategory chips, title search)
+  and `QuizPlay` (`:id`). `QuizPlay` loads only `QuizzesApi.play()` (no answer key) — never
+  `get()` — and `play()` skips the GET cache so every start can shuffle. Answers are graded by
+  `POST /quizzes/:id/attempts`; `QuizResult` shows the score and every correct answer. Past
+  results come from `listAttempts()`. The reading sidebar links it after „რა? სად? როდის?“.
 - `TagsInput` is the chip input for any `string[]` list: authors use it with `prefix=""`,
   `[lowercase]="false"`, their own `maxCount` / `maxLength` and accessible labels.
 - Calendar dates (`YYYY-MM-DD`, no time) are parsed and formatted in local time with

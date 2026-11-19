@@ -45,6 +45,26 @@ const TRANSLATIONS: Partial<Record<string, string>> = {
     'ქვეკატეგორია არჩეულ კატეგორიას არ ეკუთვნის.',
   'Flashcard category not found': 'ფლეშბარათის კატეგორია ვერ მოიძებნა.',
   'Flashcard not found': 'ფლეშბარათი ვერ მოიძებნა.',
+  'A quiz category with this name already exists':
+    'ამ სახელით ქვიზის კატეგორია უკვე არსებობს (დიდ და პატარა ასოებს არ აქვს მნიშვნელობა).',
+  'Quiz category name must contain letters or numbers': 'სახელი უნდა შეიცავდეს ასოს ან ციფრს.',
+  'Parent quiz category does not exist': 'მთავარი კატეგორია აღარ არსებობს. სია განახლდა.',
+  'Quiz category does not exist': 'არჩეული კატეგორია აღარ არსებობს.',
+  'categoryId must be a top-level quiz category; send the subcategory as subcategoryId':
+    'აირჩიეთ მთავარი კატეგორია (ქვეკატეგორია ცალკე ველშია).',
+  'Quiz subcategory does not exist': 'არჩეული ქვეკატეგორია აღარ არსებობს.',
+  'Subcategory does not belong to the selected quiz category':
+    'ქვეკატეგორია არჩეულ კატეგორიას არ ეკუთვნის.',
+  'Quiz category not found': 'ქვიზის კატეგორია ვერ მოიძებნა.',
+  'Quiz not found': 'ქვიზი ვერ მოიძებნა.',
+  'Quiz has no questions yet': 'ქვიზში კითხვები ჯერ არ არის.',
+  'Image is used by a quiz; remove it from the quiz first':
+    'სურათი გამოიყენება ქვიზში. ჯერ მოაშორეთ ის ქვიზს.',
+  'title must be longer than or equal to 1 characters': 'სათაური სავალდებულოა.',
+  'title must be shorter than or equal to 200 characters':
+    'სათაური უნდა იყოს მაქსიმუმ 200 სიმბოლო.',
+  'description must be shorter than or equal to 2000 characters':
+    'აღწერა უნდა იყოს მაქსიმუმ 2000 სიმბოლო.',
   'property parentId should not exist': 'მშობელი კატეგორიის შეცვლა შეუძლებელია.',
   'front must be longer than or equal to 1 characters': 'წინა მხარე სავალდებულოა.',
   'back must be longer than or equal to 1 characters': 'ფაქტი სავალდებულოა.',
@@ -95,6 +115,11 @@ const FLASHCARD_SUBCATEGORIES_CONFLICT =
 const FLASHCARD_CARDS_CONFLICT =
   /^Flashcard category is used by (\d+) flashcard\(s\); move or delete them first$/;
 
+const QUIZ_CATEGORY_SUBCATEGORIES_CONFLICT =
+  /^Quiz category has (\d+) subcategory\(ies\); delete them first$/;
+const QUIZ_CATEGORY_QUIZZES_CONFLICT =
+  /^Quiz category is used by (\d+) quiz\(zes\); move or delete them first$/;
+
 const PATTERNS: readonly (readonly [RegExp, (match: RegExpMatchArray) => string])[] = [
   [
     PACKAGES_CONFLICT,
@@ -115,6 +140,38 @@ const PATTERNS: readonly (readonly [RegExp, (match: RegExpMatchArray) => string]
   [
     FLASHCARD_CARDS_CONFLICT,
     (match) => `კატეგორია გამოიყენება ${match[1]} ფლეშბარათში. ჯერ გადაიტანეთ ან წაშალეთ ისინი.`,
+  ],
+  [
+    QUIZ_CATEGORY_SUBCATEGORIES_CONFLICT,
+    (match) => `კატეგორიას აქვს ${match[1]} ქვეკატეგორია. ჯერ ისინი წაშალეთ.`,
+  ],
+  [
+    QUIZ_CATEGORY_QUIZZES_CONFLICT,
+    (match) => `კატეგორია გამოიყენება ${match[1]} ქვიზში. ჯერ გადაიტანეთ ან წაშალეთ ისინი.`,
+  ],
+  [
+    /^Question (\d+) options must all be different$/,
+    (match) => `კითხვა ${match[1]}: ოთხივე პასუხი განსხვავებული უნდა იყოს.`,
+  ],
+  [
+    /^Question (\d+) image does not exist$/,
+    (match) => `კითხვა ${match[1]}: სურათი აღარ არსებობს. ატვირთეთ ხელახლა.`,
+  ],
+  [
+    /^Question (\d+) has an id that is not in this quiz/,
+    (match) => `კითხვა ${match[1]} ამ ქვიზს აღარ ეკუთვნის. გადატვირთეთ გვერდი.`,
+  ],
+  [
+    /^Question (\d+) repeats the id of another question$/,
+    (match) => `კითხვა ${match[1]} სხვა კითხვის ასლია. გადატვირთეთ გვერდი.`,
+  ],
+  [
+    /^Answer (\d+) refers to a question that is not in this quiz$/,
+    () => 'ქვიზი შეიცვალა თამაშის დროს. დაიწყეთ თავიდან.',
+  ],
+  [
+    /^Answer (\d+) repeats a question that was already answered$/,
+    () => 'ერთ კითხვას ორჯერ ვერ უპასუხებთ. დაიწყეთ თავიდან.',
   ],
   [/^Content references images that do not exist/, () => 'ტექსტში ჩასმული სურათი აღარ არსებობს.'],
   [
